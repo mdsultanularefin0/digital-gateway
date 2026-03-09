@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  giftcardvibe:
+    image: giftcardvibe-app:latest # Note: Portainer can build this if you use the "Build" option
+    container_name: giftcardvibe-app
+    ports:
+      - "8080:80"
+    environment:
+      - VITE_SUPABASE_PUBLISHABLE_KEY=${VITE_SUPABASE_PUBLISHABLE_KEY}
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+    restart: always
+    networks:
+      - webnet
+    volumes:
+      - /path/to/your/dist:/usr/share/nginx/html:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Note for Portainer: 
+# 1. Go to Stacks -> Add stack
+# 2. Name your stack (e.g., giftcardvibe)
+# 3. Paste this content into the Web editor
+# 4. Map your environment variables in the "Environment variables" section
+
+networks:
+  webnet:
+    external: true

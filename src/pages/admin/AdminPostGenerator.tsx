@@ -1,0 +1,825 @@
+import { useState, useRef, useEffect, useCallback } from "react";
+import { AdminLayout } from "@/components/AdminLayout";
+import { Button } from "@/components/ui/button";
+import { Download, Plus, X, ChevronDown, Upload, ImageIcon, Trash2 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+
+import mockupDatacamp from "@/assets/mockup-datacamp.png";
+import mockupCanva from "@/assets/mockup-canva.png";
+import mockupGrammarly from "@/assets/mockup-grammarly.png";
+import mockupCoursera from "@/assets/mockup-coursera.png";
+import mockupDefault from "@/assets/mockup-default.png";
+
+// ── Types ──────────────────────────────────────────────────────────────
+interface PostData {
+  productName: string;
+  tagline: string;
+  price: string;
+  originalPrice: string;
+  features: string[];
+  badge: string;
+  ctaText: string;
+  footerText: string;
+}
+
+// ── Product → Mockup mapping ──────────────────────────────────────────
+const MOCKUP_MAP: Record<string, string> = {
+  datacamp: mockupDatacamp,
+  canva: mockupCanva,
+  grammarly: mockupGrammarly,
+  coursera: mockupCoursera,
+};
+
+function getMockupForProduct(name: string): string {
+  const lower = name.toLowerCase();
+  for (const [key, src] of Object.entries(MOCKUP_MAP)) {
+    if (lower.includes(key)) return src;
+  }
+  return mockupDefault;
+}
+
+// ── Constants ──────────────────────────────────────────────────────────
+const TEMPLATES = [
+  { id: "square", label: "1080×1080", width: 1080, height: 1080 },
+  { id: "story", label: "1080×1920", width: 1080, height: 1920 },
+  { id: "landscape", label: "1920×1080", width: 1920, height: 1080 },
+  { id: "facebook", label: "1200×630", width: 1200, height: 630 },
+];
+
+const COLOR_PRESETS = [
+  { name: "Midnight", bg: "#0d0d0d", accent: "#ff5722", text: "#ffffff", card: "#ffffff" },
+  { name: "Ocean", bg: "#0a1628", accent: "#3b82f6", text: "#ffffff", card: "#f0f4ff" },
+  { name: "Emerald", bg: "#042f2e", accent: "#10b981", text: "#ffffff", card: "#ecfdf5" },
+  { name: "Crimson", bg: "#1c0a0a", accent: "#ef4444", text: "#ffffff", card: "#fef2f2" },
+  { name: "Sunset", bg: "#1a0f05", accent: "#f97316", text: "#ffffff", card: "#fff7ed" },
+  { name: "Rose", bg: "#1a0a14", accent: "#ec4899", text: "#ffffff", card: "#fdf2f8" },
+  { name: "Charcoal", bg: "#1a1a1a", accent: "#a855f7", text: "#ffffff", card: "#faf5ff" },
+  { name: "Gold", bg: "#1a1505", accent: "#eab308", text: "#ffffff", card: "#fefce8" },
+  { name: "Arctic", bg: "#f8fafc", accent: "#0ea5e9", text: "#0f172a", card: "#ffffff" },
+  { name: "Warm", bg: "#fdf6e3", accent: "#d97706", text: "#1a1a1a", card: "#ffffff" },
+];
+
+const SAMPLE_TEMPLATES: { name: string; data: PostData; colorIndex: number }[] = [
+  {
+    name: "DataCamp Pro",
+    data: {
+      productName: "DataCamp\nSubscription",
+      tagline: "Learn Python, SQL & Data Science from world-class instructors",
+      price: "৳999/yr",
+      originalPrice: "৳25,000/yr",
+      features: ["Full catalog access", "400+ courses", "AI-powered practice", "Certificates included"],
+      badge: "96% OFF",
+      ctaText: "ORDER NOW",
+      footerText: "Order now → digistack.shop",
+    },
+    colorIndex: 0,
+  },
+  {
+    name: "Canva Pro",
+    data: {
+      productName: "Canva\nPro",
+      tagline: "Design anything. Publish anywhere. No design skills needed.",
+      price: "৳350/yr",
+      originalPrice: "৳1,200/yr",
+      features: ["100M+ templates", "Brand Kit", "Background remover", "1TB cloud storage"],
+      badge: "BEST SELLER",
+      ctaText: "GET STARTED",
+      footerText: "Instant delivery • digistack.shop",
+    },
+    colorIndex: 5,
+  },
+  {
+    name: "Grammarly",
+    data: {
+      productName: "Grammarly\nPremium",
+      tagline: "Write confidently with AI-powered writing assistance",
+      price: "৳499/yr",
+      originalPrice: "৳12,000/yr",
+      features: ["Advanced grammar", "Tone detection", "Plagiarism checker", "Full rewrites"],
+      badge: "LIMITED",
+      ctaText: "ORDER NOW",
+      footerText: "Activate instantly → digistack.shop",
+    },
+    colorIndex: 2,
+  },
+  {
+    name: "Coursera Plus",
+    data: {
+      productName: "Coursera\nPlus",
+      tagline: "Unlimited access to 7,000+ courses from top universities",
+      price: "৳1,499/yr",
+      originalPrice: "৳42,000/yr",
+      features: ["Google & IBM certs", "University courses", "Guided projects", "Unlimited certs"],
+      badge: "96% OFF",
+      ctaText: "START LEARNING",
+      footerText: "Start learning today • digistack.shop",
+    },
+    colorIndex: 7,
+  },
+];
+
+const emptyData: PostData = {
+  productName: "",
+  tagline: "",
+  price: "",
+  originalPrice: "",
+  features: [""],
+  badge: "BEST DEAL",
+  ctaText: "ORDER NOW",
+  footerText: "",
+};
+
+// ── Component ──────────────────────────────────────────────────────────
+export default function AdminPostGenerator() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [data, setData] = useState<PostData>(SAMPLE_TEMPLATES[0].data);
+  const [template, setTemplate] = useState(TEMPLATES[0]);
+  const [colors, setColors] = useState(COLOR_PRESETS[SAMPLE_TEMPLATES[0].colorIndex]);
+  const [customColors, setCustomColors] = useState({ bg: "", accent: "", text: "", card: "" });
+  const [useCustom, setUseCustom] = useState(false);
+  const [mockupImage, setMockupImage] = useState<HTMLImageElement | null>(null);
+  const [customImageUrl, setCustomImageUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeSection, setActiveSection] = useState<string | null>("content");
+
+  const activeColors = useCustom
+    ? {
+        bg: customColors.bg || "#0d0d0d",
+        accent: customColors.accent || "#ff5722",
+        text: customColors.text || "#ffffff",
+        card: customColors.card || "#ffffff",
+      }
+    : colors;
+
+  // Load product-specific mockup image (custom upload takes priority)
+  useEffect(() => {
+    const src = customImageUrl || getMockupForProduct(data.productName);
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => setMockupImage(img);
+    img.src = src;
+  }, [data.productName, customImageUrl]);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Please select an image file", variant: "destructive" });
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setCustomImageUrl(url);
+    toast({ title: "Custom image applied!" });
+  };
+
+  const clearCustomImage = () => {
+    if (customImageUrl) URL.revokeObjectURL(customImageUrl);
+    setCustomImageUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const addFeature = () => setData((d) => ({ ...d, features: [...d.features, ""] }));
+  const removeFeature = (i: number) =>
+    setData((d) => ({ ...d, features: d.features.filter((_, idx) => idx !== i) }));
+  const updateFeature = (i: number, val: string) =>
+    setData((d) => ({ ...d, features: d.features.map((f, idx) => (idx === i ? val : f)) }));
+
+  const toggleSection = (id: string) =>
+    setActiveSection((prev) => (prev === id ? null : id));
+
+  // ── Canvas Drawing ─────────────────────────────────────────────────
+  const drawCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const W = template.width;
+    const H = template.height;
+    canvas.width = W;
+    canvas.height = H;
+
+    const scale = Math.min(W, H) / 1080;
+    const isLandscape = W > H;
+
+    // ── Background ─────────────────────────────────────────────
+    ctx.fillStyle = activeColors.bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Subtle noise texture
+    ctx.globalAlpha = 0.025;
+    for (let i = 0; i < W * H * 0.0015; i++) {
+      ctx.fillStyle = activeColors.text;
+      ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
+    }
+    ctx.globalAlpha = 1;
+
+    // ── Layout Split ───────────────────────────────────────────
+    const splitX = isLandscape ? W * 0.42 : W * 0.4;
+    const cardMargin = 40 * scale;
+    const cardX = splitX;
+    const cardY = cardMargin;
+    const cardW = W - splitX - cardMargin;
+    const cardH = H - cardMargin * 2;
+
+    // White card on the right
+    ctx.fillStyle = activeColors.card;
+    ctx.fillRect(cardX, cardY, cardW, cardH);
+
+    // ── Product mockup image on card ──────────────────────────
+    if (mockupImage) {
+      const imgPad = 30 * scale;
+      const imgMaxW = cardW - imgPad * 2;
+      const imgMaxH = cardH * 0.38;
+      const imgAspect = mockupImage.width / mockupImage.height;
+      let imgW = imgMaxW;
+      let imgH = imgW / imgAspect;
+      if (imgH > imgMaxH) {
+        imgH = imgMaxH;
+        imgW = imgH * imgAspect;
+      }
+      const imgX = cardX + (cardW - imgW) / 2;
+      const imgY = cardY + cardH * 0.08;
+      ctx.drawImage(mockupImage, imgX, imgY, imgW, imgH);
+    }
+
+    // ── Price block on card ───────────────────────────────────
+    const priceBlockY = cardY + cardH * 0.52;
+
+    if (data.price) {
+      // Current price — bold & dominant
+      const priceSize = 56 * scale;
+      ctx.font = `900 ${Math.round(priceSize)}px "Plus Jakarta Sans", sans-serif`;
+      ctx.fillStyle = activeColors.bg;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(data.price, cardX + cardW / 2, priceBlockY);
+
+      // Original price — subtle strikethrough
+      if (data.originalPrice) {
+        const origSize = 22 * scale;
+        ctx.font = `400 ${Math.round(origSize)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.fillStyle = activeColors.bg + "44";
+        const origY = priceBlockY + priceSize * 0.6;
+        const origW = ctx.measureText(data.originalPrice).width;
+        ctx.fillText(data.originalPrice, cardX + cardW / 2, origY);
+        // Thin, subtle strikethrough
+        ctx.strokeStyle = activeColors.bg + "55";
+        ctx.lineWidth = 1.5 * scale;
+        ctx.beginPath();
+        ctx.moveTo(cardX + cardW / 2 - origW / 2 - 4, origY);
+        ctx.lineTo(cardX + cardW / 2 + origW / 2 + 4, origY);
+        ctx.stroke();
+      }
+    }
+
+    // ── CTA Button on card ────────────────────────────────────
+    if (data.ctaText) {
+      const ctaFontSize = 22 * scale;
+      ctx.font = `800 ${Math.round(ctaFontSize)}px "Plus Jakarta Sans", sans-serif`;
+      const ctaTextW = ctx.measureText(data.ctaText.toUpperCase()).width;
+      const ctaPadX = 50 * scale;
+      const ctaPadY = 20 * scale;
+      const ctaW = ctaTextW + ctaPadX * 2;
+      const ctaH = ctaFontSize + ctaPadY * 2;
+      const ctaX = cardX + (cardW - ctaW) / 2;
+      const ctaY = cardY + cardH * 0.68;
+      const ctaRadius = 4 * scale;
+
+      // Button background
+      ctx.fillStyle = activeColors.accent;
+      ctx.beginPath();
+      ctx.roundRect(ctaX, ctaY, ctaW, ctaH, ctaRadius);
+      ctx.fill();
+
+      // Button text
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(data.ctaText.toUpperCase(), ctaX + ctaW / 2, ctaY + ctaH / 2);
+    }
+
+    // Footer on card
+    if (data.footerText) {
+      const footSize = 15 * scale;
+      ctx.font = `500 ${Math.round(footSize)}px "Plus Jakarta Sans", sans-serif`;
+      ctx.fillStyle = activeColors.bg + "44";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.fillText(data.footerText, cardX + cardW / 2, cardY + cardH - 22 * scale);
+    }
+
+    // ── Left Side — Product Mockup Context ────────────────────
+    // Draw a layered software-window mockup with the product mockup inside
+    if (mockupImage) {
+      const frameW = (splitX - 80 * scale) * 0.85;
+      const frameH = frameW * 0.7;
+      const frameX = (splitX - frameW) / 2;
+      const frameY = H - frameH - 60 * scale;
+
+      // Shadow
+      ctx.fillStyle = "rgba(0,0,0,0.18)";
+      ctx.beginPath();
+      ctx.roundRect(frameX + 6 * scale, frameY + 6 * scale, frameW, frameH, 6 * scale);
+      ctx.fill();
+
+      // Window frame
+      ctx.fillStyle = activeColors.text === "#ffffff" ? "#1a1a1a" : "#f0f0f0";
+      ctx.beginPath();
+      ctx.roundRect(frameX, frameY, frameW, frameH, 6 * scale);
+      ctx.fill();
+
+      // Title bar
+      const titleBarH = 28 * scale;
+      ctx.fillStyle = activeColors.accent + "22";
+      ctx.fillRect(frameX, frameY, frameW, titleBarH);
+
+      // Window dots
+      const dotR = 4 * scale;
+      [activeColors.accent, activeColors.text + "33", activeColors.text + "33"].forEach((c, i) => {
+        ctx.fillStyle = c;
+        ctx.beginPath();
+        ctx.arc(frameX + 16 * scale + i * 16 * scale, frameY + titleBarH / 2, dotR, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Product image inside the window
+      const innerPad = 8 * scale;
+      const innerY = frameY + titleBarH + innerPad;
+      const innerW = frameW - innerPad * 2;
+      const innerH = frameH - titleBarH - innerPad * 2;
+      const imgAspect = mockupImage.width / mockupImage.height;
+      let drawW = innerW;
+      let drawH = drawW / imgAspect;
+      if (drawH > innerH) { drawH = innerH; drawW = drawH * imgAspect; }
+      const drawX = frameX + innerPad + (innerW - drawW) / 2;
+      const drawY = innerY + (innerH - drawH) / 2;
+      ctx.drawImage(mockupImage, drawX, drawY, drawW, drawH);
+    }
+
+    // ── Left Side Text ──────────────────────────────────────────
+    ctx.textAlign = "left";
+    const padX = 50 * scale;
+    const maxTextW = splitX - padX * 2;
+    let currentY = H * 0.1;
+
+    // Badge — sharp corners, accent color
+    if (data.badge) {
+      ctx.fillStyle = activeColors.accent;
+      const badgeFont = `800 ${Math.round(15 * scale)}px "Plus Jakarta Sans", sans-serif`;
+      ctx.font = badgeFont;
+      const badgeText = data.badge.toUpperCase();
+      const badgeMetrics = ctx.measureText(badgeText);
+      const bpx = 16 * scale;
+      const bpy = 9 * scale;
+      const bw = badgeMetrics.width + bpx * 2;
+      const bh = 15 * scale + bpy * 2;
+
+      ctx.fillRect(padX, currentY, bw, bh);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.textBaseline = "middle";
+      ctx.fillText(badgeText, padX + bpx, currentY + bh / 2);
+      currentY += bh + 40 * scale;
+    }
+
+    // Product Name
+    if (data.productName) {
+      const nameSize = isLandscape ? 56 * scale : 64 * scale;
+      ctx.font = `900 ${Math.round(nameSize)}px "Plus Jakarta Sans", serif`;
+      ctx.fillStyle = activeColors.text;
+      ctx.textBaseline = "top";
+
+      const nameLines = data.productName.split("\n");
+      nameLines.forEach((rawLine) => {
+        const wrapped = wrapText(ctx, rawLine, maxTextW);
+        wrapped.forEach((line) => {
+          ctx.fillText(line, padX, currentY);
+          currentY += nameSize * 1.1;
+        });
+      });
+      currentY += 20 * scale;
+    }
+
+    // Thin accent divider
+    ctx.fillStyle = activeColors.accent;
+    ctx.fillRect(padX, currentY, 60 * scale, 3 * scale);
+    currentY += 32 * scale;
+
+    // Tagline
+    if (data.tagline) {
+      const tagSize = 19 * scale;
+      ctx.font = `400 ${Math.round(tagSize)}px "Plus Jakarta Sans", sans-serif`;
+      ctx.fillStyle = activeColors.text + "88";
+      ctx.textBaseline = "top";
+
+      const lines = wrapText(ctx, data.tagline, maxTextW);
+      lines.forEach((line) => {
+        ctx.fillText(line, padX, currentY);
+        currentY += tagSize * 1.55;
+      });
+      // Increased negative space before features
+      currentY += 40 * scale;
+    }
+
+    // Features — minimal accent dots
+    const activeFeatures = data.features.filter((f) => f.trim());
+    if (activeFeatures.length > 0) {
+      const featSize = 17 * scale;
+
+      activeFeatures.forEach((feat) => {
+        ctx.fillStyle = activeColors.accent;
+        ctx.beginPath();
+        ctx.arc(padX + 5 * scale, currentY + featSize * 0.55, 3.5 * scale, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = `400 ${Math.round(featSize)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.fillStyle = activeColors.text + "aa";
+        ctx.textBaseline = "top";
+        ctx.fillText(feat, padX + 20 * scale, currentY);
+        currentY += featSize * 2;
+      });
+    }
+
+    // ── Bottom accent bar ──────────────────────────────────────
+    ctx.fillStyle = activeColors.accent;
+    ctx.fillRect(0, H - 5 * scale, W, 5 * scale);
+  }, [data, template, activeColors, mockupImage]);
+
+  useEffect(() => {
+    drawCanvas();
+  }, [drawCanvas]);
+
+  const downloadImage = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const link = document.createElement("a");
+    link.download = `${data.productName?.replace(/\n/g, "-") || "post"}-${template.id}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    toast({ title: "Image downloaded!" });
+  };
+
+  // ── Render ──────────────────────────────────────────────────────────
+  return (
+    <AdminLayout>
+      <div className="max-w-7xl">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-xl font-display font-bold tracking-tight">POST GENERATOR</h2>
+            <p className="text-xs text-muted-foreground tracking-wide mt-0.5">
+              Create editorial-grade social media images
+            </p>
+          </div>
+          <Button onClick={downloadImage} variant="default" className="gap-2 rounded-[4px]">
+            <Download className="h-4 w-4" /> EXPORT PNG
+          </Button>
+        </div>
+
+        <div className="grid gap-8 lg:grid-cols-[340px,1fr]">
+          {/* ── Controls Sidebar ────────────────────────────────── */}
+          <div className="order-2 lg:order-1 space-y-3">
+            {/* Quick Templates */}
+            <BentoSection title="TEMPLATES" id="templates" active={activeSection} onToggle={toggleSection}>
+              <div className="grid grid-cols-2 gap-1.5">
+                {SAMPLE_TEMPLATES.map((t) => (
+                  <button
+                    key={t.name}
+                    onClick={() => {
+                      setData(t.data);
+                      setColors(COLOR_PRESETS[t.colorIndex]);
+                      setUseCustom(false);
+                    }}
+                    className="text-left text-[11px] px-3 py-2.5 rounded-[4px] border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all group"
+                  >
+                    <span className="font-bold text-foreground block group-hover:text-primary transition-colors">{t.name}</span>
+                    <span className="text-muted-foreground">{t.data.price}</span>
+                  </button>
+                ))}
+                <button
+                  onClick={() => setData(emptyData)}
+                  className="text-[11px] px-3 py-2.5 rounded-[4px] border border-dashed border-border/60 hover:border-primary/40 text-muted-foreground hover:text-foreground transition-all col-span-2"
+                >
+                  + Start blank
+                </button>
+              </div>
+            </BentoSection>
+
+            {/* Size */}
+            <BentoSection title="SIZE" id="size" active={activeSection} onToggle={toggleSection}>
+              <div className="grid grid-cols-2 gap-1.5">
+                {TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setTemplate(t)}
+                    className={`text-[11px] font-medium px-3 py-2 rounded-[4px] border transition-all ${
+                      template.id === t.id
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border/60 text-muted-foreground hover:border-foreground/20"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </BentoSection>
+
+            {/* Color Palette */}
+            <BentoSection title="COLOR PALETTE" id="colors" active={activeSection} onToggle={toggleSection}>
+              <div className="grid grid-cols-5 gap-2 mb-3">
+                {COLOR_PRESETS.map((c) => (
+                  <button
+                    key={c.name}
+                    onClick={() => { setColors(c); setUseCustom(false); }}
+                    title={c.name}
+                    className={`group relative aspect-square rounded-[4px] border-2 transition-all overflow-hidden ${
+                      !useCustom && colors.name === c.name
+                        ? "border-primary scale-105 shadow-sm"
+                        : "border-transparent hover:border-foreground/20"
+                    }`}
+                  >
+                    <div className="absolute inset-0" style={{ background: c.bg }} />
+                    <div className="absolute bottom-0 left-0 right-0 h-[40%]" style={{ background: c.accent }} />
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/10" />
+                  </button>
+                ))}
+              </div>
+              <label className="flex items-center gap-2 text-[11px] text-muted-foreground cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useCustom}
+                  onChange={(e) => setUseCustom(e.target.checked)}
+                  className="rounded-[2px] border-border"
+                />
+                Custom colors
+              </label>
+              {useCustom && (
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  {(["bg", "accent", "text", "card"] as const).map((key) => (
+                    <div key={key} className="flex items-center gap-1.5">
+                      <input
+                        type="color"
+                        value={customColors[key] || activeColors[key]}
+                        onChange={(e) => setCustomColors((p) => ({ ...p, [key]: e.target.value }))}
+                        className="w-7 h-7 rounded-[4px] cursor-pointer border border-border/60 p-0.5"
+                      />
+                      <div className="flex-1">
+                        <span className="text-[9px] uppercase text-muted-foreground font-medium tracking-wider block">{key}</span>
+                        <input
+                          type="text"
+                          value={customColors[key] || activeColors[key]}
+                          onChange={(e) => setCustomColors((p) => ({ ...p, [key]: e.target.value }))}
+                          className="w-full h-6 rounded-[4px] border border-border/60 bg-background px-1.5 text-[10px] font-mono"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </BentoSection>
+
+            {/* Product Image */}
+            <BentoSection title="PRODUCT IMAGE" id="image" active={activeSection} onToggle={toggleSection}>
+              <div className="space-y-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                {customImageUrl ? (
+                  <div className="relative rounded-[4px] border border-border/60 overflow-hidden bg-muted/20">
+                    <img
+                      src={customImageUrl}
+                      alt="Custom product"
+                      className="w-full h-28 object-contain p-2"
+                    />
+                    <button
+                      onClick={clearCustomImage}
+                      className="absolute top-1.5 right-1.5 p-1 rounded-[4px] bg-background/90 border border-border/60 text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full h-24 rounded-[4px] border border-dashed border-border/60 hover:border-primary/40 flex flex-col items-center justify-center gap-1.5 text-muted-foreground hover:text-foreground transition-all group"
+                  >
+                    <Upload className="h-5 w-5 group-hover:text-primary transition-colors" />
+                    <span className="text-[11px]">Upload custom image</span>
+                  </button>
+                )}
+                <p className="text-[10px] text-muted-foreground">
+                  {customImageUrl ? "Custom image active" : "Auto-selects based on product name"}
+                </p>
+                {customImageUrl && (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-[11px] text-primary hover:underline flex items-center gap-1"
+                  >
+                    <ImageIcon className="h-3 w-3" /> Replace image
+                  </button>
+                )}
+              </div>
+            </BentoSection>
+
+            {/* Content — logically ordered */}
+            <BentoSection title="CONTENT" id="content" active={activeSection} onToggle={toggleSection} defaultOpen>
+              <div className="space-y-3">
+                <FieldInput
+                  label="Product Name"
+                  value={data.productName}
+                  onChange={(v) => setData((d) => ({ ...d, productName: v }))}
+                  placeholder="e.g. DataCamp Subscription"
+                  multiline
+                />
+                <FieldInput
+                  label="Tagline / Description"
+                  value={data.tagline}
+                  onChange={(v) => setData((d) => ({ ...d, tagline: v }))}
+                  placeholder="One-line product description"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <FieldInput
+                    label="Price"
+                    value={data.price}
+                    onChange={(v) => setData((d) => ({ ...d, price: v }))}
+                    placeholder="৳999"
+                  />
+                  <FieldInput
+                    label="Original Price"
+                    value={data.originalPrice}
+                    onChange={(v) => setData((d) => ({ ...d, originalPrice: v }))}
+                    placeholder="৳25,000"
+                  />
+                </div>
+                <FieldInput
+                  label="Badge Text"
+                  value={data.badge}
+                  onChange={(v) => setData((d) => ({ ...d, badge: v }))}
+                  placeholder="e.g. 96% OFF, LIMITED"
+                />
+                <FieldInput
+                  label="CTA Button Text"
+                  value={data.ctaText}
+                  onChange={(v) => setData((d) => ({ ...d, ctaText: v }))}
+                  placeholder="e.g. ORDER NOW, GET STARTED"
+                />
+                <FieldInput
+                  label="Footer Text"
+                  value={data.footerText}
+                  onChange={(v) => setData((d) => ({ ...d, footerText: v }))}
+                  placeholder="e.g. Order now → digistack.shop"
+                />
+              </div>
+            </BentoSection>
+
+            {/* Features */}
+            <BentoSection title="FEATURES" id="features" active={activeSection} onToggle={toggleSection}>
+              <div className="space-y-1.5">
+                {data.features.map((feat, i) => (
+                  <div key={i} className="flex gap-1.5">
+                    <input
+                      value={feat}
+                      onChange={(e) => updateFeature(i, e.target.value)}
+                      placeholder={`Feature ${i + 1}`}
+                      className="h-8 flex-1 rounded-[4px] border border-border/60 bg-background px-2.5 text-xs font-body focus:outline-none focus:border-primary/50 transition-colors"
+                    />
+                    {data.features.length > 1 && (
+                      <button
+                        onClick={() => removeFeature(i)}
+                        className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  onClick={addFeature}
+                  className="text-[11px] text-primary hover:underline flex items-center gap-1 mt-1"
+                >
+                  <Plus className="h-3 w-3" /> Add feature
+                </button>
+              </div>
+            </BentoSection>
+          </div>
+
+          {/* ── Canvas Preview ──────────────────────────────────── */}
+          <div className="order-1 lg:order-2 sticky top-20">
+            <div
+              className="rounded-[4px] border border-border/40 p-6 flex items-center justify-center"
+              style={{
+                background: "linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 25%, #f0f0f0 50%, #e5e5e5 75%, #f2f2f2 100%)",
+              }}
+            >
+              <canvas
+                ref={canvasRef}
+                className="max-w-full h-auto rounded-[4px] shadow-lg"
+                style={{ maxHeight: "72vh" }}
+              />
+            </div>
+            <p className="text-[10px] text-muted-foreground text-center mt-2 tracking-wider uppercase">
+              {template.width} × {template.height}px — PNG
+            </p>
+          </div>
+        </div>
+      </div>
+    </AdminLayout>
+  );
+}
+
+// ── Sub-components ──────────────────────────────────────────────────────
+
+function BentoSection({
+  title,
+  id,
+  active,
+  onToggle,
+  defaultOpen,
+  children,
+}: {
+  title: string;
+  id: string;
+  active: string | null;
+  onToggle: (id: string) => void;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const isOpen = active === id || (active === null && defaultOpen);
+
+  return (
+    <div className="rounded-[4px] border border-border/50 bg-background overflow-hidden">
+      <button
+        onClick={() => onToggle(id)}
+        className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-muted/30 transition-colors"
+      >
+        <span className="text-[11px] font-bold tracking-widest text-foreground/80">{title}</span>
+        <ChevronDown
+          className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
+      </button>
+      {isOpen && <div className="px-4 pb-4 pt-1">{children}</div>}
+    </div>
+  );
+}
+
+function FieldInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+  multiline,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  multiline?: boolean;
+}) {
+  return (
+    <div>
+      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 block">
+        {label}
+      </label>
+      {multiline ? (
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          rows={2}
+          className="w-full rounded-[4px] border border-border/60 bg-background px-2.5 py-2 text-xs font-body focus:outline-none focus:border-primary/50 transition-colors resize-none"
+        />
+      ) : (
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="h-8 w-full rounded-[4px] border border-border/60 bg-background px-2.5 text-xs font-body focus:outline-none focus:border-primary/50 transition-colors"
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let currentLine = "";
+  for (const word of words) {
+    const testLine = currentLine ? currentLine + " " + word : word;
+    if (ctx.measureText(testLine).width > maxWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+  return lines;
+}

@@ -1,0 +1,24 @@
+services:
+  giftcardvibe:
+    container_name: giftcardvibe-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    env_file:
+      - .env
+    restart: always
+    networks:
+      - webnet
+    volumes:
+      - ./dist:/usr/share/nginx/html:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  webnet:
+    external: true
