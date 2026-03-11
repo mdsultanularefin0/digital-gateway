@@ -63,6 +63,7 @@ export default function AdminOrders() {
       const { error } = await supabase.from("orders").update({ status }).eq("id", id);
       if (error) throw error;
       fireWebhook(id, "order.status_changed");
+      logActivity("Updated order status", "order", id, `Status changed to ${status}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
