@@ -25,6 +25,42 @@ async function getMailConfig(supabase: any) {
   return cfg;
 }
 
+function normalizeEmail(input: string): string {
+  const trimmed = input.trim();
+  const angleMatch = trimmed.match(/<([^>]+)>/);
+  return (angleMatch?.[1] ?? trimmed).replace(/^mailto:/i, "").trim().toLowerCase();
+}
+
+function validateOutboundEmail(to: string, subject: string, body: string) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+    throw new Error("Invalid recipient email");
+  }
+
+  if (subject.length < 4) {
+    throw new Error("Subject is too short; please use at least 4 characters");
+  }
+
+  if (body.length < 20) {
+    throw new Error("Message is too short; please provide more details");
+  }
+
+  const lettersOnly = body.replace(/[^a-z]/gi, "");
+  if (lettersOnly.length >= 20) {
+    const vowels = (lettersOnly.match(/[aeiou]/gi) || []).length;
+    const ratio = vowels / lettersOnly.length;
+    if (ratio < 0.22) {
+      throw new Error("Message looks spam-like; please write a clearer sentence");
+    }
+  }
+}
+
+function dotStuff(text: string): string {
+  return text
+    .split(/\r?\n/)
+    .map((line) => (line.startsWith(".") ? `.${line}` : line))
+    .join("\r\n");
+}
+
 // Minimal SMTP client over raw TCP (Deno)
 async function smtpSend(cfg: Record<string, string>, to: string, subject: string, body: string) {
   const host = cfg.smtp_host || "";
@@ -35,6 +71,12 @@ async function smtpSend(cfg: Record<string, string>, to: string, subject: string
   const from = cfg.smtp_from || user;
 
   if (!host || !user || !pass) throw new Error("SMTP not configured");
+
+  const normalizedTo = normalizeEmail(to);
+  const normalizedFrom = normalizeEmail(from);
+  const safeSubject = subject.replace(/[\r\n]+/g, " ").trim();
+  const safeBody = body.replace(/\r?\n/g, "\n").trim();
+  validateOutboundEmail(normalizedTo, safeSubject, safeBody);
 
   const useTls = encryption === "ssl" || port === 465;
   let conn: Deno.Conn;
@@ -48,20 +90,16 @@ async function smtpSend(cfg: Record<string, string>, to: string, subject: string
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 
-  // Read all available data from the connection, handling multi-line responses
   async function readResponse(): Promise<string> {
     let result = "";
     const buf = new Uint8Array(8192);
-    // Keep reading until we get a line that matches "NNN " (final line of multi-line)
     while (true) {
       const n = await conn.read(buf);
       if (!n) break;
       result += decoder.decode(buf.subarray(0, n));
-      // Check if last line is a final response (e.g. "250 OK" not "250-...")
       const lines = result.trim().split("\n");
       const lastLine = lines[lines.length - 1].trim();
       if (/^\d{3} /.test(lastLine) || /^\d{3}$/.test(lastLine)) break;
-      // Also break if we have enough data and no more continuation
       if (result.length > 4096) break;
     }
     return result;
@@ -73,53 +111,49 @@ async function smtpSend(cfg: Record<string, string>, to: string, subject: string
   }
 
   try {
-    // Read greeting
     await readResponse();
-
-    // Initial EHLO
     await send("EHLO localhost");
 
-    // STARTTLS for non-SSL connections
     if (!useTls && encryption === "tls") {
       await send("STARTTLS");
       conn = await Deno.startTls(conn as Deno.TcpConn, { hostname: host });
-      // Re-EHLO after TLS upgrade
       await send("EHLO localhost");
     }
 
-    // AUTH PLAIN (more widely supported than AUTH LOGIN)
     const authPlain = btoa(`\0${user}\0${pass}`);
     const authResp = await send(`AUTH PLAIN ${authPlain}`);
     if (!authResp.includes("235")) {
-      // Fallback to AUTH LOGIN
       await send("AUTH LOGIN");
       await send(btoa(user));
       const loginResp = await send(btoa(pass));
       if (!loginResp.includes("235")) throw new Error("SMTP auth failed: " + loginResp.trim());
     }
 
-    const mailFromResp = await send(`MAIL FROM:<${from}>`);
+    const mailFromResp = await send(`MAIL FROM:<${normalizedFrom}>`);
     if (!mailFromResp.includes("250")) throw new Error("MAIL FROM failed: " + mailFromResp.trim());
 
-    const rcptResp = await send(`RCPT TO:<${to}>`);
+    const rcptResp = await send(`RCPT TO:<${normalizedTo}>`);
     if (!rcptResp.includes("250")) throw new Error("RCPT TO failed: " + rcptResp.trim());
 
     await send("DATA");
 
-    // Build message with proper headers including Date and Message-ID
     const now = new Date();
     const messageId = `<${crypto.randomUUID()}@${host}>`;
+    const plainBody = dotStuff(`${safeBody}\r\n\r\n—\r\nGiftCardVibe Support`);
     const msg = [
       `Date: ${now.toUTCString()}`,
-      `From: ${from}`,
-      `To: ${to}`,
-      `Subject: ${subject}`,
+      `From: GiftCardVibe Support <${normalizedFrom}>`,
+      `Reply-To: ${normalizedFrom}`,
+      `To: ${normalizedTo}`,
+      `Subject: ${safeSubject}`,
       `Message-ID: ${messageId}`,
       `MIME-Version: 1.0`,
       `Content-Type: text/plain; charset=utf-8`,
-      ``,
-      body,
-      `.`,
+      `Content-Transfer-Encoding: 8bit`,
+      `X-Mailer: GiftCardVibe Support`,
+      "",
+      plainBody,
+      ".",
     ].join("\r\n");
 
     const dataResp = await send(msg);
@@ -319,9 +353,11 @@ Deno.serve(async (req) => {
       }
 
       case "send-email": {
-        const { to, subject, body } = params;
+        const to = String(params.to || "").trim();
+        const subject = String(params.subject || "").trim();
+        const body = String(params.body || "").trim();
         if (!to || !subject) return json({ error: "Missing to/subject" }, 400);
-        const result = await smtpSend(cfg, to, subject, body || "");
+        const result = await smtpSend(cfg, to, subject, body);
         return json({ success: true, result });
       }
 
