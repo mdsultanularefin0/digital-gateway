@@ -58,7 +58,7 @@ export function ProductCard({ product }: { product: Product }) {
         {/* Stock badge */}
         {!inStock && (
           <span className="absolute top-3 left-3 rounded-[4px] bg-destructive/90 px-2.5 py-1 text-xs font-semibold text-destructive-foreground backdrop-blur-sm">
-            {t("product.outOfStock")}
+            Out of Stock
           </span>
         )}
       </div>
@@ -75,7 +75,7 @@ export function ProductCard({ product }: { product: Product }) {
           ))}
           {inStock && (
             <span className="rounded-[4px] bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">
-              {t("product.inStock")}
+              In Stock
             </span>
           )}
         </div>
