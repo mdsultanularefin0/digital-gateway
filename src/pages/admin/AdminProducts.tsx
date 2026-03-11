@@ -267,6 +267,7 @@ export default function AdminProducts() {
   }
 
   if (editing) {
+    return (
       <AdminLayout>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-display font-bold">{isNew ? "New Product" : "Edit Product"}</h2>
