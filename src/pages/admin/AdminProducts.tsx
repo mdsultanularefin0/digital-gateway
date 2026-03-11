@@ -112,7 +112,21 @@ export default function AdminProducts() {
           const { error } = await supabase.from("product_tiers").insert(tierRows);
           if (error) throw error;
         }
-      }
+
+        // Save images: delete existing, then insert current
+        if (productId) {
+          await supabase.from("product_images").delete().eq("product_id", productId);
+          if (images.length > 0) {
+            const imgRows = images.map((img, i) => ({
+              product_id: productId!,
+              image_url: img.image_url,
+              alt_text: img.alt_text,
+              sort_order: i,
+            }));
+            const { error } = await supabase.from("product_images").insert(imgRows);
+            if (error) throw error;
+          }
+        }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
