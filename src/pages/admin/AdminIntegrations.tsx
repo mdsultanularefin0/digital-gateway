@@ -17,10 +17,6 @@ const BKASH_FIELDS = [
       { value: "false", label: "Production (Live)" },
     ]
   },
-  { key: "bkash_app_key", label: "App Key", placeholder: "bKash App Key", sensitive: true },
-  { key: "bkash_app_secret", label: "App Secret", placeholder: "bKash App Secret", sensitive: true },
-  { key: "bkash_username", label: "Username", placeholder: "bKash merchant username", sensitive: true },
-  { key: "bkash_password", label: "Password", placeholder: "bKash merchant password", sensitive: true },
 ];
 
 
