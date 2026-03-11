@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, Users, BarChart3, Tag, MessageSquare, Settings, LogOut, Menu, X, Zap, ChevronLeft, Plug, ImageIcon, Mail, Inbox, Clock } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, BarChart3, Tag, MessageSquare, Settings, LogOut, Menu, X, Zap, ChevronLeft, Plug, ImageIcon, Mail, Inbox, Clock, Newspaper } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 
