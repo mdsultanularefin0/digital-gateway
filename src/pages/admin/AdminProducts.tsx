@@ -343,6 +343,7 @@ export default function AdminProducts() {
             )}
           </div>
 
+          <div>
             <label className="text-sm font-medium mb-1 block">External URL *</label>
             <input required value={editing.external_url ?? ""} onChange={(e) => setEditing({ ...editing, external_url: e.target.value })} className={inputClass} placeholder="https://..." />
           </div>
