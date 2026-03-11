@@ -133,34 +133,17 @@ export default function CheckoutPage() {
 
     setSubmitting(true);
     try {
-      // 1. Create or find customer
-      const { data: existingCustomer, error: lookupErr } = await supabase
-        .from("customers")
-        .select("id")
-        .eq("email", form.email.trim())
-        .maybeSingle();
-
-      if (lookupErr) throw lookupErr;
-
-      let customerId: string;
-      if (existingCustomer) {
-        customerId = existingCustomer.id;
-        const { error: updateErr } = await supabase.from("customers").update({
-          name: form.name, phone: form.phone, address: form.address,
-        }).eq("id", customerId);
-        if (updateErr) throw updateErr;
-      } else {
-        const { data: newCustomer, error: custErr } = await supabase
-          .from("customers")
-          .insert({
-            name: form.name, email: form.email.trim(), phone: form.phone,
-            address: form.address,
-          })
-          .select("id")
-          .single();
-        if (custErr) throw custErr;
-        customerId = newCustomer.id;
-      }
+      // 1. Create or find customer via secure server-side function
+      const { data: customerId, error: custErr } = await supabase.rpc(
+        "upsert_checkout_customer",
+        {
+          _email: form.email.trim(),
+          _name: form.name,
+          _phone: form.phone,
+          _address: form.address,
+        }
+      );
+      if (custErr) throw custErr;
 
       // 2. Create order
       const { data: order, error: orderErr } = await supabase
@@ -218,7 +201,6 @@ export default function CheckoutPage() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              amount: total.toFixed(2),
               orderId: order.id,
               callbackURL,
               payerReference: form.phone,
