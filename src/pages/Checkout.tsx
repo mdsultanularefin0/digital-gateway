@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
+import { trackInitiateCheckout, trackPurchase } from "@/lib/meta-pixel";
 
 interface CheckoutForm {
   name: string;
