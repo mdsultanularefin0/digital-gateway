@@ -86,6 +86,7 @@ function mapRow(headers: string[], values: string[]): ParsedProduct | null {
     billing_cycle: get("billing_cycle") || "monthly",
     features: get("features").split(";").map((f) => f.trim()).filter(Boolean),
     external_url: get("external_url") || "#",
+    image_url: get("image_url") || "",
     featured: get("featured").toLowerCase() === "true",
     published: get("published") !== "" ? get("published").toLowerCase() === "true" : true,
   };
