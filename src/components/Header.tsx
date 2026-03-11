@@ -22,6 +22,7 @@ export function Header() {
   const location = useLocation();
   const { data: settings } = useSiteSettings();
   const { itemCount, setIsOpen } = useCart();
+  const { itemCount: wishlistCount } = useWishlist();
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10);
