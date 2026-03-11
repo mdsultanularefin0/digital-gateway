@@ -58,7 +58,7 @@ export default function OrderTrackPage() {
         _email: email.trim(),
       });
       if (error) throw error;
-      setOrder(data as OrderData | null);
+      setOrder(data as unknown as OrderData | null);
       if (!data) {
         toast({ title: "Order not found", description: "Please check your order number and email.", variant: "destructive" });
       }
