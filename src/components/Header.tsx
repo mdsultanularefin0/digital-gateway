@@ -43,7 +43,7 @@ export function Header() {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  const siteName = settings?.site_name || "DigiStack";
+  const siteName = settings?.site_name || "GiftCardVibe";
   const logoUrl = settings?.logo_url;
 
   return (
