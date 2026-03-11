@@ -1,17 +1,20 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Check, ShoppingCart, Star } from "lucide-react";
+import { ArrowLeft, Check, ShoppingCart, Star, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/Layout";
 import { useProduct, faqs } from "@/data/products";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
+import { ProductImageGallery } from "@/components/ProductImageGallery";
+import { ReviewForm } from "@/components/ReviewForm";
 
 interface Tier {
   id: string;
@@ -21,6 +24,15 @@ interface Tier {
   sort_order: number;
 }
 
+interface Review {
+  id: string;
+  customer_name: string;
+  rating: number;
+  title: string;
+  content: string;
+  created_at: string;
+}
+
 export default function ProductDetailPage() {
   const { id } = useParams();
   const { data: product, isLoading } = useProduct(id ?? "");
@@ -28,6 +40,7 @@ export default function ProductDetailPage() {
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "$";
   const { addItem } = useCart();
+  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
 
   const { data: tiers } = useQuery({
     queryKey: ["product-tiers", id],
@@ -43,10 +56,33 @@ export default function ProductDetailPage() {
     enabled: !!id,
   });
 
+  const { data: reviews = [], refetch: refetchReviews } = useQuery({
+    queryKey: ["product-reviews", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("reviews_public")
+        .select("*")
+        .eq("product_id", id!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as Review[];
+    },
+    enabled: !!id,
+  });
+
+  const avgRating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length : 0;
+
   const hasTiers = tiers && tiers.length > 0;
   const activeTier = hasTiers ? tiers[selectedTierIdx] || tiers[0] : null;
   const baseTierPrice = hasTiers ? tiers[0].price : 0;
   const savings = activeTier && selectedTierIdx > 0 ? baseTierPrice - activeTier.price : 0;
+
+  const wishlisted = product ? isInWishlist(product.id) : false;
+  const toggleWishlist = () => {
+    if (!product) return;
+    if (wishlisted) removeFromWishlist(product.id);
+    else addToWishlist(product.id);
+  };
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -93,23 +129,40 @@ export default function ProductDetailPage() {
           </Link>
 
           <div className="grid gap-12 lg:grid-cols-2">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="aspect-video overflow-hidden rounded-[4px] border border-border bg-muted flex items-center justify-center relative"
-            >
-              <div className="gradient-bg opacity-10 absolute inset-0" />
-              <span className="text-6xl font-display font-bold text-muted-foreground/20">{product.name[0]}</span>
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+              <ProductImageGallery productId={product.id} fallbackLetter={product.name[0]} />
             </motion.div>
 
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {product.tags.map((tag) => (
-                  <span key={tag} className="rounded-[4px] bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{tag}</span>
-                ))}
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="flex flex-wrap gap-2">
+                  {product.tags.map((tag) => (
+                    <span key={tag} className="rounded-[4px] bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{tag}</span>
+                  ))}
+                </div>
+                <button
+                  onClick={toggleWishlist}
+                  className="shrink-0 flex h-10 w-10 items-center justify-center rounded-[4px] border border-border hover:bg-secondary transition-colors"
+                  aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                >
+                  <Heart className={`h-5 w-5 transition-colors ${wishlisted ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
+                </button>
               </div>
               <h1 className="text-3xl font-display font-bold md:text-4xl">{product.name}</h1>
               <p className="mt-2 text-lg text-muted-foreground">{product.tagline}</p>
+
+              {/* Rating summary */}
+              {reviews.length > 0 && (
+                <div className="flex items-center gap-2 mt-3">
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star key={i} className={`h-4 w-4 ${i <= Math.round(avgRating) ? "fill-primary text-primary" : "text-border"}`} />
+                    ))}
+                  </div>
+                  <span className="text-sm text-muted-foreground">{avgRating.toFixed(1)} ({reviews.length} review{reviews.length !== 1 ? "s" : ""})</span>
+                </div>
+              )}
+
               <p className="mt-6 text-muted-foreground leading-relaxed">{product.description}</p>
 
               {/* Subscription Selector */}
@@ -165,11 +218,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {savings > 0 && (
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-xs text-success mt-1"
-                  >
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-success mt-1">
                     You save {currencySymbol}{savings.toFixed(2)} compared to {tiers[0].label}
                   </motion.p>
                 )}
@@ -193,27 +242,37 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {product.testimonials.length > 0 && (
-            <div className="mt-20">
-              <h2 className="text-2xl font-display font-bold mb-8">What customers say</h2>
-              <div className="grid gap-6 md:grid-cols-2">
-                {product.testimonials.map((t) => (
-                  <div key={t.name} className="rounded-[4px] border border-border bg-card p-6 shadow-card">
+          {/* Customer Reviews */}
+          <div className="mt-20">
+            <h2 className="text-2xl font-display font-bold mb-8">
+              Customer Reviews
+              {reviews.length > 0 && <span className="text-muted-foreground text-lg font-normal ml-2">({reviews.length})</span>}
+            </h2>
+
+            {reviews.length > 0 ? (
+              <div className="grid gap-6 md:grid-cols-2 mb-10">
+                {reviews.map((r) => (
+                  <div key={r.id} className="rounded-[4px] border border-border bg-card p-6 shadow-card">
                     <div className="flex gap-1 mb-3">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <Star key={i} className={`h-4 w-4 ${i <= (r.rating || 0) ? "fill-primary text-primary" : "text-border"}`} />
                       ))}
                     </div>
-                    <p className="text-sm text-muted-foreground italic">"{t.quote}"</p>
-                    <div className="mt-4">
-                      <div className="font-medium text-sm">{t.name}</div>
-                      <div className="text-xs text-muted-foreground">{t.role}</div>
+                    {r.title && <p className="font-medium text-sm mb-1">{r.title}</p>}
+                    <p className="text-sm text-muted-foreground">{r.content}</p>
+                    <div className="mt-4 flex items-center justify-between">
+                      <span className="font-medium text-sm">{r.customer_name}</span>
+                      <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <p className="text-muted-foreground mb-8">No reviews yet. Be the first to review this product!</p>
+            )}
+
+            <ReviewForm productId={product.id} onSubmitted={() => refetchReviews()} />
+          </div>
 
           <div className="mt-20 max-w-2xl mx-auto">
             <h2 className="text-2xl font-display font-bold mb-8 text-center">Frequently Asked Questions</h2>

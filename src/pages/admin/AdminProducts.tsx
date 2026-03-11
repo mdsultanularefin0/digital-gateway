@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, X, GripVertical } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Upload, Loader2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
@@ -40,6 +40,8 @@ export default function AdminProducts() {
   const [tagsInput, setTagsInput] = useState("");
   const [featuresInput, setFeaturesInput] = useState("");
   const [tiers, setTiers] = useState<Tier[]>([]);
+  const [images, setImages] = useState<{ id?: string; image_url: string; alt_text: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["admin-products"],
@@ -64,6 +66,15 @@ export default function AdminProducts() {
         if (data) {
           setTiers(data.map((t) => ({ id: t.id, label: t.label, price: Number(t.price), badge: t.badge || "", sort_order: t.sort_order })));
         }
+      });
+    // Load images
+    supabase
+      .from("product_images")
+      .select("*")
+      .eq("product_id", editingId)
+      .order("sort_order", { ascending: true })
+      .then(({ data }) => {
+        if (data) setImages(data.map((img) => ({ id: img.id, image_url: img.image_url, alt_text: img.alt_text })));
       });
   }, [editingId]);
 
@@ -101,12 +112,28 @@ export default function AdminProducts() {
           const { error } = await supabase.from("product_tiers").insert(tierRows);
           if (error) throw error;
         }
+
+        // Save images: delete existing, then insert current
+        if (productId) {
+          await supabase.from("product_images").delete().eq("product_id", productId);
+          if (images.length > 0) {
+            const imgRows = images.map((img, i) => ({
+              product_id: productId!,
+              image_url: img.image_url,
+              alt_text: img.alt_text,
+              sort_order: i,
+            }));
+            const { error } = await supabase.from("product_images").insert(imgRows);
+            if (error) throw error;
+          }
+        }
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       setEditing(null);
       setTiers([]);
+      setImages([]);
       toast({ title: "Product saved" });
     },
     onError: (err: Error) => {
@@ -137,6 +164,7 @@ export default function AdminProducts() {
       setTagsInput("");
       setFeaturesInput("");
       setTiers([]);
+      setImages([]);
     }
   };
 
@@ -158,6 +186,31 @@ export default function AdminProducts() {
     setTiers(tiers.filter((_, i) => i !== index));
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        const ext = file.name.split(".").pop();
+        const path = `${crypto.randomUUID()}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from("product-images").upload(path, file);
+        if (uploadErr) throw uploadErr;
+        const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
+        setImages((prev) => [...prev, { image_url: urlData.publicUrl, alt_text: file.name.replace(/\.[^.]+$/, '') }]);
+      }
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages(images.filter((_, i) => i !== index));
+  };
+
   const inputClass = "h-10 w-full rounded-[4px] border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
 
   if (editing) {
@@ -165,7 +218,7 @@ export default function AdminProducts() {
       <AdminLayout>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-display font-bold">{isNew ? "New Product" : "Edit Product"}</h2>
-          <Button variant="ghost" size="sm" onClick={() => { setEditing(null); setTiers([]); }}>
+          <Button variant="ghost" size="sm" onClick={() => { setEditing(null); setTiers([]); setImages([]); }}>
             <X className="h-4 w-4 mr-1" /> Cancel
           </Button>
         </div>
@@ -253,6 +306,37 @@ export default function AdminProducts() {
                     <Button type="button" variant="ghost" size="icon" onClick={() => removeTier(i)} className="mb-0.5">
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Product Images */}
+          <div className="rounded-[4px] border border-border p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-xs font-medium tracking-executive uppercase text-muted-foreground">Product Images</h4>
+              <label className="cursor-pointer">
+                <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
+                <Button type="button" variant="outline-primary" size="sm" asChild disabled={uploading}>
+                  <span>{uploading ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Uploading...</> : <><Upload className="h-3 w-3 mr-1" /> Upload</>}</span>
+                </Button>
+              </label>
+            </div>
+            {images.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No images uploaded. A placeholder will be shown.</p>
+            ) : (
+              <div className="grid grid-cols-4 gap-3">
+                {images.map((img, i) => (
+                  <div key={i} className="relative group rounded-[4px] overflow-hidden border border-border">
+                    <img src={img.image_url} alt={img.alt_text} className="w-full aspect-square object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(i)}
+                      className="absolute top-1 right-1 h-6 w-6 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
                   </div>
                 ))}
               </div>

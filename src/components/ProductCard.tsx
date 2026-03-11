@@ -1,21 +1,58 @@
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Heart } from "lucide-react";
 import { type Product } from "@/data/products";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { useWishlist } from "@/contexts/WishlistContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export function ProductCard({ product }: { product: Product }) {
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "$";
+  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const wishlisted = isInWishlist(product.id);
+
+  const { data: firstImage } = useQuery({
+    queryKey: ["product-first-image", product.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("product_images")
+        .select("image_url")
+        .eq("product_id", product.id)
+        .order("sort_order", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      return data?.image_url || null;
+    },
+  });
+
+  const toggleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (wishlisted) removeFromWishlist(product.id);
+    else addToWishlist(product.id);
+  };
 
   return (
     <Link
       to={`/products/${product.id}`}
       className="group relative flex flex-col overflow-hidden rounded-[4px] glass-card transition-all duration-300 hover:shadow-glow hover:border-primary/30"
     >
-      <div className="aspect-video w-full overflow-hidden bg-secondary">
-        <div className="flex h-full items-center justify-center gradient-bg opacity-10 group-hover:opacity-20 transition-opacity duration-500">
-          <span className="text-4xl font-display font-bold text-foreground/20">{product.name[0]}</span>
-        </div>
+      <div className="aspect-video w-full overflow-hidden bg-secondary relative">
+        {firstImage ? (
+          <img src={firstImage} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        ) : (
+          <div className="flex h-full items-center justify-center gradient-bg opacity-10 group-hover:opacity-20 transition-opacity duration-500">
+            <span className="text-4xl font-display font-bold text-foreground/20">{product.name[0]}</span>
+          </div>
+        )}
+        <button
+          onClick={toggleWishlist}
+          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm border border-border hover:bg-background transition-colors z-10"
+          aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+        >
+          <Heart className={`h-4 w-4 transition-colors ${wishlisted ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
+        </button>
       </div>
 
       <div className="flex flex-1 flex-col p-6">
@@ -30,13 +67,13 @@ export function ProductCard({ product }: { product: Product }) {
           ))}
         </div>
 
-        <h3 className="text-lg font-display font-semibold text-silver-bright group-hover:text-primary transition-colors">
+        <h3 className="text-lg font-display font-semibold text-foreground group-hover:text-primary transition-colors">
           {product.name}
         </h3>
         <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{product.tagline}</p>
 
         <div className="mt-auto flex items-center justify-between pt-4 border-t border-border mt-4">
-          <span className="text-lg font-bold text-silver-bright">
+          <span className="text-lg font-bold text-foreground">
             {currencySymbol}{product.price}
           </span>
           <span className="flex items-center gap-1 text-sm text-primary font-medium group-hover:gap-2 transition-all">

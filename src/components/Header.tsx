@@ -1,14 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Zap, ShoppingCart, Search, User } from "lucide-react";
+import { Menu, X, Zap, ShoppingCart, Search, User, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useCart } from "@/contexts/CartContext";
 import { SearchOverlay } from "@/components/SearchOverlay";
+import { useWishlist } from "@/contexts/WishlistContext";
 
 const navLinks = [
   { label: "Products", to: "/products" },
+  { label: "Track Order", to: "/track" },
   { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" },
 ];
@@ -20,6 +22,7 @@ export function Header() {
   const location = useLocation();
   const { data: settings } = useSiteSettings();
   const { itemCount, setIsOpen } = useCart();
+  const { itemCount: wishlistCount } = useWishlist();
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10);
@@ -96,6 +99,18 @@ export function Header() {
               </span>
             )}
           </button>
+          <Link
+            to="/wishlist"
+            className="relative flex h-10 w-10 items-center justify-center rounded-[4px] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            aria-label="Wishlist"
+          >
+            <Heart className="h-5 w-5" />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                {wishlistCount}
+              </span>
+            )}
+          </Link>
           <Link
             to="/login"
             className="flex h-10 w-10 items-center justify-center rounded-[4px] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"

@@ -190,6 +190,13 @@ export default function CheckoutPage() {
         body: JSON.stringify({ order_id: order.id, event: "order.created" }),
       }).catch(() => {});
 
+      // Send order confirmation email (non-blocking)
+      fetch(`https://${projectId}.supabase.co/functions/v1/send-order-confirmation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: order.id }),
+      }).catch(() => {});
+
       // 4. Handle bKash payment
       if (form.paymentMethod === "bkash") {
         const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
