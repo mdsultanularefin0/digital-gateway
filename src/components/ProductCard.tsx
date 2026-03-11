@@ -90,7 +90,7 @@ export function ProductCard({ product }: { product: Product }) {
             {currencySymbol}{product.price}
           </span>
           <span className="flex items-center gap-1 text-sm text-primary font-medium group-hover:gap-2 transition-all">
-            {t("product.viewDetails")} <ArrowRight className="h-4 w-4" />
+            View Details <ArrowRight className="h-4 w-4" />
           </span>
         </div>
       </div>
