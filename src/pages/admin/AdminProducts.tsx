@@ -526,6 +526,11 @@ export default function AdminProducts() {
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{p.category}</td>
                   <td className="px-4 py-3 hidden md:table-cell">{p.price_label}</td>
                   <td className="px-4 py-3 hidden md:table-cell">
+                    <span className={`rounded-[4px] px-2 py-0.5 text-xs font-medium ${(p as any).in_stock !== false ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
+                      {(p as any).in_stock !== false ? "In Stock" : "Out of Stock"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 hidden md:table-cell">
                     <span className={`rounded-[4px] px-2 py-0.5 text-xs font-medium ${p.published ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
                       {p.published ? "Published" : "Draft"}
                     </span>
