@@ -26,6 +26,7 @@ export default function HomePage() {
   const featured = allProducts.filter((p) => p.featured).slice(0, 3);
   const siteName = settings?.site_name || "DigiStack";
   const tagline = settings?.site_tagline || "Premium digital products designed for teams who demand precision, speed, and simplicity.";
+  const heroImage = settings?.hero_image_url || defaultHeroImage;
 
   const jsonLd = {
     "@context": "https://schema.org",
