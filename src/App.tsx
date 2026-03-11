@@ -38,6 +38,7 @@ const AdminPostGenerator = lazy(() => import("./pages/admin/AdminPostGenerator")
 const AdminMailSettings = lazy(() => import("./pages/admin/AdminMailSettings"));
 const AdminSupportInbox = lazy(() => import("./pages/admin/AdminSupportInbox"));
 const AdminActivityLog = lazy(() => import("./pages/admin/AdminActivityLog"));
+const AdminNewsletter = lazy(() => import("./pages/admin/AdminNewsletter"));
 const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -90,6 +91,7 @@ const App = () => (
                     <Route path="/admin/mail-settings" element={<AdminGuard><AdminMailSettings /></AdminGuard>} />
                     <Route path="/admin/support-inbox" element={<AdminGuard><AdminSupportInbox /></AdminGuard>} />
                     <Route path="/admin/activity" element={<AdminGuard><AdminActivityLog /></AdminGuard>} />
+                    <Route path="/admin/newsletter" element={<AdminGuard><AdminNewsletter /></AdminGuard>} />
                     <Route path="/admin/blog" element={<AdminGuard><AdminBlog /></AdminGuard>} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>

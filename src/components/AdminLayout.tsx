@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, Users, BarChart3, Tag, MessageSquare, Settings, LogOut, Menu, X, Zap, ChevronLeft, Plug, ImageIcon, Mail, Inbox, Clock } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, BarChart3, Tag, MessageSquare, Settings, LogOut, Menu, X, Zap, ChevronLeft, Plug, ImageIcon, Mail, Inbox, Clock, Newspaper } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 
@@ -15,6 +15,7 @@ const adminLinks = [
   { label: "Activity Log", to: "/admin/activity", icon: Clock },
   { label: "Integrations", to: "/admin/integrations", icon: Plug },
   { label: "Post Generator", to: "/admin/post-generator", icon: ImageIcon },
+  { label: "Newsletter", to: "/admin/newsletter", icon: Newspaper },
   { label: "Mail Settings", to: "/admin/mail-settings", icon: Mail },
   { label: "Support Inbox", to: "/admin/support-inbox", icon: Inbox },
   { label: "Settings", to: "/admin/settings", icon: Settings },
