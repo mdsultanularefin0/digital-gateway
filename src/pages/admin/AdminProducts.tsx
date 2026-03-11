@@ -127,6 +127,7 @@ export default function AdminProducts() {
             if (error) throw error;
           }
         }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
