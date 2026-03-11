@@ -41,7 +41,7 @@ export default function BkashCallback() {
         );
 
         const data = await res.json();
-        console.log("bKash execute result:", data);
+        if (import.meta.env.DEV) console.log("bKash execute result:", data);
         if (data.success) {
           setTrxID(data.trxID);
           setStatus("success");
