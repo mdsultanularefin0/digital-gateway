@@ -255,8 +255,18 @@ export default function AdminProducts() {
 
   const inputClass = "h-10 w-full rounded-[4px] border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
 
-  if (editing) {
+  if (showBulkImport) {
     return (
+      <AdminLayout>
+        <BulkProductImport
+          onClose={() => setShowBulkImport(false)}
+          onComplete={() => queryClient.invalidateQueries({ queryKey: ["admin-products"] })}
+        />
+      </AdminLayout>
+    );
+  }
+
+  if (editing) {
       <AdminLayout>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-display font-bold">{isNew ? "New Product" : "Edit Product"}</h2>
