@@ -18,6 +18,7 @@ import FAQ from "./pages/FAQ";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminOrders from "./pages/admin/AdminOrders";
@@ -55,6 +56,7 @@ const App = () => (
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
               <Route path="/admin/products" element={<AdminGuard><AdminProducts /></AdminGuard>} />
               <Route path="/admin/orders" element={<AdminGuard><AdminOrders /></AdminGuard>} />
