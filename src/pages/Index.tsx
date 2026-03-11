@@ -11,7 +11,7 @@ import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { WelcomePopup } from "@/components/WelcomePopup";
 import { useProducts } from "@/data/products";
 import { useSiteSettings } from "@/hooks/use-site-settings";
-import heroImage from "@/assets/hero-glass-render.png";
+import defaultHeroImage from "@/assets/hero-glass-render.png";
 
 const stats = [
   { value: "50K+", label: "Active Users" },
