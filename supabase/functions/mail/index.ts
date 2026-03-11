@@ -181,12 +181,14 @@ async function imapFetch(cfg: Record<string, string>, action: string, uid?: stri
   let buffer = "";
 
   async function readResponse(tag: string): Promise<string> {
+    const maxBytes = 512 * 1024; // 512KB max
     while (true) {
-      const buf = new Uint8Array(8192);
+      const buf = new Uint8Array(32768);
       const n = await conn.read(buf);
       if (!n) break;
       buffer += decoder.decode(buf.subarray(0, n));
       if (buffer.includes(tag + " OK") || buffer.includes(tag + " NO") || buffer.includes(tag + " BAD")) break;
+      if (buffer.length > maxBytes) break;
     }
     const result = buffer;
     buffer = "";
