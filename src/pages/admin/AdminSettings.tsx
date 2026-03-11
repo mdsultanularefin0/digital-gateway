@@ -16,7 +16,7 @@ const settingGroups = [
     title: "General",
     description: "Basic site identity and branding",
     fields: [
-      { key: "site_name", label: "Site Name", placeholder: "e.g. DigiStack" },
+      { key: "site_name", label: "Site Name", placeholder: "e.g. GiftCardVibe" },
       { key: "site_tagline", label: "Tagline", placeholder: "e.g. Premium Digital Products" },
       { key: "logo_url", label: "Logo URL", placeholder: "https://... or upload", type: "image" },
       { key: "hero_image_url", label: "Hero Image", placeholder: "https://... or upload", type: "image" },
