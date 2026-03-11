@@ -21,7 +21,7 @@ const settingGroups = [
       { key: "logo_url", label: "Logo URL", placeholder: "https://... or upload", type: "image" },
       { key: "hero_image_url", label: "Hero Image", placeholder: "https://... or upload", type: "image" },
       { key: "favicon_url", label: "Favicon URL", placeholder: "https://..." },
-      { key: "footer_text", label: "Footer Text", placeholder: "e.g. © 2026 DigiStack. All rights reserved." },
+      { key: "footer_text", label: "Footer Text", placeholder: "e.g. © 2026 GiftCardVibe. All rights reserved." },
     ],
   },
   {
