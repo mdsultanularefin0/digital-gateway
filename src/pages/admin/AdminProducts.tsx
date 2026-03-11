@@ -163,6 +163,7 @@ export default function AdminProducts() {
       setTagsInput("");
       setFeaturesInput("");
       setTiers([]);
+      setImages([]);
     }
   };
 
