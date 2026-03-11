@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Search, Eye, Trash2, Package, CheckSquare, Square, MinusSquare } from "lucide-react";
+import { Search, Eye, Trash2, Package, CheckSquare, Square, MinusSquare, Download } from "lucide-react";
 import { format } from "date-fns";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import OrderDetail from "@/components/admin/OrderDetail";
+import { exportToCSV, logActivity } from "@/lib/admin-utils";
 
 const statuses = ["pending", "processing", "shipped", "delivered", "cancelled"];
 const paymentStatuses = ["unpaid", "paid", "refunded"];
