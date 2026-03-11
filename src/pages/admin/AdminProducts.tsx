@@ -439,12 +439,18 @@ export default function AdminProducts() {
             exportToCSV(
               products.map((p) => ({
                 name: p.name,
+                tagline: p.tagline,
+                description: p.description,
                 category: p.category,
-                price: p.price,
-                billing_cycle: p.billing_cycle,
-                published: p.published,
-                featured: p.featured,
                 tags: (p.tags || []).join("; "),
+                price: p.price,
+                price_label: p.price_label,
+                billing_cycle: p.billing_cycle,
+                features: (p.features || []).join("; "),
+                external_url: p.external_url,
+                image_url: p.image_url || "",
+                featured: p.featured,
+                published: p.published,
               })),
               `products-${new Date().toISOString().slice(0, 10)}`
             );

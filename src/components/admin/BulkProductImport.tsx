@@ -202,6 +202,7 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded">billing_cycle</code>,{" "}
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded">features</code> (semicolon-separated),{" "}
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded">external_url</code>,{" "}
+          <code className="text-xs bg-muted px-1.5 py-0.5 rounded">image_url</code>,{" "}
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded">featured</code>,{" "}
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded">published</code>.
         </p>
