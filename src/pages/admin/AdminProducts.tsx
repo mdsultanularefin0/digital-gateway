@@ -312,7 +312,37 @@ export default function AdminProducts() {
             )}
           </div>
 
-          <div>
+          {/* Product Images */}
+          <div className="rounded-[4px] border border-border p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-xs font-medium tracking-executive uppercase text-muted-foreground">Product Images</h4>
+              <label className="cursor-pointer">
+                <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
+                <Button type="button" variant="outline-primary" size="sm" asChild disabled={uploading}>
+                  <span>{uploading ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Uploading...</> : <><Upload className="h-3 w-3 mr-1" /> Upload</>}</span>
+                </Button>
+              </label>
+            </div>
+            {images.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No images uploaded. A placeholder will be shown.</p>
+            ) : (
+              <div className="grid grid-cols-4 gap-3">
+                {images.map((img, i) => (
+                  <div key={i} className="relative group rounded-[4px] overflow-hidden border border-border">
+                    <img src={img.image_url} alt={img.alt_text} className="w-full aspect-square object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(i)}
+                      className="absolute top-1 right-1 h-6 w-6 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
             <label className="text-sm font-medium mb-1 block">External URL *</label>
             <input required value={editing.external_url ?? ""} onChange={(e) => setEditing({ ...editing, external_url: e.target.value })} className={inputClass} placeholder="https://..." />
           </div>
