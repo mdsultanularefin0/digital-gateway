@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, X, Upload, Loader2, Download, CheckSquare, Square } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Upload, Loader2, Download, CheckSquare, Square, FileUp } from "lucide-react";
 import { exportToCSV, logActivity } from "@/lib/admin-utils";
 import type { Database } from "@/integrations/supabase/types";
+import BulkProductImport from "@/components/admin/BulkProductImport";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
@@ -44,6 +45,7 @@ export default function AdminProducts() {
   const [images, setImages] = useState<{ id?: string; image_url: string; alt_text: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkImport, setShowBulkImport] = useState(false);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["admin-products"],
@@ -253,6 +255,17 @@ export default function AdminProducts() {
 
   const inputClass = "h-10 w-full rounded-[4px] border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
 
+  if (showBulkImport) {
+    return (
+      <AdminLayout>
+        <BulkProductImport
+          onClose={() => setShowBulkImport(false)}
+          onComplete={() => queryClient.invalidateQueries({ queryKey: ["admin-products"] })}
+        />
+      </AdminLayout>
+    );
+  }
+
   if (editing) {
     return (
       <AdminLayout>
@@ -418,6 +431,9 @@ export default function AdminProducts() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-display font-bold">Products</h2>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setShowBulkImport(true)}>
+            <FileUp className="h-4 w-4 mr-1" /> Bulk Import
+          </Button>
           <Button variant="outline" size="sm" onClick={() => {
             if (!products?.length) return;
             exportToCSV(
