@@ -417,10 +417,48 @@ export default function AdminProducts() {
     <AdminLayout>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-display font-bold">Products</h2>
-        <Button variant="gradient" size="sm" onClick={() => openEditor()}>
-          <Plus className="h-4 w-4 mr-1" /> Add Product
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => {
+            if (!products?.length) return;
+            exportToCSV(
+              products.map((p) => ({
+                name: p.name,
+                category: p.category,
+                price: p.price,
+                billing_cycle: p.billing_cycle,
+                published: p.published,
+                featured: p.featured,
+                tags: (p.tags || []).join("; "),
+              })),
+              `products-${new Date().toISOString().slice(0, 10)}`
+            );
+          }}>
+            <Download className="h-4 w-4 mr-1" /> Export
+          </Button>
+          <Button variant="gradient" size="sm" onClick={() => openEditor()}>
+            <Plus className="h-4 w-4 mr-1" /> Add Product
+          </Button>
+        </div>
       </div>
+
+      {/* Bulk Actions Bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 mb-4 p-3 rounded-[4px] border border-primary/20 bg-primary/5">
+          <span className="text-sm font-medium">{selectedIds.size} selected</span>
+          <Button size="sm" variant="outline" onClick={() => bulkPublishMutation.mutate({ ids: Array.from(selectedIds), published: true })}>
+            Publish
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => bulkPublishMutation.mutate({ ids: Array.from(selectedIds), published: false })}>
+            Unpublish
+          </Button>
+          <Button size="sm" variant="destructive" onClick={() => {
+            if (confirm(`Delete ${selectedIds.size} products?`)) bulkDeleteMutation.mutate(Array.from(selectedIds));
+          }}>
+            Delete
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>Clear</Button>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="text-muted-foreground">Loading...</div>
@@ -433,6 +471,14 @@ export default function AdminProducts() {
           <table className="w-full text-sm">
             <thead className="bg-muted/50">
               <tr>
+                <th className="w-10 px-3 py-3">
+                  <button onClick={() => {
+                    if (selectedIds.size === products.length) setSelectedIds(new Set());
+                    else setSelectedIds(new Set(products.map((p) => p.id)));
+                  }} className="text-muted-foreground hover:text-foreground">
+                    {selectedIds.size === products.length ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+                  </button>
+                </th>
                 <th className="text-left font-medium px-4 py-3">Name</th>
                 <th className="text-left font-medium px-4 py-3 hidden md:table-cell">Category</th>
                 <th className="text-left font-medium px-4 py-3 hidden md:table-cell">Price</th>
@@ -442,7 +488,12 @@ export default function AdminProducts() {
             </thead>
             <tbody>
               {products.map((p) => (
-                <tr key={p.id} className="border-t border-border hover:bg-muted/30">
+                <tr key={p.id} className={`border-t border-border transition-colors ${selectedIds.has(p.id) ? "bg-primary/5" : "hover:bg-muted/30"}`}>
+                  <td className="px-3 py-3">
+                    <button onClick={() => toggleSelect(p.id)} className="text-muted-foreground hover:text-foreground">
+                      {selectedIds.has(p.id) ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+                    </button>
+                  </td>
                   <td className="px-4 py-3 font-medium">{p.name}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{p.category}</td>
                   <td className="px-4 py-3 hidden md:table-cell">{p.price_label}</td>
