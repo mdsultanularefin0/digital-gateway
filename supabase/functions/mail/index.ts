@@ -353,9 +353,11 @@ Deno.serve(async (req) => {
       }
 
       case "send-email": {
-        const { to, subject, body } = params;
+        const to = String(params.to || "").trim();
+        const subject = String(params.subject || "").trim();
+        const body = String(params.body || "").trim();
         if (!to || !subject) return json({ error: "Missing to/subject" }, 400);
-        const result = await smtpSend(cfg, to, subject, body || "");
+        const result = await smtpSend(cfg, to, subject, body);
         return json({ success: true, result });
       }
 
