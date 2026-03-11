@@ -16,12 +16,12 @@ const settingGroups = [
     title: "General",
     description: "Basic site identity and branding",
     fields: [
-      { key: "site_name", label: "Site Name", placeholder: "e.g. DigiStack" },
+      { key: "site_name", label: "Site Name", placeholder: "e.g. GiftCardVibe" },
       { key: "site_tagline", label: "Tagline", placeholder: "e.g. Premium Digital Products" },
       { key: "logo_url", label: "Logo URL", placeholder: "https://... or upload", type: "image" },
       { key: "hero_image_url", label: "Hero Image", placeholder: "https://... or upload", type: "image" },
       { key: "favicon_url", label: "Favicon URL", placeholder: "https://..." },
-      { key: "footer_text", label: "Footer Text", placeholder: "e.g. © 2026 DigiStack. All rights reserved." },
+      { key: "footer_text", label: "Footer Text", placeholder: "e.g. © 2026 GiftCardVibe. All rights reserved." },
     ],
   },
   {
@@ -81,7 +81,7 @@ const settingGroups = [
     title: "SEO & Analytics",
     description: "Search engine and tracking configuration",
     fields: [
-      { key: "meta_title", label: "Default Meta Title", placeholder: "DigiStack — Premium Digital Products" },
+      { key: "meta_title", label: "Default Meta Title", placeholder: "GiftCardVibe — Premium Gift Cards" },
       { key: "meta_description", label: "Default Meta Description", placeholder: "Discover curated digital tools...", type: "textarea" },
       { key: "google_analytics_id", label: "Google Analytics ID", placeholder: "G-XXXXXXXXXX" },
       { key: "facebook_pixel_id", label: "Facebook Pixel ID", placeholder: "e.g. 123456789012345" },
