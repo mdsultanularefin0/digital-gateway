@@ -16,6 +16,7 @@ interface ParsedProduct {
   billing_cycle: string;
   features: string[];
   external_url: string;
+  image_url: string;
   featured: boolean;
   published: boolean;
 }
@@ -27,10 +28,10 @@ interface ImportResult {
   errors: string[];
 }
 
-const DEMO_CSV = `name,tagline,description,category,tags,price,price_label,billing_cycle,features,external_url,featured,published
-"Canva Pro","Design made easy","Professional design tool with thousands of templates and AI features.","Design","Design;AI;Templates",12.99,"$12.99/mo","monthly","Unlimited templates;AI image generator;Brand kit;Background remover","https://canva.com",true,true
-"Grammarly Premium","Write with confidence","AI-powered writing assistant for grammar, tone, and clarity.","Productivity","Writing;AI;Grammar",12,"$12/mo","monthly","Grammar & spelling;Tone detection;Plagiarism checker;Style suggestions","https://grammarly.com",false,true
-"DataCamp Pro","Learn data skills","Interactive courses on Python, R, SQL, and machine learning.","Education","Data Science;Python;SQL",25,"$25/mo","monthly","400+ courses;Hands-on projects;Skill assessments;Certificates","https://datacamp.com",true,true`;
+const DEMO_CSV = `name,tagline,description,category,tags,price,price_label,billing_cycle,features,external_url,image_url,featured,published
+"Canva Pro","Design made easy","Professional design tool with thousands of templates and AI features.","Design","Design;AI;Templates",12.99,"$12.99/mo","monthly","Unlimited templates;AI image generator;Brand kit;Background remover","https://canva.com","",true,true
+"Grammarly Premium","Write with confidence","AI-powered writing assistant for grammar, tone, and clarity.","Productivity","Writing;AI;Grammar",12,"$12/mo","monthly","Grammar & spelling;Tone detection;Plagiarism checker;Style suggestions","https://grammarly.com","",false,true
+"DataCamp Pro","Learn data skills","Interactive courses on Python, R, SQL, and machine learning.","Education","Data Science;Python;SQL",25,"$25/mo","monthly","400+ courses;Hands-on projects;Skill assessments;Certificates","https://datacamp.com","",true,true`;
 
 function parseCSV(text: string): string[][] {
   const rows: string[][] = [];
@@ -85,6 +86,7 @@ function mapRow(headers: string[], values: string[]): ParsedProduct | null {
     billing_cycle: get("billing_cycle") || "monthly",
     features: get("features").split(";").map((f) => f.trim()).filter(Boolean),
     external_url: get("external_url") || "#",
+    image_url: get("image_url") || "",
     featured: get("featured").toLowerCase() === "true",
     published: get("published") !== "" ? get("published").toLowerCase() === "true" : true,
   };
@@ -154,6 +156,7 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
         billing_cycle: p.billing_cycle,
         features: p.features,
         external_url: p.external_url,
+        image_url: p.image_url || null,
         featured: p.featured,
         published: p.published,
       });
@@ -199,6 +202,7 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded">billing_cycle</code>,{" "}
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded">features</code> (semicolon-separated),{" "}
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded">external_url</code>,{" "}
+          <code className="text-xs bg-muted px-1.5 py-0.5 rounded">image_url</code>,{" "}
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded">featured</code>,{" "}
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded">published</code>.
         </p>
