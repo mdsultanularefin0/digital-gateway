@@ -32,8 +32,8 @@ export interface SiteSettings {
 }
 
 const defaults: SiteSettings = {
-  site_name: "DigiStack",
-  site_tagline: "Premium Digital Products",
+  site_name: "GiftCardVibe",
+  site_tagline: "Premium Gift Cards",
   logo_url: "",
   favicon_url: "",
   currency: "USD",
