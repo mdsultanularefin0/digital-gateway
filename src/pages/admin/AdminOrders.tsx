@@ -87,6 +87,7 @@ export default function AdminOrders() {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("orders").delete().eq("id", id);
       if (error) throw error;
+      logActivity("Deleted order", "order", id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
