@@ -88,6 +88,7 @@ function mapRow(headers: string[], values: string[]): ParsedProduct | null {
     features: get("features").split(";").map((f) => f.trim()).filter(Boolean),
     external_url: get("external_url") || "#",
     image_url: get("image_url") || "",
+    in_stock: get("in_stock") !== "" ? get("in_stock").toLowerCase() !== "false" : true,
     featured: get("featured").toLowerCase() === "true",
     published: get("published") !== "" ? get("published").toLowerCase() === "true" : true,
   };
