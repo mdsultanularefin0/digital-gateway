@@ -33,6 +33,7 @@ const emptyProduct: ProductInsert = {
   external_url: "#",
   featured: false,
   published: true,
+  in_stock: true,
 };
 
 export default function AdminProducts() {
@@ -408,7 +409,7 @@ export default function AdminProducts() {
             <label className="text-sm font-medium mb-1 block">Features (one per line)</label>
             <textarea value={featuresInput} onChange={(e) => setFeaturesInput(e.target.value)} className="w-full rounded-[4px] border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[120px]" placeholder="Feature 1&#10;Feature 2" />
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-4 flex-wrap">
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={editing.featured ?? false} onChange={(e) => setEditing({ ...editing, featured: e.target.checked })} className="rounded" />
               Featured
@@ -416,6 +417,10 @@ export default function AdminProducts() {
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={editing.published ?? true} onChange={(e) => setEditing({ ...editing, published: e.target.checked })} className="rounded" />
               Published
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={(editing as any).in_stock !== false} onChange={(e) => setEditing({ ...editing, in_stock: e.target.checked } as any)} className="rounded" />
+              In Stock
             </label>
           </div>
           <Button variant="gradient" size="lg" type="submit" disabled={saveMutation.isPending}>
@@ -449,6 +454,7 @@ export default function AdminProducts() {
                 features: (p.features || []).join("; "),
                 external_url: p.external_url,
                 image_url: p.image_url || "",
+                in_stock: (p as any).in_stock !== false,
                 featured: p.featured,
                 published: p.published,
               })),
@@ -504,6 +510,7 @@ export default function AdminProducts() {
                 <th className="text-left font-medium px-4 py-3">Name</th>
                 <th className="text-left font-medium px-4 py-3 hidden md:table-cell">Category</th>
                 <th className="text-left font-medium px-4 py-3 hidden md:table-cell">Price</th>
+                <th className="text-left font-medium px-4 py-3 hidden md:table-cell">Stock</th>
                 <th className="text-left font-medium px-4 py-3 hidden md:table-cell">Status</th>
                 <th className="text-right font-medium px-4 py-3">Actions</th>
               </tr>
@@ -519,6 +526,11 @@ export default function AdminProducts() {
                   <td className="px-4 py-3 font-medium">{p.name}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{p.category}</td>
                   <td className="px-4 py-3 hidden md:table-cell">{p.price_label}</td>
+                  <td className="px-4 py-3 hidden md:table-cell">
+                    <span className={`rounded-[4px] px-2 py-0.5 text-xs font-medium ${(p as any).in_stock !== false ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
+                      {(p as any).in_stock !== false ? "In Stock" : "Out of Stock"}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 hidden md:table-cell">
                     <span className={`rounded-[4px] px-2 py-0.5 text-xs font-medium ${p.published ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
                       {p.published ? "Published" : "Draft"}

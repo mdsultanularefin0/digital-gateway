@@ -17,6 +17,7 @@ interface ParsedProduct {
   features: string[];
   external_url: string;
   image_url: string;
+  in_stock: boolean;
   featured: boolean;
   published: boolean;
 }
@@ -87,6 +88,7 @@ function mapRow(headers: string[], values: string[]): ParsedProduct | null {
     features: get("features").split(";").map((f) => f.trim()).filter(Boolean),
     external_url: get("external_url") || "#",
     image_url: get("image_url") || "",
+    in_stock: get("in_stock") !== "" ? get("in_stock").toLowerCase() !== "false" : true,
     featured: get("featured").toLowerCase() === "true",
     published: get("published") !== "" ? get("published").toLowerCase() === "true" : true,
   };
@@ -157,6 +159,7 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
         features: p.features,
         external_url: p.external_url,
         image_url: p.image_url || null,
+        in_stock: p.in_stock,
         featured: p.featured,
         published: p.published,
       });

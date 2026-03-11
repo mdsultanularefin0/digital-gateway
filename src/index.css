@@ -60,6 +60,60 @@
     --sidebar-border: 214 30% 20%;
     --sidebar-ring: 195 80% 55%;
   }
+
+  .dark {
+    --background: 214 40% 8%;
+    --foreground: 210 30% 92%;
+
+    --card: 214 35% 12%;
+    --card-foreground: 210 30% 92%;
+
+    --popover: 214 35% 12%;
+    --popover-foreground: 210 30% 92%;
+
+    --primary: 210 100% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 214 30% 18%;
+    --secondary-foreground: 210 30% 92%;
+
+    --muted: 214 30% 18%;
+    --muted-foreground: 214 15% 55%;
+
+    --accent: 195 80% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 25% 22%;
+    --input: 214 25% 22%;
+    --ring: 210 100% 55%;
+
+    --charcoal: 210 30% 92%;
+    --charcoal-light: 210 20% 75%;
+    --charcoal-muted: 214 15% 55%;
+    --orange: 210 100% 55%;
+    --orange-glow: 195 80% 55%;
+    --surface: 214 35% 10%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(210 100% 55%), hsl(195 80% 50%));
+    --shadow-glow: 0 0 30px -6px hsl(210 100% 55% / 0.3);
+    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.2);
+    --shadow-card-hover: 0 4px 16px -4px hsl(210 100% 55% / 0.15);
+
+    --success: 160 60% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --sidebar-background: 214 45% 8%;
+    --sidebar-foreground: 210 30% 90%;
+    --sidebar-primary: 195 80% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 214 35% 14%;
+    --sidebar-accent-foreground: 210 30% 90%;
+    --sidebar-border: 214 30% 16%;
+    --sidebar-ring: 195 80% 55%;
+  }
 }
 
 @layer base {
@@ -106,23 +160,23 @@
   }
 
   .glass {
-    background: hsl(210 30% 98% / 0.7);
+    background: hsl(var(--background) / 0.7);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid hsl(210 100% 45% / 0.08);
+    border-bottom: 1px solid hsl(var(--primary) / 0.08);
   }
 
   .glass-card {
-    background: hsl(0 0% 100%);
-    border: 1px solid hsl(210 25% 88%);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
   }
 
   .hero-gradient {
-    background: hsl(210 30% 98%);
+    background: hsl(var(--background));
   }
 
   .btn-glow:hover {
-    box-shadow: 0 0 24px -4px hsl(210 100% 45% / 0.4);
+    box-shadow: 0 0 24px -4px hsl(var(--primary) / 0.4);
   }
 
   .text-charcoal {
@@ -135,5 +189,9 @@
 
   .text-charcoal-muted {
     color: hsl(var(--charcoal-muted));
+  }
+
+  .text-silver-bright {
+    color: hsl(var(--foreground));
   }
 }
