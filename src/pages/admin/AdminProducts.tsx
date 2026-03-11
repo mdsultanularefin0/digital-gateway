@@ -409,7 +409,7 @@ export default function AdminProducts() {
             <label className="text-sm font-medium mb-1 block">Features (one per line)</label>
             <textarea value={featuresInput} onChange={(e) => setFeaturesInput(e.target.value)} className="w-full rounded-[4px] border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[120px]" placeholder="Feature 1&#10;Feature 2" />
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-4 flex-wrap">
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={editing.featured ?? false} onChange={(e) => setEditing({ ...editing, featured: e.target.checked })} className="rounded" />
               Featured
@@ -417,6 +417,10 @@ export default function AdminProducts() {
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={editing.published ?? true} onChange={(e) => setEditing({ ...editing, published: e.target.checked })} className="rounded" />
               Published
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={(editing as any).in_stock !== false} onChange={(e) => setEditing({ ...editing, in_stock: e.target.checked } as any)} className="rounded" />
+              In Stock
             </label>
           </div>
           <Button variant="gradient" size="lg" type="submit" disabled={saveMutation.isPending}>
