@@ -159,6 +159,7 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
         features: p.features,
         external_url: p.external_url,
         image_url: p.image_url || null,
+        in_stock: p.in_stock,
         featured: p.featured,
         published: p.published,
       });
