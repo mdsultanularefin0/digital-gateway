@@ -43,6 +43,7 @@ export default function AdminProducts() {
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [images, setImages] = useState<{ id?: string; image_url: string; alt_text: string }[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["admin-products"],
