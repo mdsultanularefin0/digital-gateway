@@ -44,6 +44,36 @@ export type Database = {
         }
         Relationships: []
       }
+      announcements: {
+        Row: {
+          active: boolean
+          bg_color: string | null
+          created_at: string
+          id: string
+          link_text: string | null
+          link_url: string | null
+          message: string
+        }
+        Insert: {
+          active?: boolean
+          bg_color?: string | null
+          created_at?: string
+          id?: string
+          link_text?: string | null
+          link_url?: string | null
+          message: string
+        }
+        Update: {
+          active?: boolean
+          bg_color?: string | null
+          created_at?: string
+          id?: string
+          link_text?: string | null
+          link_url?: string | null
+          message?: string
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author: string
@@ -212,6 +242,30 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: string
+        }
+        Relationships: []
+      }
+      newsletter_subscribers: {
+        Row: {
+          active: boolean
+          email: string
+          id: string
+          subscribed_at: string
+          unsubscribed_at: string | null
+        }
+        Insert: {
+          active?: boolean
+          email: string
+          id?: string
+          subscribed_at?: string
+          unsubscribed_at?: string | null
+        }
+        Update: {
+          active?: boolean
+          email?: string
+          id?: string
+          subscribed_at?: string
+          unsubscribed_at?: string | null
         }
         Relationships: []
       }
