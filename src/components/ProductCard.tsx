@@ -5,14 +5,12 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export function ProductCard({ product }: { product: Product }) {
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "$";
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const wishlisted = isInWishlist(product.id);
-  const { t } = useLanguage();
 
   const { data: firstImage } = useQuery({
     queryKey: ["product-first-image", product.id],
