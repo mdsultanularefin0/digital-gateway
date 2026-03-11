@@ -218,7 +218,7 @@ async function imapFetch(cfg: Record<string, string>, action: string, uid?: stri
       // Search recent messages
       const searchResp = await send("A3", "SEARCH ALL");
       const match = searchResp.match(/\* SEARCH ([\d\s]+)/);
-      const ids = match ? match[1].trim().split(/\s+/).slice(-50).reverse() : [];
+      const ids = match ? match[1].trim().split(/\s+/).slice(-200).reverse() : [];
 
       if (ids.length === 0) {
         await send("A9", "LOGOUT");
