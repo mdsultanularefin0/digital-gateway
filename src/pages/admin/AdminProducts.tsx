@@ -454,6 +454,7 @@ export default function AdminProducts() {
                 features: (p.features || []).join("; "),
                 external_url: p.external_url,
                 image_url: p.image_url || "",
+                in_stock: (p as any).in_stock !== false,
                 featured: p.featured,
                 published: p.published,
               })),
