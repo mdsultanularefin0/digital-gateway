@@ -45,19 +45,19 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        <nav className="flex flex-col gap-1 p-4">
+        <nav className="flex flex-col gap-1 p-4 overflow-y-auto flex-1 pb-20">
           {adminLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
               onClick={() => setSidebarOpen(false)}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 (link.to === "/admin" ? location.pathname === "/admin" : location.pathname.startsWith(link.to))
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
-              <link.icon className="h-4 w-4" />
+              <link.icon className="h-4 w-4 shrink-0" />
               {link.label}
             </Link>
           ))}
