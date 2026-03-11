@@ -509,6 +509,7 @@ export default function AdminProducts() {
                 <th className="text-left font-medium px-4 py-3">Name</th>
                 <th className="text-left font-medium px-4 py-3 hidden md:table-cell">Category</th>
                 <th className="text-left font-medium px-4 py-3 hidden md:table-cell">Price</th>
+                <th className="text-left font-medium px-4 py-3 hidden md:table-cell">Stock</th>
                 <th className="text-left font-medium px-4 py-3 hidden md:table-cell">Status</th>
                 <th className="text-right font-medium px-4 py-3">Actions</th>
               </tr>
