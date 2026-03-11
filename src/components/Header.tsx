@@ -10,7 +10,6 @@ import { useWishlist } from "@/contexts/WishlistContext";
 
 const navLinks = [
   { label: "Products", to: "/products" },
-  { label: "Track Order", to: "/track" },
   { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" },
 ];
