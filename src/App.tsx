@@ -10,6 +10,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { AdminGuard } from "@/components/AdminGuard";
 import { CartDrawer } from "@/components/CartDrawer";
+import { MetaPixelProvider } from "@/components/MetaPixelProvider";
 import Index from "./pages/Index";
 
 // Lazy-loaded routes for code splitting
@@ -63,6 +64,7 @@ const App = () => (
               <Sonner />
               <BrowserRouter>
                 <CartDrawer />
+                <MetaPixelProvider />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
                     <Route path="/" element={<Index />} />

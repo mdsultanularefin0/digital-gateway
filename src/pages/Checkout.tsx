@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
+import { trackInitiateCheckout, trackPurchase } from "@/lib/meta-pixel";
 
 interface CheckoutForm {
   name: string;
@@ -45,6 +46,19 @@ export default function CheckoutPage() {
   const [orderPlaced, setOrderPlaced] = useState<string | null>(null);
 
   const shippingCost = 0;
+  const currency = settings?.currency || "USD";
+
+  // Track InitiateCheckout on mount
+  useEffect(() => {
+    if (items.length > 0) {
+      trackInitiateCheckout({
+        content_ids: items.map((i) => i.productId),
+        num_items: items.reduce((s, i) => s + i.quantity, 0),
+        value: subtotal,
+        currency,
+      });
+    }
+  }, []);
 
   // Parse enabled payment methods from settings
   const enabledMethods = (() => {
@@ -229,6 +243,13 @@ export default function CheckoutPage() {
       }
 
       // 5. Non-bKash: complete normally
+      trackPurchase({
+        content_ids: items.map((i) => i.productId),
+        content_type: "product",
+        num_items: items.reduce((s, i) => s + i.quantity, 0),
+        value: total,
+        currency,
+      });
       clearCart();
       setOrderPlaced(order.order_number);
     } catch (err: any) {

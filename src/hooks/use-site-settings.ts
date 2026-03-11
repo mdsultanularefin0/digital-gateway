@@ -27,6 +27,7 @@ export interface SiteSettings {
   google_analytics_id: string;
   footer_text: string;
   hero_image_url: string;
+  facebook_pixel_id: string;
   payment_methods: string;
 }
 
@@ -56,6 +57,7 @@ const defaults: SiteSettings = {
   google_analytics_id: "",
   footer_text: "",
   hero_image_url: "",
+  facebook_pixel_id: "",
   payment_methods: '["cod"]',
 };
 

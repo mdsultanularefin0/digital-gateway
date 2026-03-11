@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check, ShoppingCart, Star, Heart } from "lucide-react";
@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { ProductImageGallery } from "@/components/ProductImageGallery";
 import { ReviewForm } from "@/components/ReviewForm";
+import { trackViewContent, trackAddToCart } from "@/lib/meta-pixel";
 
 interface Tier {
   id: string;
@@ -84,15 +85,36 @@ export default function ProductDetailPage() {
     else addToWishlist(product.id);
   };
 
+  // Track ViewContent when product loads
+  useEffect(() => {
+    if (product) {
+      trackViewContent({
+        content_name: product.name,
+        content_ids: [product.id],
+        content_type: "product",
+        value: activeTier ? activeTier.price : product.price,
+        currency: settings?.currency || "USD",
+      });
+    }
+  }, [product?.id]);
+
   const handleAddToCart = () => {
     if (!product) return;
+    const price = activeTier ? activeTier.price : product.price;
     addItem({
       productId: product.id,
       productName: product.name,
       tierLabel: activeTier?.label || "",
       tierId: activeTier?.id || null,
-      price: activeTier ? activeTier.price : product.price,
+      price,
       image: product.image,
+    });
+    trackAddToCart({
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: "product",
+      value: price,
+      currency: settings?.currency || "USD",
     });
     toast({ title: `${product.name} added to cart` });
   };
