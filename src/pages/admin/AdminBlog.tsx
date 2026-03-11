@@ -16,7 +16,7 @@ const emptyPost: BlogPostInsert = {
   excerpt: "",
   content: "",
   category: "General",
-  author: "DigiStack Team",
+  author: "GiftCardVibe Team",
   published: false,
 };
 

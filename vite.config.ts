@@ -33,9 +33,9 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       manifest: {
-        name: "DigiStack — Premium Digital Products",
-        short_name: "DigiStack",
-        description: "Premium digital products for teams who demand precision, speed, and simplicity.",
+        name: "GiftCardVibe — Premium Gift Cards",
+        short_name: "GiftCardVibe",
+        description: "Premium gift cards and digital products.",
         theme_color: "#171717",
         background_color: "#ffffff",
         display: "standalone",
