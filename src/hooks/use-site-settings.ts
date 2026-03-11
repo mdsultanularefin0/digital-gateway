@@ -57,6 +57,7 @@ const defaults: SiteSettings = {
   google_analytics_id: "",
   footer_text: "",
   hero_image_url: "",
+  facebook_pixel_id: "",
   payment_methods: '["cod"]',
 };
 
