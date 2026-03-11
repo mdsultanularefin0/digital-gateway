@@ -132,6 +132,7 @@ export default function AdminProducts() {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       setEditing(null);
       setTiers([]);
+      setImages([]);
       toast({ title: "Product saved" });
     },
     onError: (err: Error) => {
