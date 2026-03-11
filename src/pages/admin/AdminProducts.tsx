@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, X, Upload, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Upload, Loader2, Download, CheckSquare, Square } from "lucide-react";
+import { exportToCSV, logActivity } from "@/lib/admin-utils";
 import type { Database } from "@/integrations/supabase/types";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
