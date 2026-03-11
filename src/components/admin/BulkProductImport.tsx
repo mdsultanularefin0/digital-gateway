@@ -28,10 +28,10 @@ interface ImportResult {
   errors: string[];
 }
 
-const DEMO_CSV = `name,tagline,description,category,tags,price,price_label,billing_cycle,features,external_url,featured,published
-"Canva Pro","Design made easy","Professional design tool with thousands of templates and AI features.","Design","Design;AI;Templates",12.99,"$12.99/mo","monthly","Unlimited templates;AI image generator;Brand kit;Background remover","https://canva.com",true,true
-"Grammarly Premium","Write with confidence","AI-powered writing assistant for grammar, tone, and clarity.","Productivity","Writing;AI;Grammar",12,"$12/mo","monthly","Grammar & spelling;Tone detection;Plagiarism checker;Style suggestions","https://grammarly.com",false,true
-"DataCamp Pro","Learn data skills","Interactive courses on Python, R, SQL, and machine learning.","Education","Data Science;Python;SQL",25,"$25/mo","monthly","400+ courses;Hands-on projects;Skill assessments;Certificates","https://datacamp.com",true,true`;
+const DEMO_CSV = `name,tagline,description,category,tags,price,price_label,billing_cycle,features,external_url,image_url,featured,published
+"Canva Pro","Design made easy","Professional design tool with thousands of templates and AI features.","Design","Design;AI;Templates",12.99,"$12.99/mo","monthly","Unlimited templates;AI image generator;Brand kit;Background remover","https://canva.com","",true,true
+"Grammarly Premium","Write with confidence","AI-powered writing assistant for grammar, tone, and clarity.","Productivity","Writing;AI;Grammar",12,"$12/mo","monthly","Grammar & spelling;Tone detection;Plagiarism checker;Style suggestions","https://grammarly.com","",false,true
+"DataCamp Pro","Learn data skills","Interactive courses on Python, R, SQL, and machine learning.","Education","Data Science;Python;SQL",25,"$25/mo","monthly","400+ courses;Hands-on projects;Skill assessments;Certificates","https://datacamp.com","",true,true`;
 
 function parseCSV(text: string): string[][] {
   const rows: string[][] = [];
