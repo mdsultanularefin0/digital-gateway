@@ -430,6 +430,9 @@ export default function AdminProducts() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-display font-bold">Products</h2>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setShowBulkImport(true)}>
+            <FileUp className="h-4 w-4 mr-1" /> Bulk Import
+          </Button>
           <Button variant="outline" size="sm" onClick={() => {
             if (!products?.length) return;
             exportToCSV(
