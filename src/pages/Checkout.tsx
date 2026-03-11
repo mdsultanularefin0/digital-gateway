@@ -59,6 +59,8 @@ export default function CheckoutPage() {
       });
     }
   }, []);
+
+  // Parse enabled payment methods from settings
   const enabledMethods = (() => {
     try {
       const raw = settings?.payment_methods as string | undefined;
