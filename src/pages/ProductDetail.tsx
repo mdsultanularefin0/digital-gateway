@@ -85,15 +85,36 @@ export default function ProductDetailPage() {
     else addToWishlist(product.id);
   };
 
+  // Track ViewContent when product loads
+  useEffect(() => {
+    if (product) {
+      trackViewContent({
+        content_name: product.name,
+        content_ids: [product.id],
+        content_type: "product",
+        value: activeTier ? activeTier.price : product.price,
+        currency: settings?.currency || "USD",
+      });
+    }
+  }, [product?.id]);
+
   const handleAddToCart = () => {
     if (!product) return;
+    const price = activeTier ? activeTier.price : product.price;
     addItem({
       productId: product.id,
       productName: product.name,
       tierLabel: activeTier?.label || "",
       tierId: activeTier?.id || null,
-      price: activeTier ? activeTier.price : product.price,
+      price,
       image: product.image,
+    });
+    trackAddToCart({
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: "product",
+      value: price,
+      currency: settings?.currency || "USD",
     });
     toast({ title: `${product.name} added to cart` });
   };

@@ -241,6 +241,13 @@ export default function CheckoutPage() {
       }
 
       // 5. Non-bKash: complete normally
+      trackPurchase({
+        content_ids: items.map((i) => i.productId),
+        content_type: "product",
+        num_items: items.reduce((s, i) => s + i.quantity, 0),
+        value: total,
+        currency,
+      });
       clearCart();
       setOrderPlaced(order.order_number);
     } catch (err: any) {
