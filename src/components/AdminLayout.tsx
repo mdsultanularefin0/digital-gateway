@@ -15,6 +15,7 @@ const adminLinks = [
   { label: "Activity Log", to: "/admin/activity", icon: Clock },
   { label: "Integrations", to: "/admin/integrations", icon: Plug },
   { label: "Post Generator", to: "/admin/post-generator", icon: ImageIcon },
+  { label: "Newsletter", to: "/admin/newsletter", icon: Newspaper },
   { label: "Mail Settings", to: "/admin/mail-settings", icon: Mail },
   { label: "Support Inbox", to: "/admin/support-inbox", icon: Inbox },
   { label: "Settings", to: "/admin/settings", icon: Settings },
