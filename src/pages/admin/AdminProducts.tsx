@@ -218,7 +218,7 @@ export default function AdminProducts() {
       <AdminLayout>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-display font-bold">{isNew ? "New Product" : "Edit Product"}</h2>
-          <Button variant="ghost" size="sm" onClick={() => { setEditing(null); setTiers([]); }}>
+          <Button variant="ghost" size="sm" onClick={() => { setEditing(null); setTiers([]); setImages([]); }}>
             <X className="h-4 w-4 mr-1" /> Cancel
           </Button>
         </div>
