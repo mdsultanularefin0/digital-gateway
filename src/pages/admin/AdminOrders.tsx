@@ -209,6 +209,24 @@ export default function AdminOrders() {
           <h2 className="text-xl font-display font-bold">Orders</h2>
           <p className="text-sm text-muted-foreground mt-1">Manage customer orders</p>
         </div>
+        <Button variant="outline" size="sm" onClick={() => {
+          exportToCSV(
+            orders.map((o: any) => ({
+              order_number: o.order_number,
+              customer: o.customer_name,
+              email: o.customer_email,
+              phone: o.customer_phone,
+              total: o.total,
+              status: o.status,
+              payment: o.payment_status,
+              method: o.payment_method,
+              date: format(new Date(o.created_at), "yyyy-MM-dd HH:mm"),
+            })),
+            `orders-${format(new Date(), "yyyy-MM-dd")}`
+          );
+        }}>
+          <Download className="h-4 w-4 mr-1" /> Export
+        </Button>
       </div>
 
       {/* Search & Filter */}

@@ -190,6 +190,23 @@ export default function AdminCustomers() {
         <Button variant="gradient" onClick={() => openEdit()}>
           <Plus className="h-4 w-4 mr-1" /> Add Customer
         </Button>
+        <Button variant="outline" size="sm" onClick={() => {
+          exportToCSV(
+            customers.map((c: any) => ({
+              name: c.name,
+              email: c.email,
+              phone: c.phone,
+              city: c.city,
+              country: c.country,
+              orders: c.total_orders,
+              lifetime_value: c.lifetime_value,
+              status: c.status,
+            })),
+            `customers-${format(new Date(), "yyyy-MM-dd")}`
+          );
+        }}>
+          <Download className="h-4 w-4 mr-1" /> Export
+        </Button>
       </div>
 
       <div className="relative mb-6">
