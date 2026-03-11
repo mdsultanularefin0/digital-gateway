@@ -322,6 +322,41 @@ export type Database = {
           },
         ]
       }
+      product_images: {
+        Row: {
+          alt_text: string
+          created_at: string
+          id: string
+          image_url: string
+          product_id: string
+          sort_order: number
+        }
+        Insert: {
+          alt_text?: string
+          created_at?: string
+          id?: string
+          image_url: string
+          product_id: string
+          sort_order?: number
+        }
+        Update: {
+          alt_text?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          product_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_tiers: {
         Row: {
           badge: string | null
@@ -611,6 +646,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      track_order: {
+        Args: { _email: string; _order_number: string }
+        Returns: Json
       }
       upsert_checkout_customer: {
         Args: {
