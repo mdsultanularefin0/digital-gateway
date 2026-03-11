@@ -71,7 +71,12 @@
     @apply bg-background text-foreground font-body antialiased overflow-x-hidden;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-body;
   }
 }
@@ -101,23 +106,23 @@
   }
 
   .glass {
-    background: hsl(0 0% 100% / 0.7);
+    background: hsl(210 30% 98% / 0.7);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid hsl(0 0% 0% / 0.06);
+    border-bottom: 1px solid hsl(210 100% 45% / 0.08);
   }
 
   .glass-card {
     background: hsl(0 0% 100%);
-    border: 1px solid hsl(0 0% 0% / 0.06);
+    border: 1px solid hsl(210 25% 88%);
   }
 
   .hero-gradient {
-    background: hsl(0 0% 100%);
+    background: hsl(210 30% 98%);
   }
 
   .btn-glow:hover {
-    box-shadow: 0 0 24px -4px hsl(14 100% 53% / 0.35);
+    box-shadow: 0 0 24px -4px hsl(210 100% 45% / 0.4);
   }
 
   .text-charcoal {
