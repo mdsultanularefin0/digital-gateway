@@ -38,6 +38,7 @@ const AdminPostGenerator = lazy(() => import("./pages/admin/AdminPostGenerator")
 const AdminMailSettings = lazy(() => import("./pages/admin/AdminMailSettings"));
 const AdminSupportInbox = lazy(() => import("./pages/admin/AdminSupportInbox"));
 const AdminActivityLog = lazy(() => import("./pages/admin/AdminActivityLog"));
+const AdminNewsletter = lazy(() => import("./pages/admin/AdminNewsletter"));
 const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
