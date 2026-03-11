@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.mail]
 verify_jwt = false
+
+[functions.send-order-confirmation]
+verify_jwt = false
