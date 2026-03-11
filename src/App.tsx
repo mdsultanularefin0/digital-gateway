@@ -3,9 +3,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AdminGuard } from "@/components/AdminGuard";
 import { CartDrawer } from "@/components/CartDrawer";
 import Index from "./pages/Index";
@@ -35,56 +37,62 @@ import AdminPostGenerator from "./pages/admin/AdminPostGenerator";
 import AdminMailSettings from "./pages/admin/AdminMailSettings";
 import AdminSupportInbox from "./pages/admin/AdminSupportInbox";
 import AdminActivityLog from "./pages/admin/AdminActivityLog";
+import AdminBlog from "./pages/admin/AdminBlog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <CartDrawer />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/products/:id" element={<ProductDetail />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/bkash/callback" element={<BkashCallback />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/faq" element={<FAQ />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                
-                <Route path="/wishlist" element={<Wishlist />} />
-                <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
-                <Route path="/admin/products" element={<AdminGuard><AdminProducts /></AdminGuard>} />
-                <Route path="/admin/orders" element={<AdminGuard><AdminOrders /></AdminGuard>} />
-                <Route path="/admin/customers" element={<AdminGuard><AdminCustomers /></AdminGuard>} />
-                <Route path="/admin/sales" element={<AdminGuard><AdminSales /></AdminGuard>} />
-                <Route path="/admin/coupons" element={<AdminGuard><AdminCoupons /></AdminGuard>} />
-                <Route path="/admin/reviews" element={<AdminGuard><AdminReviews /></AdminGuard>} />
-                <Route path="/admin/settings" element={<AdminGuard><AdminSettings /></AdminGuard>} />
-                <Route path="/admin/integrations" element={<AdminGuard><AdminIntegrations /></AdminGuard>} />
-                <Route path="/admin/post-generator" element={<AdminGuard><AdminPostGenerator /></AdminGuard>} />
-                <Route path="/admin/mail-settings" element={<AdminGuard><AdminMailSettings /></AdminGuard>} />
-                <Route path="/admin/support-inbox" element={<AdminGuard><AdminSupportInbox /></AdminGuard>} />
-                <Route path="/admin/activity" element={<AdminGuard><AdminActivityLog /></AdminGuard>} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </WishlistProvider>
-        </CartProvider>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <CartDrawer />
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/products" element={<Products />} />
+                    <Route path="/products/:id" element={<ProductDetail />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/bkash/callback" element={<BkashCallback />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/faq" element={<FAQ />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    
+                    <Route path="/wishlist" element={<Wishlist />} />
+                    <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
+                    <Route path="/admin/products" element={<AdminGuard><AdminProducts /></AdminGuard>} />
+                    <Route path="/admin/orders" element={<AdminGuard><AdminOrders /></AdminGuard>} />
+                    <Route path="/admin/customers" element={<AdminGuard><AdminCustomers /></AdminGuard>} />
+                    <Route path="/admin/sales" element={<AdminGuard><AdminSales /></AdminGuard>} />
+                    <Route path="/admin/coupons" element={<AdminGuard><AdminCoupons /></AdminGuard>} />
+                    <Route path="/admin/reviews" element={<AdminGuard><AdminReviews /></AdminGuard>} />
+                    <Route path="/admin/settings" element={<AdminGuard><AdminSettings /></AdminGuard>} />
+                    <Route path="/admin/integrations" element={<AdminGuard><AdminIntegrations /></AdminGuard>} />
+                    <Route path="/admin/post-generator" element={<AdminGuard><AdminPostGenerator /></AdminGuard>} />
+                    <Route path="/admin/mail-settings" element={<AdminGuard><AdminMailSettings /></AdminGuard>} />
+                    <Route path="/admin/support-inbox" element={<AdminGuard><AdminSupportInbox /></AdminGuard>} />
+                    <Route path="/admin/activity" element={<AdminGuard><AdminActivityLog /></AdminGuard>} />
+                    <Route path="/admin/blog" element={<AdminGuard><AdminBlog /></AdminGuard>} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </BrowserRouter>
+              </WishlistProvider>
+            </CartProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;

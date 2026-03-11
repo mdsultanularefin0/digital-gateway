@@ -66,6 +66,7 @@ function mapDBProduct(p: DBProduct): Product {
     image: p.image_url || "/placeholder.svg",
     externalUrl: p.external_url,
     featured: p.featured,
+    inStock: (p as any).in_stock !== false,
     testimonials: [],
   };
 }
