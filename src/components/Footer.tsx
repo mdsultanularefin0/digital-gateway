@@ -19,7 +19,7 @@ const footerLinks = {
 
 export function Footer() {
   const { data: settings } = useSiteSettings();
-  const siteName = settings?.site_name || "DigiStack";
+  const siteName = settings?.site_name || "GiftCardVibe";
   const tagline = settings?.site_tagline || "Premium digital products and subscriptions to elevate your workflow.";
   const footerText = settings?.footer_text || `© ${new Date().getFullYear()} ${siteName}. All rights reserved.`;
 
