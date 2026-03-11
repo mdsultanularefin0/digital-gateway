@@ -535,7 +535,74 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      coupons_public: {
+        Row: {
+          code: string | null
+          discount_type: string | null
+          discount_value: number | null
+          is_valid: boolean | null
+          min_order_amount: number | null
+        }
+        Insert: {
+          code?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
+          is_valid?: never
+          min_order_amount?: number | null
+        }
+        Update: {
+          code?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
+          is_valid?: never
+          min_order_amount?: number | null
+        }
+        Relationships: []
+      }
+      reviews_public: {
+        Row: {
+          approved: boolean | null
+          content: string | null
+          created_at: string | null
+          customer_name: string | null
+          featured: boolean | null
+          id: string | null
+          product_id: string | null
+          rating: number | null
+          title: string | null
+        }
+        Insert: {
+          approved?: boolean | null
+          content?: string | null
+          created_at?: string | null
+          customer_name?: string | null
+          featured?: boolean | null
+          id?: string | null
+          product_id?: string | null
+          rating?: number | null
+          title?: string | null
+        }
+        Update: {
+          approved?: boolean | null
+          content?: string | null
+          created_at?: string | null
+          customer_name?: string | null
+          featured?: boolean | null
+          id?: string | null
+          product_id?: string | null
+          rating?: number | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       has_role: {
