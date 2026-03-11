@@ -64,6 +64,7 @@ const App = () => (
               <Sonner />
               <BrowserRouter>
                 <CartDrawer />
+                <MetaPixelProvider />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
                     <Route path="/" element={<Index />} />
