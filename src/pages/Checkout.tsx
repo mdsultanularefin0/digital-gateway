@@ -201,7 +201,6 @@ export default function CheckoutPage() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              amount: total.toFixed(2),
               orderId: order.id,
               callbackURL,
               payerReference: form.phone,

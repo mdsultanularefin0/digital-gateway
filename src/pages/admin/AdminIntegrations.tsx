@@ -186,8 +186,8 @@ export default function AdminIntegrations() {
               </div>
             ))}
             <p className="text-xs text-muted-foreground">
-              Note: bKash credentials (App Key, App Secret, Username, Password) are stored as backend secrets for security.
-              Values shown here are for reference — actual secrets are configured in the backend.
+              bKash credentials (App Key, App Secret, Username, Password) are securely stored as backend secrets and cannot be viewed here.
+              Contact your administrator to update them.
             </p>
           </div>
         </section>

@@ -88,7 +88,7 @@ async function createPayment(
   if (!res.ok || !data.bkashURL) {
     throw new Error(`bKash create payment failed: ${JSON.stringify(data)}`);
   }
-  return data; // { paymentID, bkashURL, ... }
+  return data;
 }
 
 async function executePayment(baseUrl: string, idToken: string, paymentID: string) {
@@ -126,11 +126,24 @@ Deno.serve(async (req) => {
 
     // ── CREATE: called from checkout page ──
     if (action === "create" && req.method === "POST") {
-      const { amount, orderId, callbackURL, payerReference } = await req.json();
+      const { orderId, callbackURL, payerReference } = await req.json();
 
-      if (!amount || !orderId || !callbackURL) {
+      if (!orderId || !callbackURL) {
         return json({ error: "Missing required fields" }, 400);
       }
+
+      // Server-authoritative: read amount from the actual order
+      const { data: order, error: orderErr } = await supabase
+        .from("orders")
+        .select("total")
+        .eq("id", orderId)
+        .single();
+
+      if (orderErr || !order) {
+        return json({ error: "Order not found" }, 404);
+      }
+
+      const amount = Number(order.total).toFixed(2);
 
       const baseUrl = await getBaseUrl(supabase);
       const { idToken } = await grantToken(baseUrl);
@@ -138,13 +151,13 @@ Deno.serve(async (req) => {
       const result = await createPayment(
         baseUrl,
         idToken,
-        String(amount),
+        amount,
         orderId,
         callbackURL,
         payerReference || "guest"
       );
 
-      // Store paymentID and full create response against orderId
+      // Store paymentID against orderId for later verification
       await supabase
         .from("orders")
         .update({
@@ -165,17 +178,27 @@ Deno.serve(async (req) => {
         return json({ error: "Missing paymentID or orderId" }, 400);
       }
 
+      // Verify that the paymentID matches what was stored during create
+      const { data: existingOrder, error: fetchErr } = await supabase
+        .from("orders")
+        .select("notes, bkash_response")
+        .eq("id", orderId)
+        .single();
+
+      if (fetchErr || !existingOrder) {
+        return json({ error: "Order not found" }, 404);
+      }
+
+      // Extract stored paymentID and verify it matches the request
+      const storedPaymentID = existingOrder.notes?.match(/bkash_paymentID:(\S+)/)?.[1];
+      if (!storedPaymentID || storedPaymentID !== paymentID) {
+        return json({ error: "Payment ID mismatch — potential tampering detected" }, 400);
+      }
+
       const baseUrl = await getBaseUrl(supabase);
       const { idToken } = await grantToken(baseUrl);
       const result = await executePayment(baseUrl, idToken, paymentID);
       console.log("bKash execute response:", JSON.stringify(result));
-
-      // Fetch existing bkash_response to merge
-      const { data: existingOrder } = await supabase
-        .from("orders")
-        .select("bkash_response")
-        .eq("id", orderId)
-        .maybeSingle();
 
       const mergedResponse = {
         ...(existingOrder?.bkash_response as Record<string, unknown> || {}),
@@ -186,7 +209,6 @@ Deno.serve(async (req) => {
       const isPaid = !!result.trxID;
       const paymentStatus = isPaid ? "paid" : "failed";
 
-      // Always save the full response and auto-update payment status
       await supabase
         .from("orders")
         .update({
