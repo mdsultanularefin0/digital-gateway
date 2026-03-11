@@ -132,6 +132,8 @@ export default function AdminProducts() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      const productName = editing?.name || "";
+      logActivity(isNew ? "Created product" : "Updated product", "product", editingId || "", productName);
       setEditing(null);
       setTiers([]);
       setImages([]);
