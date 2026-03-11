@@ -8,8 +8,6 @@ import { useCart } from "@/contexts/CartContext";
 import { SearchOverlay } from "@/components/SearchOverlay";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { LanguageToggle } from "@/components/LanguageToggle";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -19,12 +17,11 @@ export function Header() {
   const { data: settings } = useSiteSettings();
   const { itemCount, setIsOpen } = useCart();
   const { itemCount: wishlistCount } = useWishlist();
-  const { t } = useLanguage();
 
   const navLinks = [
-    { label: t("nav.products"), to: "/products" },
-    { label: t("nav.about"), to: "/about" },
-    { label: t("nav.contact"), to: "/contact" },
+    { label: "Products", to: "/products" },
+    { label: "About", to: "/about" },
+    { label: "Contact", to: "/contact" },
   ];
 
   useEffect(() => {
