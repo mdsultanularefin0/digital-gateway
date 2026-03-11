@@ -8,8 +8,6 @@ import { useCart } from "@/contexts/CartContext";
 import { SearchOverlay } from "@/components/SearchOverlay";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { LanguageToggle } from "@/components/LanguageToggle";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -19,12 +17,11 @@ export function Header() {
   const { data: settings } = useSiteSettings();
   const { itemCount, setIsOpen } = useCart();
   const { itemCount: wishlistCount } = useWishlist();
-  const { t } = useLanguage();
 
   const navLinks = [
-    { label: t("nav.products"), to: "/products" },
-    { label: t("nav.about"), to: "/about" },
-    { label: t("nav.contact"), to: "/contact" },
+    { label: "Products", to: "/products" },
+    { label: "About", to: "/about" },
+    { label: "Contact", to: "/contact" },
   ];
 
   useEffect(() => {
@@ -83,12 +80,11 @@ export function Header() {
         </nav>
 
         <div className="hidden items-center gap-1 md:flex">
-          <LanguageToggle />
           <ThemeToggle />
           <button
             onClick={() => setSearchOpen(true)}
             className="flex h-10 w-10 items-center justify-center rounded-[4px] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-            aria-label={t("nav.search")}
+            aria-label="Search"
           >
             <Search className="h-5 w-5" />
           </button>
@@ -118,19 +114,18 @@ export function Header() {
           <Link
             to="/login"
             className="flex h-10 w-10 items-center justify-center rounded-[4px] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-            aria-label={t("nav.profile")}
+            aria-label="Profile"
           >
             <User className="h-5 w-5" />
           </Link>
         </div>
 
         <div className="flex items-center gap-1 md:hidden">
-          <LanguageToggle />
           <ThemeToggle />
           <button
             onClick={() => setSearchOpen(true)}
             className="flex h-10 w-10 items-center justify-center rounded-[4px] text-foreground hover:bg-secondary"
-            aria-label={t("nav.search")}
+            aria-label="Search"
           >
             <Search className="h-5 w-5" />
           </button>
@@ -178,7 +173,7 @@ export function Header() {
               <div className="mt-2 border-t border-border pt-4 flex gap-2">
                 <Link to="/login" className="flex-1">
                   <Button variant="outline" className="w-full gap-2 rounded-[4px]">
-                    <User className="h-4 w-4" /> {t("nav.profile")}
+                    <User className="h-4 w-4" /> Profile
                   </Button>
                 </Link>
               </div>
