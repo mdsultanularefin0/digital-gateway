@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Zap, ShoppingCart, Search, User, Heart } from "lucide-react";
@@ -7,12 +7,9 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useCart } from "@/contexts/CartContext";
 import { SearchOverlay } from "@/components/SearchOverlay";
 import { useWishlist } from "@/contexts/WishlistContext";
-
-const navLinks = [
-  { label: "Products", to: "/products" },
-  { label: "About", to: "/about" },
-  { label: "Contact", to: "/contact" },
-];
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -22,6 +19,13 @@ export function Header() {
   const { data: settings } = useSiteSettings();
   const { itemCount, setIsOpen } = useCart();
   const { itemCount: wishlistCount } = useWishlist();
+  const { t } = useLanguage();
+
+  const navLinks = [
+    { label: t("nav.products"), to: "/products" },
+    { label: t("nav.about"), to: "/about" },
+    { label: t("nav.contact"), to: "/contact" },
+  ];
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10);
@@ -31,7 +35,6 @@ export function Header() {
 
   useEffect(() => setMobileOpen(false), [location]);
 
-  // Cmd/Ctrl+K shortcut
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -62,7 +65,7 @@ export function Header() {
               <Zap className="h-4 w-4 text-primary-foreground" />
             </div>
           )}
-          <span className="text-silver-bright">{siteName}</span>
+          <span className="text-foreground">{siteName}</span>
         </Link>
 
         <nav className="hidden items-center gap-0.5 md:flex">
@@ -80,10 +83,12 @@ export function Header() {
         </nav>
 
         <div className="hidden items-center gap-1 md:flex">
+          <LanguageToggle />
+          <ThemeToggle />
           <button
             onClick={() => setSearchOpen(true)}
             className="flex h-10 w-10 items-center justify-center rounded-[4px] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-            aria-label="Search"
+            aria-label={t("nav.search")}
           >
             <Search className="h-5 w-5" />
           </button>
@@ -113,17 +118,19 @@ export function Header() {
           <Link
             to="/login"
             className="flex h-10 w-10 items-center justify-center rounded-[4px] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-            aria-label="Profile"
+            aria-label={t("nav.profile")}
           >
             <User className="h-5 w-5" />
           </Link>
         </div>
 
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-1 md:hidden">
+          <LanguageToggle />
+          <ThemeToggle />
           <button
             onClick={() => setSearchOpen(true)}
             className="flex h-10 w-10 items-center justify-center rounded-[4px] text-foreground hover:bg-secondary"
-            aria-label="Search"
+            aria-label={t("nav.search")}
           >
             <Search className="h-5 w-5" />
           </button>
@@ -171,7 +178,7 @@ export function Header() {
               <div className="mt-2 border-t border-border pt-4 flex gap-2">
                 <Link to="/login" className="flex-1">
                   <Button variant="outline" className="w-full gap-2 rounded-[4px]">
-                    <User className="h-4 w-4" /> Profile
+                    <User className="h-4 w-4" /> {t("nav.profile")}
                   </Button>
                 </Link>
               </div>

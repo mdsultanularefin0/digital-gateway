@@ -5,12 +5,14 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function ProductCard({ product }: { product: Product }) {
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "$";
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const wishlisted = isInWishlist(product.id);
+  const { t } = useLanguage();
 
   const { data: firstImage } = useQuery({
     queryKey: ["product-first-image", product.id],
@@ -33,6 +35,8 @@ export function ProductCard({ product }: { product: Product }) {
     else addToWishlist(product.id);
   };
 
+  const inStock = (product as any).inStock !== false;
+
   return (
     <Link
       to={`/products/${product.id}`}
@@ -53,6 +57,12 @@ export function ProductCard({ product }: { product: Product }) {
         >
           <Heart className={`h-4 w-4 transition-colors ${wishlisted ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
         </button>
+        {/* Stock badge */}
+        {!inStock && (
+          <span className="absolute top-3 left-3 rounded-[4px] bg-destructive/90 px-2.5 py-1 text-xs font-semibold text-destructive-foreground backdrop-blur-sm">
+            {t("product.outOfStock")}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col p-6">
@@ -65,6 +75,11 @@ export function ProductCard({ product }: { product: Product }) {
               {tag}
             </span>
           ))}
+          {inStock && (
+            <span className="rounded-[4px] bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">
+              {t("product.inStock")}
+            </span>
+          )}
         </div>
 
         <h3 className="text-lg font-display font-semibold text-foreground group-hover:text-primary transition-colors">
@@ -77,7 +92,7 @@ export function ProductCard({ product }: { product: Product }) {
             {currencySymbol}{product.price}
           </span>
           <span className="flex items-center gap-1 text-sm text-primary font-medium group-hover:gap-2 transition-all">
-            View Details <ArrowRight className="h-4 w-4" />
+            {t("product.viewDetails")} <ArrowRight className="h-4 w-4" />
           </span>
         </div>
       </div>
