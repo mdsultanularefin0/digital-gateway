@@ -34,6 +34,7 @@ import AdminIntegrations from "./pages/admin/AdminIntegrations";
 import AdminPostGenerator from "./pages/admin/AdminPostGenerator";
 import AdminMailSettings from "./pages/admin/AdminMailSettings";
 import AdminSupportInbox from "./pages/admin/AdminSupportInbox";
+import AdminActivityLog from "./pages/admin/AdminActivityLog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
