@@ -46,8 +46,19 @@ export default function CheckoutPage() {
   const [orderPlaced, setOrderPlaced] = useState<string | null>(null);
 
   const shippingCost = 0;
+  const currency = settings?.currency || "USD";
 
-  // Parse enabled payment methods from settings
+  // Track InitiateCheckout on mount
+  useEffect(() => {
+    if (items.length > 0) {
+      trackInitiateCheckout({
+        content_ids: items.map((i) => i.productId),
+        num_items: items.reduce((s, i) => s + i.quantity, 0),
+        value: subtotal,
+        currency,
+      });
+    }
+  }, []);
   const enabledMethods = (() => {
     try {
       const raw = settings?.payment_methods as string | undefined;
