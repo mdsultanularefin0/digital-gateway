@@ -149,12 +149,48 @@ export default function AdminProducts() {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("products").delete().eq("id", id);
       if (error) throw error;
+      logActivity("Deleted product", "product", id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       toast({ title: "Product deleted" });
     },
   });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("products").delete().in("id", ids);
+      if (error) throw error;
+      logActivity("Bulk deleted products", "product", "", `${ids.length} products`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      setSelectedIds(new Set());
+      toast({ title: `Deleted ${selectedIds.size} products` });
+    },
+  });
+
+  const bulkPublishMutation = useMutation({
+    mutationFn: async ({ ids, published }: { ids: string[]; published: boolean }) => {
+      const { error } = await supabase.from("products").update({ published }).in("id", ids);
+      if (error) throw error;
+      logActivity(published ? "Bulk published products" : "Bulk unpublished products", "product", "", `${ids.length} products`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      setSelectedIds(new Set());
+      toast({ title: "Products updated" });
+    },
+  });
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const openEditor = (product?: Product) => {
     if (product) {
