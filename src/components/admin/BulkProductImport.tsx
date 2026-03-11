@@ -17,6 +17,7 @@ interface ParsedProduct {
   features: string[];
   external_url: string;
   image_url: string;
+  in_stock: boolean;
   featured: boolean;
   published: boolean;
 }
