@@ -63,25 +63,51 @@ export default function AdminSupportInbox() {
     }
   };
 
+  const extractEmailAddress = (value: string) => {
+    const angleMatch = value.match(/<([^>]+)>/);
+    const candidate = (angleMatch?.[1] ?? value).trim().replace(/^mailto:/i, "");
+    return candidate;
+  };
+
   const handleReply = () => {
     if (!selectedEmail) return;
-    const fromMatch = selectedEmail.headers.match(/From:\s*(.+)/i);
-    const subjectMatch = selectedEmail.headers.match(/Subject:\s*(.+)/i);
-    setComposeTo(fromMatch?.[1]?.trim() || "");
-    setComposeSubject("Re: " + (subjectMatch?.[1]?.trim() || ""));
+    const fromMatch = selectedEmail.headers.match(/^From:\s*(.+)$/im);
+    const subjectMatch = selectedEmail.headers.match(/^Subject:\s*(.+)$/im);
+
+    const to = fromMatch?.[1] ? extractEmailAddress(fromMatch[1]) : "";
+    const rawSubject = subjectMatch?.[1]?.trim() || "";
+    const cleanSubject = rawSubject.replace(/^Re:\s*/i, "").trim();
+
+    setComposeTo(to);
+    setComposeSubject(cleanSubject ? `Re: ${cleanSubject}` : "Re: Support request");
     setComposeBody("");
     setComposeOpen(true);
   };
 
   const handleSend = async () => {
-    if (!composeTo || !composeSubject) {
-      toast({ title: "Error", description: "To and Subject are required.", variant: "destructive" });
+    const to = extractEmailAddress(composeTo);
+    const subject = composeSubject.trim();
+    const body = composeBody.trim();
+
+    if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+      toast({ title: "Error", description: "Please enter a valid recipient email.", variant: "destructive" });
       return;
     }
+
+    if (!subject || /^re:\s*$/i.test(subject)) {
+      toast({ title: "Error", description: "Please add a meaningful subject.", variant: "destructive" });
+      return;
+    }
+
+    if (!body || body.length < 10) {
+      toast({ title: "Error", description: "Please write a clearer message (at least 10 characters).", variant: "destructive" });
+      return;
+    }
+
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("mail", {
-        body: { action: "send-email", to: composeTo, subject: composeSubject, body: composeBody },
+        body: { action: "send-email", to, subject, body },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
