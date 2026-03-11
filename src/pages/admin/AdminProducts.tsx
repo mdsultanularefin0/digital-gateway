@@ -33,6 +33,7 @@ const emptyProduct: ProductInsert = {
   external_url: "#",
   featured: false,
   published: true,
+  in_stock: true,
 };
 
 export default function AdminProducts() {
