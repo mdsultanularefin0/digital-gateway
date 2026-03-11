@@ -34,6 +34,7 @@ import AdminIntegrations from "./pages/admin/AdminIntegrations";
 import AdminPostGenerator from "./pages/admin/AdminPostGenerator";
 import AdminMailSettings from "./pages/admin/AdminMailSettings";
 import AdminSupportInbox from "./pages/admin/AdminSupportInbox";
+import AdminActivityLog from "./pages/admin/AdminActivityLog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -75,6 +76,7 @@ const App = () => (
                 <Route path="/admin/post-generator" element={<AdminGuard><AdminPostGenerator /></AdminGuard>} />
                 <Route path="/admin/mail-settings" element={<AdminGuard><AdminMailSettings /></AdminGuard>} />
                 <Route path="/admin/support-inbox" element={<AdminGuard><AdminSupportInbox /></AdminGuard>} />
+                <Route path="/admin/activity" element={<AdminGuard><AdminActivityLog /></AdminGuard>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

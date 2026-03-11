@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Search, Edit2, Trash2, Users, X, Save } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Users, X, Save, Download } from "lucide-react";
+import { exportToCSV, logActivity } from "@/lib/admin-utils";
 import { format } from "date-fns";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { countries } from "@/data/countries-currencies";
@@ -188,6 +189,23 @@ export default function AdminCustomers() {
         </div>
         <Button variant="gradient" onClick={() => openEdit()}>
           <Plus className="h-4 w-4 mr-1" /> Add Customer
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => {
+          exportToCSV(
+            customers.map((c: any) => ({
+              name: c.name,
+              email: c.email,
+              phone: c.phone,
+              city: c.city,
+              country: c.country,
+              orders: c.total_orders,
+              lifetime_value: c.lifetime_value,
+              status: c.status,
+            })),
+            `customers-${format(new Date(), "yyyy-MM-dd")}`
+          );
+        }}>
+          <Download className="h-4 w-4 mr-1" /> Export
         </Button>
       </div>
 

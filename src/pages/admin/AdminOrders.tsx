@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Search, Eye, Trash2, Package, CheckSquare, Square, MinusSquare } from "lucide-react";
+import { Search, Eye, Trash2, Package, CheckSquare, Square, MinusSquare, Download } from "lucide-react";
 import { format } from "date-fns";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import OrderDetail from "@/components/admin/OrderDetail";
+import { exportToCSV, logActivity } from "@/lib/admin-utils";
 
 const statuses = ["pending", "processing", "shipped", "delivered", "cancelled"];
 const paymentStatuses = ["unpaid", "paid", "refunded"];
@@ -62,6 +63,7 @@ export default function AdminOrders() {
       const { error } = await supabase.from("orders").update({ status }).eq("id", id);
       if (error) throw error;
       fireWebhook(id, "order.status_changed");
+      logActivity("Updated order status", "order", id, `Status changed to ${status}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
@@ -85,6 +87,7 @@ export default function AdminOrders() {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("orders").delete().eq("id", id);
       if (error) throw error;
+      logActivity("Deleted order", "order", id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
@@ -206,6 +209,24 @@ export default function AdminOrders() {
           <h2 className="text-xl font-display font-bold">Orders</h2>
           <p className="text-sm text-muted-foreground mt-1">Manage customer orders</p>
         </div>
+        <Button variant="outline" size="sm" onClick={() => {
+          exportToCSV(
+            orders.map((o: any) => ({
+              order_number: o.order_number,
+              customer: o.customer_name,
+              email: o.customer_email,
+              phone: o.customer_phone,
+              total: o.total,
+              status: o.status,
+              payment: o.payment_status,
+              method: o.payment_method,
+              date: format(new Date(o.created_at), "yyyy-MM-dd HH:mm"),
+            })),
+            `orders-${format(new Date(), "yyyy-MM-dd")}`
+          );
+        }}>
+          <Download className="h-4 w-4 mr-1" /> Export
+        </Button>
       </div>
 
       {/* Search & Filter */}
