@@ -545,6 +545,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      upsert_checkout_customer: {
+        Args: {
+          _address: string
+          _email: string
+          _name: string
+          _phone: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
