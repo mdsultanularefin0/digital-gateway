@@ -16,6 +16,7 @@ interface ParsedProduct {
   billing_cycle: string;
   features: string[];
   external_url: string;
+  image_url: string;
   featured: boolean;
   published: boolean;
 }
