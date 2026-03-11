@@ -36,7 +36,6 @@ async function smtpSend(cfg: Record<string, string>, to: string, subject: string
 
   if (!host || !user || !pass) throw new Error("SMTP not configured");
 
-  // Use Deno's native SMTP via raw TCP
   const useTls = encryption === "ssl" || port === 465;
   let conn: Deno.Conn;
 
@@ -49,44 +48,73 @@ async function smtpSend(cfg: Record<string, string>, to: string, subject: string
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 
-  async function readLine(): Promise<string> {
-    const buf = new Uint8Array(4096);
-    const n = await conn.read(buf);
-    return n ? decoder.decode(buf.subarray(0, n)) : "";
+  // Read all available data from the connection, handling multi-line responses
+  async function readResponse(): Promise<string> {
+    let result = "";
+    const buf = new Uint8Array(8192);
+    // Keep reading until we get a line that matches "NNN " (final line of multi-line)
+    while (true) {
+      const n = await conn.read(buf);
+      if (!n) break;
+      result += decoder.decode(buf.subarray(0, n));
+      // Check if last line is a final response (e.g. "250 OK" not "250-...")
+      const lines = result.trim().split("\n");
+      const lastLine = lines[lines.length - 1].trim();
+      if (/^\d{3} /.test(lastLine) || /^\d{3}$/.test(lastLine)) break;
+      // Also break if we have enough data and no more continuation
+      if (result.length > 4096) break;
+    }
+    return result;
   }
 
   async function send(cmd: string): Promise<string> {
     await conn.write(encoder.encode(cmd + "\r\n"));
-    return await readLine();
+    return await readResponse();
   }
 
   try {
     // Read greeting
-    await readLine();
+    await readResponse();
 
-    let resp = await send(`EHLO localhost`);
+    // Initial EHLO
+    await send("EHLO localhost");
 
-    // STARTTLS for non-SSL
+    // STARTTLS for non-SSL connections
     if (!useTls && encryption === "tls") {
       await send("STARTTLS");
       conn = await Deno.startTls(conn as Deno.TcpConn, { hostname: host });
+      // Re-EHLO after TLS upgrade
       await send("EHLO localhost");
     }
 
-    // AUTH LOGIN
-    await send("AUTH LOGIN");
-    await send(btoa(user));
-    resp = await send(btoa(pass));
-    if (!resp.startsWith("235")) throw new Error("SMTP auth failed: " + resp);
+    // AUTH PLAIN (more widely supported than AUTH LOGIN)
+    const authPlain = btoa(`\0${user}\0${pass}`);
+    const authResp = await send(`AUTH PLAIN ${authPlain}`);
+    if (!authResp.includes("235")) {
+      // Fallback to AUTH LOGIN
+      await send("AUTH LOGIN");
+      await send(btoa(user));
+      const loginResp = await send(btoa(pass));
+      if (!loginResp.includes("235")) throw new Error("SMTP auth failed: " + loginResp.trim());
+    }
 
-    await send(`MAIL FROM:<${from}>`);
-    await send(`RCPT TO:<${to}>`);
+    const mailFromResp = await send(`MAIL FROM:<${from}>`);
+    if (!mailFromResp.includes("250")) throw new Error("MAIL FROM failed: " + mailFromResp.trim());
+
+    const rcptResp = await send(`RCPT TO:<${to}>`);
+    if (!rcptResp.includes("250")) throw new Error("RCPT TO failed: " + rcptResp.trim());
+
     await send("DATA");
 
+    // Build message with proper headers including Date and Message-ID
+    const now = new Date();
+    const messageId = `<${crypto.randomUUID()}@${host}>`;
     const msg = [
+      `Date: ${now.toUTCString()}`,
       `From: ${from}`,
       `To: ${to}`,
       `Subject: ${subject}`,
+      `Message-ID: ${messageId}`,
       `MIME-Version: 1.0`,
       `Content-Type: text/plain; charset=utf-8`,
       ``,
@@ -94,10 +122,10 @@ async function smtpSend(cfg: Record<string, string>, to: string, subject: string
       `.`,
     ].join("\r\n");
 
-    resp = await send(msg);
+    const dataResp = await send(msg);
     await send("QUIT");
 
-    return resp;
+    return dataResp;
   } finally {
     try { conn.close(); } catch { /* ignore */ }
   }
