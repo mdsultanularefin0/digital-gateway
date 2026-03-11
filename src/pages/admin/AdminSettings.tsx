@@ -81,7 +81,7 @@ const settingGroups = [
     title: "SEO & Analytics",
     description: "Search engine and tracking configuration",
     fields: [
-      { key: "meta_title", label: "Default Meta Title", placeholder: "DigiStack — Premium Digital Products" },
+      { key: "meta_title", label: "Default Meta Title", placeholder: "GiftCardVibe — Premium Gift Cards" },
       { key: "meta_description", label: "Default Meta Description", placeholder: "Discover curated digital tools...", type: "textarea" },
       { key: "google_analytics_id", label: "Google Analytics ID", placeholder: "G-XXXXXXXXXX" },
       { key: "facebook_pixel_id", label: "Facebook Pixel ID", placeholder: "e.g. 123456789012345" },

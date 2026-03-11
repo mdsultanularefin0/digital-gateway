@@ -1,6 +1,10 @@
 import { Layout } from "@/components/Layout";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 export default function PrivacyPage() {
+  const { data: settings } = useSiteSettings();
+  const contactEmail = settings?.contact_email || settings?.support_email || "contact@giftcardvibe.com";
+
   return (
     <Layout>
       <section className="py-16 md:py-24">
@@ -17,7 +21,7 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-display font-semibold text-foreground">4. Data Security</h2>
             <p>We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
             <h2 className="text-lg font-display font-semibold text-foreground">5. Contact Us</h2>
-            <p>If you have questions about this Privacy Policy, please contact us at privacy@digistack.com.</p>
+            <p>If you have questions about this Privacy Policy, please contact us at {contactEmail}.</p>
           </div>
         </div>
       </section>

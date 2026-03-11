@@ -10,8 +10,8 @@ interface SEOHeadProps {
 }
 
 export function SEOHead({
-  title = "DigiStack — Premium Digital Products",
-  description = "Premium digital products designed for teams who demand precision, speed, and simplicity.",
+  title = "GiftCardVibe — Premium Gift Cards",
+  description = "Premium gift cards and digital products.",
   canonical,
   ogImage,
   type = "website",

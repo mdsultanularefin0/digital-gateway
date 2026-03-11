@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
     const settings: Record<string, string> = {};
     (settingsRows || []).forEach((r: any) => { settings[r.key] = r.value; });
 
-    const siteName = settings.site_name || "DigiStack";
+    const siteName = settings.site_name || "GiftCardVibe";
     const currencySymbol = settings.currency_symbol || "$";
 
     // Build HTML email
