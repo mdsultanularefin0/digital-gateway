@@ -40,6 +40,8 @@ export default function AdminProducts() {
   const [tagsInput, setTagsInput] = useState("");
   const [featuresInput, setFeaturesInput] = useState("");
   const [tiers, setTiers] = useState<Tier[]>([]);
+  const [images, setImages] = useState<{ id?: string; image_url: string; alt_text: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["admin-products"],
