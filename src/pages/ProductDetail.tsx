@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { ProductImageGallery } from "@/components/ProductImageGallery";
 import { ReviewForm } from "@/components/ReviewForm";
+import { trackViewContent, trackAddToCart } from "@/lib/meta-pixel";
 
 interface Tier {
   id: string;
