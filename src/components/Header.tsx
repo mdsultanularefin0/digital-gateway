@@ -80,12 +80,11 @@ export function Header() {
         </nav>
 
         <div className="hidden items-center gap-1 md:flex">
-          <LanguageToggle />
           <ThemeToggle />
           <button
             onClick={() => setSearchOpen(true)}
             className="flex h-10 w-10 items-center justify-center rounded-[4px] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-            aria-label={t("nav.search")}
+            aria-label="Search"
           >
             <Search className="h-5 w-5" />
           </button>
@@ -115,19 +114,18 @@ export function Header() {
           <Link
             to="/login"
             className="flex h-10 w-10 items-center justify-center rounded-[4px] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-            aria-label={t("nav.profile")}
+            aria-label="Profile"
           >
             <User className="h-5 w-5" />
           </Link>
         </div>
 
         <div className="flex items-center gap-1 md:hidden">
-          <LanguageToggle />
           <ThemeToggle />
           <button
             onClick={() => setSearchOpen(true)}
             className="flex h-10 w-10 items-center justify-center rounded-[4px] text-foreground hover:bg-secondary"
-            aria-label={t("nav.search")}
+            aria-label="Search"
           >
             <Search className="h-5 w-5" />
           </button>
