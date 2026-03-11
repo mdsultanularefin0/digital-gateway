@@ -156,6 +156,7 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
         billing_cycle: p.billing_cycle,
         features: p.features,
         external_url: p.external_url,
+        image_url: p.image_url || null,
         featured: p.featured,
         published: p.published,
       });
