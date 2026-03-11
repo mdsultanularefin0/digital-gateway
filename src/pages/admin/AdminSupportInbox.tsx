@@ -94,13 +94,13 @@ export default function AdminSupportInbox() {
       return;
     }
 
-    if (!subject || /^re:\s*$/i.test(subject)) {
-      toast({ title: "Error", description: "Please add a meaningful subject.", variant: "destructive" });
+    if (!subject || subject.length < 4 || /^re:\s*$/i.test(subject)) {
+      toast({ title: "Error", description: "Please add a meaningful subject (at least 4 characters).", variant: "destructive" });
       return;
     }
 
-    if (!body || body.length < 10) {
-      toast({ title: "Error", description: "Please write a clearer message (at least 10 characters).", variant: "destructive" });
+    if (!body || body.length < 20) {
+      toast({ title: "Error", description: "Please write a clearer message (at least 20 characters).", variant: "destructive" });
       return;
     }
 
