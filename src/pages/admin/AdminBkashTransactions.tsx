@@ -104,7 +104,12 @@ export default function AdminBkashTransactions() {
     },
   });
 
-  const transactions = extractTransactions(orders || []);
+  const allTransactions = extractTransactions(orders || []);
+  const transactions = filterByDateRange(allTransactions, dateRange, (t) => {
+    // Use order created_at as fallback since createTime may have unusual format
+    const order = (orders || []).find((o) => o.id === t.orderId);
+    return order?.created_at || new Date().toISOString();
+  });
 
   const filtered = transactions.filter((t) => {
     const matchesSearch =
