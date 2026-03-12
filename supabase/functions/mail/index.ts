@@ -265,7 +265,6 @@ Deno.serve(async (req) => {
     if (!roleData) return json({ error: "Forbidden" }, 403);
 
     const { action, purpose, ...params } = await req.json();
-    const { action, purpose, ...params } = await req.json();
     const cfg = await getMailConfig(svc);
 
     switch (action) {
