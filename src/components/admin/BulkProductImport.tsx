@@ -5,6 +5,17 @@ import { toast } from "@/hooks/use-toast";
 import { Upload, Download, Loader2, X, CheckCircle2, AlertCircle } from "lucide-react";
 import { logActivity } from "@/lib/admin-utils";
 
+interface ParsedTier {
+  label: string;
+  price: number;
+  badge: string;
+}
+
+interface ParsedImage {
+  image_url: string;
+  alt_text: string;
+}
+
 interface ParsedProduct {
   name: string;
   tagline: string;
@@ -20,6 +31,8 @@ interface ParsedProduct {
   in_stock: boolean;
   featured: boolean;
   published: boolean;
+  tiers: ParsedTier[];
+  gallery_images: ParsedImage[];
 }
 
 interface ImportResult {
@@ -29,10 +42,10 @@ interface ImportResult {
   errors: string[];
 }
 
-const DEMO_CSV = `name,tagline,description,category,tags,price,price_label,billing_cycle,features,external_url,image_url,featured,published
-"Canva Pro","Design made easy","Professional design tool with thousands of templates and AI features.","Design","Design;AI;Templates",12.99,"$12.99/mo","monthly","Unlimited templates;AI image generator;Brand kit;Background remover","https://canva.com","",true,true
-"Grammarly Premium","Write with confidence","AI-powered writing assistant for grammar, tone, and clarity.","Productivity","Writing;AI;Grammar",12,"$12/mo","monthly","Grammar & spelling;Tone detection;Plagiarism checker;Style suggestions","https://grammarly.com","",false,true
-"DataCamp Pro","Learn data skills","Interactive courses on Python, R, SQL, and machine learning.","Education","Data Science;Python;SQL",25,"$25/mo","monthly","400+ courses;Hands-on projects;Skill assessments;Certificates","https://datacamp.com","",true,true`;
+const DEMO_CSV = `name,tagline,description,category,tags,price,price_label,billing_cycle,features,external_url,image_url,featured,published,tiers,gallery_images
+"Canva Pro","Design made easy","Professional design tool with thousands of templates and AI features.","Design","Design;AI;Templates",12.99,"$12.99/mo","monthly","Unlimited templates;AI image generator;Brand kit;Background remover","https://canva.com","",true,true,"Basic:0:;Pro:12.99:Popular;Enterprise:49.99:","https://example.com/img1.jpg|Main image; https://example.com/img2.jpg|Side view"
+"Grammarly Premium","Write with confidence","AI-powered writing assistant for grammar, tone, and clarity.","Productivity","Writing;AI;Grammar",12,"$12/mo","monthly","Grammar & spelling;Tone detection;Plagiarism checker;Style suggestions","https://grammarly.com","",false,true,"",""
+"DataCamp Pro","Learn data skills","Interactive courses on Python, R, SQL, and machine learning.","Education","Data Science;Python;SQL",25,"$25/mo","monthly","400+ courses;Hands-on projects;Skill assessments;Certificates","https://datacamp.com","",true,true,"Monthly:25:;Annual:16.58:Best Value",""`;
 
 function parseCSV(text: string): string[][] {
   const rows: string[][] = [];
@@ -76,6 +89,22 @@ function mapRow(headers: string[], values: string[]): ParsedProduct | null {
   const name = get("name");
   if (!name) return null;
 
+  const tiersRaw = get("tiers");
+  const tiers: ParsedTier[] = tiersRaw
+    ? tiersRaw.split(";").map((t) => t.trim()).filter(Boolean).map((t, i) => {
+        const [label = "", priceStr = "0", badge = ""] = t.split(":");
+        return { label: label.trim(), price: parseFloat(priceStr) || 0, badge: badge.trim() };
+      })
+    : [];
+
+  const imagesRaw = get("gallery_images");
+  const gallery_images: ParsedImage[] = imagesRaw
+    ? imagesRaw.split(";").map((s) => s.trim()).filter(Boolean).map((s) => {
+        const [image_url = "", alt_text = ""] = s.split("|");
+        return { image_url: image_url.trim(), alt_text: alt_text.trim() };
+      })
+    : [];
+
   return {
     name,
     tagline: get("tagline"),
@@ -91,6 +120,8 @@ function mapRow(headers: string[], values: string[]): ParsedProduct | null {
     in_stock: get("in_stock") !== "" ? get("in_stock").toLowerCase() !== "false" : true,
     featured: get("featured").toLowerCase() === "true",
     published: get("published") !== "" ? get("published").toLowerCase() === "true" : true,
+    tiers,
+    gallery_images,
   };
 }
 
@@ -147,7 +178,7 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
 
     for (let i = 0; i < preview.length; i++) {
       const p = preview[i];
-      const { error } = await supabase.from("products").insert({
+      const { data: inserted, error } = await supabase.from("products").insert({
         name: p.name,
         tagline: p.tagline,
         description: p.description,
@@ -162,10 +193,35 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
         in_stock: p.in_stock,
         featured: p.featured,
         published: p.published,
-      });
+      }).select("id").single();
       if (error) {
         errors.push(`Row ${i + 1} (${p.name}): ${error.message}`);
       } else {
+        // Insert tiers if any
+        if (p.tiers.length > 0 && inserted) {
+          const { error: tierErr } = await supabase.from("product_tiers").insert(
+            p.tiers.map((t, idx) => ({
+              product_id: inserted.id,
+              label: t.label,
+              price: t.price,
+              badge: t.badge || null,
+              sort_order: idx,
+            }))
+          );
+          if (tierErr) errors.push(`Row ${i + 1} tiers (${p.name}): ${tierErr.message}`);
+        }
+        // Insert gallery images if any
+        if (p.gallery_images.length > 0 && inserted) {
+          const { error: imgErr } = await supabase.from("product_images").insert(
+            p.gallery_images.map((img, idx) => ({
+              product_id: inserted.id,
+              image_url: img.image_url,
+              alt_text: img.alt_text,
+              sort_order: idx,
+            }))
+          );
+          if (imgErr) errors.push(`Row ${i + 1} images (${p.name}): ${imgErr.message}`);
+        }
         success++;
       }
     }
@@ -207,7 +263,9 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded">external_url</code>,{" "}
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded">image_url</code>,{" "}
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded">featured</code>,{" "}
-          <code className="text-xs bg-muted px-1.5 py-0.5 rounded">published</code>.
+          <code className="text-xs bg-muted px-1.5 py-0.5 rounded">published</code>,{" "}
+          <code className="text-xs bg-muted px-1.5 py-0.5 rounded">tiers</code> (format: <code className="text-xs bg-muted px-1.5 py-0.5 rounded">Label:Price:Badge; ...</code>),{" "}
+          <code className="text-xs bg-muted px-1.5 py-0.5 rounded">gallery_images</code> (format: <code className="text-xs bg-muted px-1.5 py-0.5 rounded">URL|Alt text; ...</code>).
         </p>
         <Button variant="outline" size="sm" onClick={downloadDemo}>
           <Download className="h-4 w-4 mr-1" /> Download Demo CSV

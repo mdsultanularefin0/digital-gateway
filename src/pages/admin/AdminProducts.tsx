@@ -439,25 +439,36 @@ export default function AdminProducts() {
           <Button variant="outline" size="sm" onClick={() => setShowBulkImport(true)}>
             <FileUp className="h-4 w-4 mr-1" /> Bulk Import
           </Button>
-          <Button variant="outline" size="sm" onClick={() => {
+          <Button variant="outline" size="sm" onClick={async () => {
             if (!products?.length) return;
+            const productIds = products.map((p) => p.id);
+            const [{ data: allTiers }, { data: allImages }] = await Promise.all([
+              supabase.from("product_tiers").select("*").in("product_id", productIds).order("sort_order"),
+              supabase.from("product_images").select("*").in("product_id", productIds).order("sort_order"),
+            ]);
             exportToCSV(
-              products.map((p) => ({
-                name: p.name,
-                tagline: p.tagline,
-                description: p.description,
-                category: p.category,
-                tags: (p.tags || []).join("; "),
-                price: p.price,
-                price_label: p.price_label,
-                billing_cycle: p.billing_cycle,
-                features: (p.features || []).join("; "),
-                external_url: p.external_url,
-                image_url: p.image_url || "",
-                in_stock: (p as any).in_stock !== false,
-                featured: p.featured,
-                published: p.published,
-              })),
+              products.map((p) => {
+                const pTiers = (allTiers || []).filter((t) => t.product_id === p.id);
+                const pImages = (allImages || []).filter((img) => img.product_id === p.id);
+                return {
+                  name: p.name,
+                  tagline: p.tagline,
+                  description: p.description,
+                  category: p.category,
+                  tags: (p.tags || []).join("; "),
+                  price: p.price,
+                  price_label: p.price_label,
+                  billing_cycle: p.billing_cycle,
+                  features: (p.features || []).join("; "),
+                  external_url: p.external_url,
+                  image_url: p.image_url || "",
+                  in_stock: p.in_stock,
+                  featured: p.featured,
+                  published: p.published,
+                  tiers: pTiers.map((t) => `${t.label}:${t.price}:${t.badge || ""}`).join("; "),
+                  gallery_images: pImages.map((img) => `${img.image_url}|${img.alt_text || ""}`).join("; "),
+                };
+              }),
               `products-${new Date().toISOString().slice(0, 10)}`
             );
           }}>
