@@ -21,24 +21,15 @@ async function getMailConfig(supabase: any) {
   return cfg;
 }
 
-// Resolve SMTP config for a given purpose, falling back to support/legacy keys
-function resolveSmtpConfig(allCfg: Record<string, string>, purpose: string = "support") {
-  const keys = ["smtp_host", "smtp_port", "smtp_username", "smtp_password", "smtp_from", "smtp_encryption"];
-  const resolved: Record<string, string> = {};
-
-  // Check if this purpose has its own config
-  const usesOwn = purpose === "support" || allCfg[`${purpose}.use_own_smtp`] === "true";
-  
-  for (const key of keys) {
-    if (usesOwn) {
-      // Try purpose-prefixed key first, then fall back to legacy unprefixed
-      resolved[key] = allCfg[`${purpose}.${key}`] || allCfg[key] || "";
-    } else {
-      // Inherit from support config
-      resolved[key] = allCfg[`support.${key}`] || allCfg[key] || "";
-    }
-  }
-  return resolved;
+// Resolve the "from" address based on purpose
+function resolveFrom(cfg: Record<string, string>, purpose?: string): string {
+  const map: Record<string, string> = {
+    support: cfg.from_support || "",
+    orders: cfg.from_orders || "",
+    newsletter: cfg.from_newsletter || "",
+    notifications: cfg.from_notifications || "",
+  };
+  return (purpose && map[purpose]) || cfg.smtp_from || cfg.from_support || cfg.smtp_username || "";
 }
 
 function escapeImapString(s: string): string {
