@@ -142,6 +142,7 @@ async function smtpSend(cfg: Record<string, string>, to: string, subject: string
 
   const toAddr = normalize(to);
   const fromAddr = normalize(from);
+  console.log("[SMTP] from:", JSON.stringify(from), "fromAddr:", fromAddr, "toAddr:", toAddr);
   const subj = subject.replace(/[\r\n]+/g, " ").trim();
   const msg = body.replace(/\r?\n/g, "\n").trim();
 
