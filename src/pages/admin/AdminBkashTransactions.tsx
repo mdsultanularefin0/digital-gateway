@@ -89,6 +89,7 @@ const statusConfig: Record<string, { icon: typeof CheckCircle2; color: string; l
 export default function AdminBkashTransactions() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ["admin-bkash-orders"],
