@@ -303,13 +303,11 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: claimsData, error: claimsErr } = await supabase.auth.getClaims(
-      authHeader.replace("Bearer ", "")
-    );
-    if (claimsErr || !claimsData?.claims) return json({ error: "Unauthorized" }, 401);
+    const { data: { user }, error: userErr } = await supabase.auth.getUser();
+    if (userErr || !user) return json({ error: "Unauthorized" }, 401);
 
     // Check admin role
-    const userId = claimsData.claims.sub as string;
+    const userId = user.id;
     const serviceClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: roleData } = await serviceClient
       .from("user_roles")
