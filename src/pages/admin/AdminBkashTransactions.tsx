@@ -188,6 +188,9 @@ export default function AdminBkashTransactions() {
           </div>
         </div>
 
+        {/* Date Range Filter */}
+        <DateRangeFilter value={dateRange} onChange={setDateRange} />
+
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
