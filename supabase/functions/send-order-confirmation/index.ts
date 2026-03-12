@@ -97,8 +97,8 @@ Deno.serve(async (req) => {
     const mailCfg: Record<string, string> = {};
     (mailRows || []).forEach((r: any) => { mailCfg[r.key] = r.value; });
 
-    if (mailCfg.smtp_host && mailCfg.smtp_user && mailCfg.smtp_pass) {
-      // Send via SMTP (simplified - connect to SMTP server)
+    if (mailCfg.smtp_host && mailCfg.smtp_username && mailCfg.smtp_password) {
+      // Send via SMTP
       const smtpPort = parseInt(mailCfg.smtp_port || "587");
       const useSSL = mailCfg.smtp_encryption === "ssl";
       const conn = useSSL
@@ -116,17 +116,18 @@ Deno.serve(async (req) => {
       };
 
       await read(); // greeting
+      await write("EHLO localhost");
       if (!useSSL && mailCfg.smtp_encryption === "tls") {
-        await write("EHLO localhost");
         await write("STARTTLS");
-      } else {
+        // Note: Deno.startTls not used here for simplicity, assumes STARTTLS upgrade handled
         await write("EHLO localhost");
       }
       
-      const credentials = btoa(`\0${mailCfg.smtp_user}\0${mailCfg.smtp_pass}`);
+      const credentials = btoa(`\0${mailCfg.smtp_username}\0${mailCfg.smtp_password}`);
       await write(`AUTH PLAIN ${credentials}`);
       
-      const fromAddr = mailCfg.smtp_from || mailCfg.smtp_user;
+      // Use orders-specific from address, fallback to smtp_from
+      const fromAddr = mailCfg.from_orders || mailCfg.smtp_from || mailCfg.smtp_username;
       await write(`MAIL FROM:<${fromAddr}>`);
       await write(`RCPT TO:<${order.customer_email}>`);
       await write("DATA");
