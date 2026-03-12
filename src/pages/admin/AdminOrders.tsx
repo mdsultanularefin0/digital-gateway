@@ -139,7 +139,8 @@ export default function AdminOrders() {
     },
   });
 
-  const filtered = orders.filter((o: any) => {
+  const dateFiltered = filterByDateRange(orders, dateRange, (o: any) => o.created_at);
+  const filtered = dateFiltered.filter((o: any) => {
     const matchSearch =
       o.order_number?.toLowerCase().includes(search.toLowerCase()) ||
       o.customer_name?.toLowerCase().includes(search.toLowerCase()) ||
