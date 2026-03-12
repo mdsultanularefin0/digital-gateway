@@ -194,12 +194,17 @@ async function smtpSend(cfg: Record<string, string>, to: string, subject: string
       if (!lr.includes("235")) throw new Error("SMTP auth failed");
     }
 
-    await send(`MAIL FROM:<${fromAddr}>`);
-    await send(`RCPT TO:<${toAddr}>`);
-    await send("DATA");
+    const mfResp = await send(`MAIL FROM:<${fromAddr}>`);
+    if (!mfResp.includes("250")) throw new Error("MAIL FROM rejected: " + mfResp.trim());
+
+    const rcptResp = await send(`RCPT TO:<${toAddr}>`);
+    if (!rcptResp.includes("250")) throw new Error("RCPT TO rejected: " + rcptResp.trim());
+
+    const dataResp = await send("DATA");
+    if (!dataResp.includes("354")) throw new Error("DATA rejected: " + dataResp.trim());
 
     const dotStuffed = msg.split(/\r?\n/).map(l => l.startsWith(".") ? `.${l}` : l).join("\r\n");
-    const email = [
+    const emailBody = [
       `Date: ${new Date().toUTCString()}`,
       `From: GiftCardVibe Support <${fromAddr}>`,
       `Reply-To: ${fromAddr}`,
@@ -210,11 +215,16 @@ async function smtpSend(cfg: Record<string, string>, to: string, subject: string
       `Content-Type: text/plain; charset=utf-8`,
       `Content-Transfer-Encoding: 8bit`,
       "",
-      `${dotStuffed}\r\n\r\n—\r\nGiftCardVibe Support`,
-      ".",
+      dotStuffed,
+      "",
+      "—",
+      "GiftCardVibe Support",
     ].join("\r\n");
 
-    const result = await send(email);
+    // Send body + terminating dot as raw bytes (not via send() which adds extra \r\n)
+    await conn.write(enc.encode(emailBody + "\r\n.\r\n"));
+    const result = await readResp();
+
     await send("QUIT");
     return result;
   } finally {
