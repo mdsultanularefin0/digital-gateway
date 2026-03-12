@@ -145,9 +145,9 @@ async function smtpSend(cfg: Record<string, string>, to: string, subject: string
   const subj = subject.replace(/[\r\n]+/g, " ").trim();
   const msg = body.replace(/\r?\n/g, "\n").trim();
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toAddr)) throw new Error("Invalid recipient email");
-  if (subj.length < 4) throw new Error("Subject too short");
-  if (msg.length < 20) throw new Error("Message too short");
+  if (!toAddr) throw new Error("Recipient is required");
+  if (!subj) throw new Error("Subject is required");
+  if (!msg) throw new Error("Message is required");
 
   const useTls = encryption === "ssl" || port === 465;
   let conn: Deno.Conn = useTls
