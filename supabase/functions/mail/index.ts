@@ -217,38 +217,51 @@ async function imapFetch(cfg: Record<string, string>, action: string, uid?: stri
     if (action === "list") {
       // Search recent messages
       const searchResp = await send("A3", "SEARCH ALL");
+      console.log("[IMAP] SEARCH response length:", searchResp.length);
       const match = searchResp.match(/\* SEARCH ([\d\s]+)/);
-      const ids = match ? match[1].trim().split(/\s+/).slice(-200).reverse() : [];
+      const allIds = match ? match[1].trim().split(/\s+/) : [];
+      console.log("[IMAP] Total message IDs found:", allIds.length);
+      const ids = allIds.slice(-200).reverse();
 
       if (ids.length === 0) {
         await send("A9", "LOGOUT");
         return [];
       }
 
-      const range = ids.join(",");
-      const fetchResp = await send("A4", `FETCH ${range} (UID FLAGS BODY[HEADER.FIELDS (FROM SUBJECT DATE)])`);
-
-      // Parse fetch response into message list
+      // Fetch in batches of 50 to avoid buffer overflow
       const messages: any[] = [];
-      const parts = fetchResp.split(/\* \d+ FETCH/);
-      for (const part of parts) {
-        if (!part.trim()) continue;
-        const uidMatch = part.match(/UID (\d+)/);
-        const fromMatch = part.match(/From:\s*(.+)/i);
-        const subjectMatch = part.match(/Subject:\s*(.+)/i);
-        const dateMatch = part.match(/Date:\s*(.+)/i);
-        const seenMatch = part.includes("\\Seen");
-        if (uidMatch) {
-          messages.push({
-            uid: uidMatch[1],
-            from: fromMatch?.[1]?.trim() || "Unknown",
-            subject: subjectMatch?.[1]?.trim() || "(No Subject)",
-            date: dateMatch?.[1]?.trim() || "",
-            read: seenMatch,
-          });
+      const batchSize = 50;
+      let tagCounter = 4;
+
+      for (let i = 0; i < ids.length; i += batchSize) {
+        const batch = ids.slice(i, i + batchSize);
+        const range = batch.join(",");
+        const tag = `A${tagCounter++}`;
+        const fetchResp = await send(tag, `FETCH ${range} (UID FLAGS BODY[HEADER.FIELDS (FROM SUBJECT DATE)])`);
+        console.log(`[IMAP] Batch ${Math.floor(i / batchSize) + 1} response length:`, fetchResp.length);
+
+        // Parse fetch response into message list
+        const parts = fetchResp.split(/\* \d+ FETCH/);
+        for (const part of parts) {
+          if (!part.trim()) continue;
+          const uidMatch = part.match(/UID (\d+)/);
+          const fromMatch = part.match(/From:\s*(.+)/i);
+          const subjectMatch = part.match(/Subject:\s*(.+)/i);
+          const dateMatch = part.match(/Date:\s*(.+)/i);
+          const seenMatch = part.includes("\\Seen");
+          if (uidMatch) {
+            messages.push({
+              uid: uidMatch[1],
+              from: fromMatch?.[1]?.trim() || "Unknown",
+              subject: subjectMatch?.[1]?.trim() || "(No Subject)",
+              date: dateMatch?.[1]?.trim() || "",
+              read: seenMatch,
+            });
+          }
         }
       }
 
+      console.log("[IMAP] Total messages parsed:", messages.length);
       await send("A9", "LOGOUT");
       return messages;
     }
