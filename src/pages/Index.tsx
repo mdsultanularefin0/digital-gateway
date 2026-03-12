@@ -78,7 +78,7 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.7, delay: 0.2 }}
-                  className="mt-4 md:mt-7 text-sm md:text-lg text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0"
+                  className="mt-4 md:mt-7 text-base md:text-lg text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0"
                 >
                   {tagline}
                 </motion.p>
