@@ -265,14 +265,14 @@ Deno.serve(async (req) => {
     if (!roleData) return json({ error: "Forbidden" }, 403);
 
     const { action, purpose, ...params } = await req.json();
-    const allCfg = await getMailConfig(svc);
+    const { action, purpose, ...params } = await req.json();
+    const cfg = await getMailConfig(svc);
 
     switch (action) {
       case "test-smtp": {
-        const smtp = resolveSmtpConfig(allCfg, purpose || "support");
-        const h = smtp.smtp_host;
-        const p = parseInt(smtp.smtp_port || "587", 10);
-        const useTls = (smtp.smtp_encryption || "tls") === "ssl" || p === 465;
+        const h = cfg.smtp_host || "";
+        const p = parseInt(cfg.smtp_port || "587", 10);
+        const useTls = (cfg.smtp_encryption || "tls") === "ssl" || p === 465;
         const c = useTls ? await Deno.connectTls({ hostname: h, port: p }) : await Deno.connect({ hostname: h, port: p });
         const buf = new Uint8Array(1024);
         const n = await c.read(buf);
@@ -281,7 +281,7 @@ Deno.serve(async (req) => {
       }
 
       case "test-imap": {
-        const c = await Deno.connectTls({ hostname: allCfg.imap_host || allCfg["support.imap_host"] || "", port: parseInt(allCfg.imap_port || allCfg["support.imap_port"] || "993", 10) });
+        const c = await Deno.connectTls({ hostname: cfg.imap_host || "", port: parseInt(cfg.imap_port || "993", 10) });
         const buf = new Uint8Array(1024);
         const n = await c.read(buf);
         c.close();
@@ -289,16 +289,18 @@ Deno.serve(async (req) => {
       }
 
       case "fetch-inbox":
-        return json({ success: true, messages: await imapFetch(allCfg, "list") });
+        return json({ success: true, messages: await imapFetch(cfg, "list") });
 
       case "read-email":
-        return json({ success: true, email: await imapFetch(allCfg, "read", params.uid) });
+        return json({ success: true, email: await imapFetch(cfg, "read", params.uid) });
 
       case "send-email": {
         const { to = "", subject = "", body = "" } = params;
         if (!to || !subject) return json({ error: "Missing to/subject" }, 400);
-        const smtp = resolveSmtpConfig(allCfg, purpose || "support");
-        return json({ success: true, result: await smtpSend(smtp, to, subject, body) });
+        // Override "from" based on purpose
+        const fromOverride = resolveFrom(cfg, purpose);
+        const cfgWithFrom = { ...cfg, smtp_from: fromOverride };
+        return json({ success: true, result: await smtpSend(cfgWithFrom, to, subject, body) });
       }
 
       default:
