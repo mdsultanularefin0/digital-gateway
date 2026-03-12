@@ -263,7 +263,9 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded">external_url</code>,{" "}
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded">image_url</code>,{" "}
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded">featured</code>,{" "}
-          <code className="text-xs bg-muted px-1.5 py-0.5 rounded">published</code>.
+          <code className="text-xs bg-muted px-1.5 py-0.5 rounded">published</code>,{" "}
+          <code className="text-xs bg-muted px-1.5 py-0.5 rounded">tiers</code> (format: <code className="text-xs bg-muted px-1.5 py-0.5 rounded">Label:Price:Badge; ...</code>),{" "}
+          <code className="text-xs bg-muted px-1.5 py-0.5 rounded">gallery_images</code> (format: <code className="text-xs bg-muted px-1.5 py-0.5 rounded">URL|Alt text; ...</code>).
         </p>
         <Button variant="outline" size="sm" onClick={downloadDemo}>
           <Download className="h-4 w-4 mr-1" /> Download Demo CSV
