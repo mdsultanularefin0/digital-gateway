@@ -167,7 +167,7 @@ export default function AdminSupportInbox() {
         ) : (
           /* Email list */
           <Card>
-            <ScrollArea className="max-h-[70vh]">
+            <ScrollArea>
               {!messages?.length ? (
                 <div className="p-8 text-center text-muted-foreground">No emails found. Configure IMAP in Mail Settings.</div>
               ) : (
