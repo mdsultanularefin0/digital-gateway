@@ -21,6 +21,26 @@ async function getMailConfig(supabase: any) {
   return cfg;
 }
 
+// Resolve SMTP config for a given purpose, falling back to support/legacy keys
+function resolveSmtpConfig(allCfg: Record<string, string>, purpose: string = "support") {
+  const keys = ["smtp_host", "smtp_port", "smtp_username", "smtp_password", "smtp_from", "smtp_encryption"];
+  const resolved: Record<string, string> = {};
+
+  // Check if this purpose has its own config
+  const usesOwn = purpose === "support" || allCfg[`${purpose}.use_own_smtp`] === "true";
+  
+  for (const key of keys) {
+    if (usesOwn) {
+      // Try purpose-prefixed key first, then fall back to legacy unprefixed
+      resolved[key] = allCfg[`${purpose}.${key}`] || allCfg[key] || "";
+    } else {
+      // Inherit from support config
+      resolved[key] = allCfg[`support.${key}`] || allCfg[key] || "";
+    }
+  }
+  return resolved;
+}
+
 function escapeImapString(s: string): string {
   // Use literal string format for IMAP to handle special chars
   return `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
