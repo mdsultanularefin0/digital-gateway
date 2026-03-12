@@ -1,0 +1,1 @@
+UPDATE public.mail_config SET value = 'support@giftcardvibe.xyz', updated_at = now() WHERE key = 'smtp_from';
