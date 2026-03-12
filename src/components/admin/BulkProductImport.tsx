@@ -178,7 +178,7 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
 
     for (let i = 0; i < preview.length; i++) {
       const p = preview[i];
-      const { error } = await supabase.from("products").insert({
+      const { data: inserted, error } = await supabase.from("products").insert({
         name: p.name,
         tagline: p.tagline,
         description: p.description,
@@ -193,10 +193,35 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
         in_stock: p.in_stock,
         featured: p.featured,
         published: p.published,
-      });
+      }).select("id").single();
       if (error) {
         errors.push(`Row ${i + 1} (${p.name}): ${error.message}`);
       } else {
+        // Insert tiers if any
+        if (p.tiers.length > 0 && inserted) {
+          const { error: tierErr } = await supabase.from("product_tiers").insert(
+            p.tiers.map((t, idx) => ({
+              product_id: inserted.id,
+              label: t.label,
+              price: t.price,
+              badge: t.badge || null,
+              sort_order: idx,
+            }))
+          );
+          if (tierErr) errors.push(`Row ${i + 1} tiers (${p.name}): ${tierErr.message}`);
+        }
+        // Insert gallery images if any
+        if (p.gallery_images.length > 0 && inserted) {
+          const { error: imgErr } = await supabase.from("product_images").insert(
+            p.gallery_images.map((img, idx) => ({
+              product_id: inserted.id,
+              image_url: img.image_url,
+              alt_text: img.alt_text,
+              sort_order: idx,
+            }))
+          );
+          if (imgErr) errors.push(`Row ${i + 1} images (${p.name}): ${imgErr.message}`);
+        }
         success++;
       }
     }
