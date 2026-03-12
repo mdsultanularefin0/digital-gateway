@@ -5,6 +5,17 @@ import { toast } from "@/hooks/use-toast";
 import { Upload, Download, Loader2, X, CheckCircle2, AlertCircle } from "lucide-react";
 import { logActivity } from "@/lib/admin-utils";
 
+interface ParsedTier {
+  label: string;
+  price: number;
+  badge: string;
+}
+
+interface ParsedImage {
+  image_url: string;
+  alt_text: string;
+}
+
 interface ParsedProduct {
   name: string;
   tagline: string;
@@ -20,6 +31,8 @@ interface ParsedProduct {
   in_stock: boolean;
   featured: boolean;
   published: boolean;
+  tiers: ParsedTier[];
+  gallery_images: ParsedImage[];
 }
 
 interface ImportResult {
