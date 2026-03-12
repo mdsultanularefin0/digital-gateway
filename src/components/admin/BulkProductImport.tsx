@@ -89,6 +89,22 @@ function mapRow(headers: string[], values: string[]): ParsedProduct | null {
   const name = get("name");
   if (!name) return null;
 
+  const tiersRaw = get("tiers");
+  const tiers: ParsedTier[] = tiersRaw
+    ? tiersRaw.split(";").map((t) => t.trim()).filter(Boolean).map((t, i) => {
+        const [label = "", priceStr = "0", badge = ""] = t.split(":");
+        return { label: label.trim(), price: parseFloat(priceStr) || 0, badge: badge.trim() };
+      })
+    : [];
+
+  const imagesRaw = get("gallery_images");
+  const gallery_images: ParsedImage[] = imagesRaw
+    ? imagesRaw.split(";").map((s) => s.trim()).filter(Boolean).map((s) => {
+        const [image_url = "", alt_text = ""] = s.split("|");
+        return { image_url: image_url.trim(), alt_text: alt_text.trim() };
+      })
+    : [];
+
   return {
     name,
     tagline: get("tagline"),
@@ -104,6 +120,8 @@ function mapRow(headers: string[], values: string[]): ParsedProduct | null {
     in_stock: get("in_stock") !== "" ? get("in_stock").toLowerCase() !== "false" : true,
     featured: get("featured").toLowerCase() === "true",
     published: get("published") !== "" ? get("published").toLowerCase() === "true" : true,
+    tiers,
+    gallery_images,
   };
 }
 
