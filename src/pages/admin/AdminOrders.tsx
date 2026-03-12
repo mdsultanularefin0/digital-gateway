@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import OrderDetail from "@/components/admin/OrderDetail";
 import { exportToCSV, logActivity } from "@/lib/admin-utils";
+import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components/admin/DateRangeFilter";
 
 const statuses = ["pending", "processing", "shipped", "delivered", "cancelled"];
 const paymentStatuses = ["unpaid", "paid", "refunded"];
@@ -36,6 +37,7 @@ export default function AdminOrders() {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkAction, setBulkAction] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
 
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ["admin-orders"],
@@ -137,7 +139,8 @@ export default function AdminOrders() {
     },
   });
 
-  const filtered = orders.filter((o: any) => {
+  const dateFiltered = filterByDateRange(orders, dateRange, (o: any) => o.created_at);
+  const filtered = dateFiltered.filter((o: any) => {
     const matchSearch =
       o.order_number?.toLowerCase().includes(search.toLowerCase()) ||
       o.customer_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -229,7 +232,10 @@ export default function AdminOrders() {
         </Button>
       </div>
 
-      {/* Search & Filter */}
+      {/* Date Range & Search & Filter */}
+      <div className="mb-4">
+        <DateRangeFilter value={dateRange} onChange={setDateRange} />
+      </div>
       <div className="flex flex-col gap-3 mb-4 md:flex-row md:items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

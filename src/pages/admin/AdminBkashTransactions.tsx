@@ -15,6 +15,7 @@ import {
 import { Download, Search, CreditCard, CheckCircle2, XCircle, Clock, AlertCircle, RefreshCw } from "lucide-react";
 import { exportToCSV } from "@/lib/admin-utils";
 import { format } from "date-fns";
+import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components/admin/DateRangeFilter";
 
 interface BkashTransaction {
   orderId: string;
@@ -88,6 +89,7 @@ const statusConfig: Record<string, { icon: typeof CheckCircle2; color: string; l
 export default function AdminBkashTransactions() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ["admin-bkash-orders"],
@@ -102,7 +104,12 @@ export default function AdminBkashTransactions() {
     },
   });
 
-  const transactions = extractTransactions(orders || []);
+  const allTransactions = extractTransactions(orders || []);
+  const transactions = filterByDateRange(allTransactions, dateRange, (t) => {
+    // Use order created_at as fallback since createTime may have unusual format
+    const order = (orders || []).find((o) => o.id === t.orderId);
+    return order?.created_at || new Date().toISOString();
+  });
 
   const filtered = transactions.filter((t) => {
     const matchesSearch =
@@ -180,6 +187,9 @@ export default function AdminBkashTransactions() {
             <p className="text-2xl font-display font-bold">৳{totalAmount.toLocaleString()}</p>
           </div>
         </div>
+
+        {/* Date Range Filter */}
+        <DateRangeFilter value={dateRange} onChange={setDateRange} />
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3">

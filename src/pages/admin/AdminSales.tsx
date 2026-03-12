@@ -1,12 +1,14 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { TrendingUp, ShoppingCart, Users, DollarSign, Download } from "lucide-react";
-import { format, subDays, startOfDay, subMonths } from "date-fns";
+import { format, subDays, startOfDay } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { exportToCSV } from "@/lib/admin-utils";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
+import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components/admin/DateRangeFilter";
 
 const PIE_COLORS = [
   "hsl(210, 100%, 45%)",
@@ -19,8 +21,9 @@ const PIE_COLORS = [
 export default function AdminSales() {
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "$";
+  const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
 
-  const { data: orders = [] } = useQuery({
+  const { data: allOrders = [] } = useQuery({
     queryKey: ["admin-orders-sales"],
     queryFn: async () => {
       const { data, error } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
@@ -29,7 +32,7 @@ export default function AdminSales() {
     },
   });
 
-  const { data: orderItems = [] } = useQuery({
+  const { data: allOrderItems = [] } = useQuery({
     queryKey: ["admin-order-items-sales"],
     queryFn: async () => {
       const { data, error } = await supabase.from("order_items").select("*");
@@ -45,6 +48,11 @@ export default function AdminSales() {
       return count ?? 0;
     },
   });
+
+  // Apply date range filter
+  const orders = filterByDateRange(allOrders, dateRange, (o: any) => o.created_at);
+  const orderIds = new Set(orders.map((o: any) => o.id));
+  const orderItems = allOrderItems.filter((item: any) => orderIds.has(item.order_id));
 
   const paidOrders = orders.filter((o: any) => o.payment_status === "paid");
   const totalRevenue = paidOrders.reduce((sum: number, o: any) => sum + Number(o.total), 0);
@@ -74,7 +82,6 @@ export default function AdminSales() {
     };
   });
 
-  // Last 7 days for bar chart
   const last7Days = last30Days.slice(-7);
 
   // Top products by revenue
@@ -87,7 +94,7 @@ export default function AdminSales() {
   });
   const topProducts = Object.values(productRevenue).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
 
-  // Order status breakdown for pie chart
+  // Order status breakdown
   const statusBreakdown = ["pending", "processing", "shipped", "delivered", "cancelled"].map((s) => ({
     name: s.charAt(0).toUpperCase() + s.slice(1),
     value: orders.filter((o: any) => o.status === s).length,
@@ -104,7 +111,6 @@ export default function AdminSales() {
     value,
   }));
 
-  // Conversion rate (paid / total)
   const conversionRate = totalOrders > 0 ? ((paidOrders.length / totalOrders) * 100).toFixed(1) : "0";
 
   const handleExportSales = () => {
@@ -125,14 +131,17 @@ export default function AdminSales() {
 
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="text-xl font-display font-bold">Sales & Analytics</h2>
-          <p className="text-sm text-muted-foreground mt-1">Comprehensive store performance overview</p>
+      <div className="flex flex-col gap-4 mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-display font-bold">Sales & Analytics</h2>
+            <p className="text-sm text-muted-foreground mt-1">Comprehensive store performance overview</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={handleExportSales}>
+            <Download className="h-4 w-4 mr-1" /> Export CSV
+          </Button>
         </div>
-        <Button variant="outline" size="sm" onClick={handleExportSales}>
-          <Download className="h-4 w-4 mr-1" /> Export CSV
-        </Button>
+        <DateRangeFilter value={dateRange} onChange={setDateRange} />
       </div>
 
       {/* KPI Cards */}
