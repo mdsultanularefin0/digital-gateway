@@ -56,8 +56,8 @@ export default function HomePage() {
         {/* Hero */}
         <section className="flex items-center pt-24 pb-12 lg:min-h-[100dvh] lg:pt-16 lg:pb-0">
           <div className="container px-5 md:px-8 w-full">
-            <div className="grid grid-cols-2 gap-4 sm:gap-6 md:gap-8 items-center">
-              <div className="max-w-xl">
+            <div className="flex flex-col items-center text-center lg:grid lg:grid-cols-2 lg:gap-8 lg:text-left lg:items-center">
+              <div className="max-w-xl mx-auto lg:mx-0">
                 <motion.p
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -70,7 +70,7 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.7, delay: 0.1 }}
-                  className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.08] text-foreground"
+                  className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.08] text-foreground"
                 >
                   Tools that<br />elevate your<br /><span className="text-primary">workflow</span>
                 </motion.h1>
@@ -78,7 +78,7 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.7, delay: 0.2 }}
-                  className="mt-3 md:mt-7 text-xs md:text-lg text-muted-foreground leading-relaxed max-w-md"
+                  className="mt-4 md:mt-7 text-sm md:text-lg text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0"
                 >
                   {tagline}
                 </motion.p>
@@ -86,12 +86,12 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.7, delay: 0.3 }}
-                  className="mt-5 md:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3"
+                  className="mt-6 md:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3"
                 >
-                  <Button variant="gradient" size="default" className="sm:size-auto text-xs sm:text-sm" asChild>
-                    <Link to="/products">Browse Products <ArrowRight className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" /></Link>
+                  <Button variant="gradient" size="default" asChild>
+                    <Link to="/products">Browse Products <ArrowRight className="ml-2 h-4 w-4" /></Link>
                   </Button>
-                  <Button variant="outline-primary" size="default" className="sm:size-auto text-xs sm:text-sm" asChild>
+                  <Button variant="outline-primary" size="default" asChild>
                     <Link to="/about">Learn More</Link>
                   </Button>
                 </motion.div>
@@ -100,12 +100,12 @@ export default function HomePage() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="flex justify-center sm:justify-end"
+                className="hidden lg:flex justify-end"
               >
                 <img
                   src={heroImage}
                   alt="Abstract 3D glass sculpture"
-                  className="w-[140px] sm:w-[220px] md:w-[320px] lg:w-[460px] xl:w-[540px] animate-float select-none"
+                  className="w-[320px] lg:w-[460px] xl:w-[540px] animate-float select-none"
                   draggable={false}
                   loading="eager"
                   width={540}
