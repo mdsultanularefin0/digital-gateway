@@ -25,6 +25,7 @@ const SECTION_TYPE_LABELS: Record<string, string> = {
   guarantee: "Guarantee / Trust",
   "product-showcase": "Product Showcase",
   bonus: "Bonus Content",
+  countdown: "Countdown Timer",
 };
 
 // Which section types show which fields
