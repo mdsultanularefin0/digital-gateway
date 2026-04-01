@@ -262,19 +262,9 @@ export default function ProductDetailPage() {
                   <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
                 </Button>
               </div>
-            </motion.div>
-          </div>
 
-          <div className="mt-20">
-            <h2 className="text-2xl font-display font-bold mb-8">Features & Benefits</h2>
-            <div className="grid gap-4 md:grid-cols-2">
-              {product.features.map((f) => (
-                <div key={f} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
-                  <Check className="h-5 w-5 text-success shrink-0" />
-                  <span className="text-sm">{f}</span>
-                </div>
-              ))}
-            </div>
+              <p className="mt-6 text-muted-foreground leading-relaxed">{product.description}</p>
+            </motion.div>
           </div>
 
           {/* Customer Reviews */}
