@@ -154,6 +154,7 @@ export function getDefaultSections(template: LandingTemplate): SectionsData {
   const data: SectionsData = {};
   for (const s of template.sections) {
     const hasItems = ["features", "faq", "stats", "how-it-works", "bonus"].includes(s.type);
+    const hasCountdown = s.type === "countdown";
     data[s.id] = {
       heading: "",
       subheading: "",
