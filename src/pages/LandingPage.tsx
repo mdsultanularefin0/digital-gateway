@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Globe, ArrowRight, CheckCircle, Star, HelpCircle, BarChart3 } from "lucide-react";
+import { Globe, ArrowRight, CheckCircle, Star, HelpCircle, BarChart3, Shield, Gift, Zap, Package } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
@@ -63,6 +63,11 @@ function HeroSection({ content }: { content: SectionContent }) {
       <div className="container max-w-6xl mx-auto px-4">
         <div className={`flex flex-col ${content.imageUrl ? "md:flex-row md:items-center gap-12" : "items-center text-center"}`}>
           <div className="flex-1 space-y-6">
+            {content.badge && (
+              <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="inline-block rounded-full bg-primary/10 text-primary px-4 py-1.5 text-sm font-medium">
+                {content.badge}
+              </motion.span>
+            )}
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -85,6 +90,12 @@ function HeroSection({ content }: { content: SectionContent }) {
                 <Button size="xl" variant="gradient" asChild>
                   <a href={content.buttonUrl || "#"}>{content.buttonText} <ArrowRight className="ml-2 h-5 w-5" /></a>
                 </Button>
+                {content.price && (
+                  <p className="text-sm text-muted-foreground mt-3">
+                    {content.originalPrice && <span className="line-through mr-2">{content.originalPrice}</span>}
+                    <span className="font-bold text-foreground text-lg">{content.price}</span>
+                  </p>
+                )}
               </motion.div>
             )}
           </div>
@@ -94,6 +105,24 @@ function HeroSection({ content }: { content: SectionContent }) {
             </motion.div>
           )}
         </div>
+      </div>
+    </section>
+  );
+}
+
+function ProductShowcaseSection({ content }: { content: SectionContent }) {
+  if (!content.heading && !content.imageUrl) return null;
+  return (
+    <section className="py-16">
+      <div className="container max-w-5xl mx-auto px-4 text-center">
+        {content.heading && <h2 className="text-3xl font-display font-bold mb-3">{content.heading}</h2>}
+        {content.subheading && <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">{content.subheading}</p>}
+        {content.imageUrl && (
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <img src={content.imageUrl} alt="" className="rounded-2xl shadow-2xl mx-auto border border-border max-w-full" />
+          </motion.div>
+        )}
+        {content.body && <p className="text-muted-foreground mt-6 max-w-2xl mx-auto">{content.body}</p>}
       </div>
     </section>
   );
@@ -127,6 +156,135 @@ function FeaturesSection({ content }: { content: SectionContent }) {
   );
 }
 
+function HowItWorksSection({ content }: { content: SectionContent }) {
+  if (!content.items?.length) return null;
+  return (
+    <section className="py-16">
+      <div className="container max-w-5xl mx-auto px-4">
+        {content.heading && <h2 className="text-3xl font-display font-bold text-center mb-3">{content.heading}</h2>}
+        {content.subheading && <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">{content.subheading}</p>}
+        <div className="grid gap-8 md:grid-cols-3">
+          {content.items.filter(i => i.title).map((item, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.15 }}
+              className="text-center"
+            >
+              <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary text-xl font-bold mb-4">
+                {i + 1}
+              </div>
+              <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
+              <p className="text-sm text-muted-foreground">{item.description}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PricingSection({ content }: { content: SectionContent }) {
+  if (!content.heading) return null;
+  return (
+    <section className="py-20">
+      <div className="container max-w-3xl mx-auto px-4 text-center">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl border-2 border-primary/30 bg-card p-10 relative overflow-hidden">
+          {content.badge && (
+            <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-bl-xl">
+              {content.badge}
+            </span>
+          )}
+          <h2 className="text-3xl font-display font-bold mb-2">{content.heading}</h2>
+          {content.subheading && <p className="text-muted-foreground mb-6">{content.subheading}</p>}
+          {content.price && (
+            <div className="mb-6">
+              {content.originalPrice && (
+                <span className="text-2xl text-muted-foreground line-through mr-3">{content.originalPrice}</span>
+              )}
+              <span className="text-5xl font-bold text-foreground">{content.price}</span>
+            </div>
+          )}
+          {content.items && content.items.filter(i => i.title).length > 0 && (
+            <ul className="text-left max-w-md mx-auto mb-8 space-y-3">
+              {content.items.filter(i => i.title).map((item, i) => (
+                <li key={i} className="flex items-start gap-3 text-sm">
+                  <CheckCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-medium">{item.title}</span>
+                    {item.description && <span className="text-muted-foreground"> — {item.description}</span>}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          {content.buttonText && (
+            <Button size="xl" variant="gradient" asChild>
+              <a href={content.buttonUrl || "#"}>{content.buttonText} <ArrowRight className="ml-2 h-5 w-5" /></a>
+            </Button>
+          )}
+          {content.body && <p className="text-xs text-muted-foreground mt-4">{content.body}</p>}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function GuaranteeSection({ content }: { content: SectionContent }) {
+  if (!content.heading) return null;
+  return (
+    <section className="py-16">
+      <div className="container max-w-3xl mx-auto px-4">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl border border-border bg-card p-8 md:p-12 text-center">
+          <Shield className="h-12 w-12 text-primary mx-auto mb-4" />
+          <h2 className="text-2xl font-display font-bold mb-3">{content.heading}</h2>
+          {content.subheading && <p className="text-lg text-muted-foreground mb-2">{content.subheading}</p>}
+          {content.body && <p className="text-muted-foreground max-w-xl mx-auto">{content.body}</p>}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function BonusSection({ content }: { content: SectionContent }) {
+  if (!content.items?.length && !content.heading) return null;
+  return (
+    <section className="py-16 bg-primary/5">
+      <div className="container max-w-5xl mx-auto px-4">
+        {content.heading && (
+          <div className="text-center mb-10">
+            <Gift className="h-8 w-8 text-primary mx-auto mb-3" />
+            <h2 className="text-3xl font-display font-bold">{content.heading}</h2>
+            {content.subheading && <p className="text-muted-foreground mt-2">{content.subheading}</p>}
+          </div>
+        )}
+        {content.items && (
+          <div className="grid gap-4 md:grid-cols-2">
+            {content.items.filter(i => i.title).map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="flex items-start gap-4 rounded-xl border border-border bg-card p-5"
+              >
+                <Gift className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold mb-1">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function CTASection({ content }: { content: SectionContent }) {
   if (!content.heading) return null;
   return (
@@ -140,6 +298,12 @@ function CTASection({ content }: { content: SectionContent }) {
               <a href={content.buttonUrl || "#"}>{content.buttonText} <ArrowRight className="ml-2 h-5 w-5" /></a>
             </Button>
           )}
+          {content.price && (
+            <p className="text-sm text-muted-foreground mt-4">
+              {content.originalPrice && <span className="line-through mr-2">{content.originalPrice}</span>}
+              <span className="font-bold text-foreground">{content.price}</span>
+            </p>
+          )}
         </motion.div>
       </div>
     </section>
@@ -147,17 +311,41 @@ function CTASection({ content }: { content: SectionContent }) {
 }
 
 function TestimonialSection({ content }: { content: SectionContent }) {
-  if (!content.heading && !content.body) return null;
+  if (!content.heading && !content.body && !content.items?.length) return null;
   return (
     <section className="py-16">
-      <div className="container max-w-4xl mx-auto px-4 text-center">
-        {content.heading && <h2 className="text-3xl font-display font-bold mb-8">{content.heading}</h2>}
-        {content.body && (
-          <blockquote className="text-xl italic text-muted-foreground max-w-2xl mx-auto relative">
+      <div className="container max-w-5xl mx-auto px-4">
+        {content.heading && <h2 className="text-3xl font-display font-bold text-center mb-8">{content.heading}</h2>}
+        {/* Single testimonial */}
+        {content.body && !content.items?.length && (
+          <blockquote className="text-xl italic text-muted-foreground max-w-2xl mx-auto text-center relative">
             <Star className="h-6 w-6 text-primary mx-auto mb-4" />
             "{content.body}"
             {content.subheading && <cite className="block text-sm mt-4 not-italic font-medium text-foreground">— {content.subheading}</cite>}
           </blockquote>
+        )}
+        {/* Multiple testimonials */}
+        {content.items && content.items.filter(i => i.title).length > 0 && (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {content.items.filter(i => i.title).map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="rounded-xl border border-border bg-card p-5"
+              >
+                <div className="flex gap-1 mb-3">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star key={s} className="h-4 w-4 fill-primary text-primary" />
+                  ))}
+                </div>
+                <p className="text-sm text-muted-foreground italic mb-3">"{item.description}"</p>
+                <p className="text-sm font-medium">— {item.title}</p>
+              </motion.div>
+            ))}
+          </div>
         )}
       </div>
     </section>
@@ -243,6 +431,11 @@ const renderers: Record<string, React.FC<{ content: SectionContent }>> = {
   stats: StatsSection,
   faq: FAQSection,
   "text-image": TextImageSection,
+  pricing: PricingSection,
+  "how-it-works": HowItWorksSection,
+  guarantee: GuaranteeSection,
+  "product-showcase": ProductShowcaseSection,
+  bonus: BonusSection,
 };
 
 export default function LandingPage() {
@@ -264,7 +457,6 @@ export default function LandingPage() {
     enabled: !!slug,
   });
 
-  // Check saved preference
   useEffect(() => {
     const saved = sessionStorage.getItem(`lp-lang-${slug}`);
     if (saved === "en" || saved === "bn") setLang(saved);
@@ -309,7 +501,6 @@ export default function LandingPage() {
     <Layout>
       <SEOHead title={page.title} description={sections?.hero?.subheading || ""} />
 
-      {/* Floating language switcher */}
       <button
         onClick={() => setLang(lang === "en" ? "bn" : "en")}
         className="fixed bottom-6 right-6 z-40 h-12 w-12 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-muted transition-colors"
