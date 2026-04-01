@@ -13,7 +13,8 @@ export interface LandingSection {
     | "guarantee"
     | "product-showcase"
     | "bonus"
-    | "countdown";
+    | "countdown"
+    | "checkout";
   label: string;
 }
 
@@ -38,6 +39,7 @@ export interface SectionContent {
   originalPrice?: string;
   badge?: string;
   countdownDate?: string;
+  productName?: string;
 }
 
 export type SectionsData = Record<string, SectionContent>;
@@ -60,6 +62,7 @@ export const landingTemplates: LandingTemplate[] = [
       { id: "guarantee", type: "guarantee", label: "Money-Back Guarantee" },
       { id: "faq", type: "faq", label: "FAQ" },
       { id: "cta", type: "cta", label: "Final CTA" },
+      { id: "checkout", type: "checkout", label: "Checkout" },
     ],
   },
   {
@@ -79,6 +82,7 @@ export const landingTemplates: LandingTemplate[] = [
       { id: "guarantee", type: "guarantee", label: "Guarantee" },
       { id: "faq", type: "faq", label: "FAQ" },
       { id: "cta", type: "cta", label: "Download Now" },
+      { id: "checkout", type: "checkout", label: "Checkout" },
     ],
   },
   {
@@ -98,6 +102,7 @@ export const landingTemplates: LandingTemplate[] = [
       { id: "guarantee", type: "guarantee", label: "Guarantee" },
       { id: "faq", type: "faq", label: "FAQ" },
       { id: "cta", type: "cta", label: "Enroll Now" },
+      { id: "checkout", type: "checkout", label: "Checkout" },
     ],
   },
   {
@@ -116,6 +121,7 @@ export const landingTemplates: LandingTemplate[] = [
       { id: "pricing", type: "pricing", label: "Pricing" },
       { id: "faq", type: "faq", label: "FAQ" },
       { id: "cta", type: "cta", label: "Start Now" },
+      { id: "checkout", type: "checkout", label: "Checkout" },
     ],
   },
   {
@@ -133,6 +139,7 @@ export const landingTemplates: LandingTemplate[] = [
       { id: "pricing", type: "pricing", label: "Get the Bundle" },
       { id: "guarantee", type: "guarantee", label: "Guarantee" },
       { id: "cta", type: "cta", label: "Buy Now" },
+      { id: "checkout", type: "checkout", label: "Checkout" },
     ],
   },
   {
