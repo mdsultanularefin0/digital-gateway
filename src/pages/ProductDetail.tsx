@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check, ShoppingCart, Star, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ export default function ProductDetailPage() {
   const currencySymbol = settings?.currency_symbol || "$";
   const { addItem } = useCart();
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const navigate = useNavigate();
 
   const { data: tiers } = useQuery({
     queryKey: ["product-tiers", id],
@@ -117,6 +118,20 @@ export default function ProductDetailPage() {
       currency: settings?.currency || "USD",
     });
     toast({ title: `${product.name} added to cart` });
+  };
+
+  const handleBuyNow = () => {
+    if (!product) return;
+    const price = activeTier ? activeTier.price : product.price;
+    addItem({
+      productId: product.id,
+      productName: product.name,
+      tierLabel: activeTier?.label || "",
+      tierId: activeTier?.id || null,
+      price,
+      image: product.image,
+    });
+    navigate("/checkout");
   };
 
   if (isLoading) {
@@ -258,9 +273,14 @@ export default function ProductDetailPage() {
                   </motion.p>
                 )}
 
-                <Button variant="gradient" size="xl" className="w-full mt-6" onClick={handleAddToCart}>
-                  <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
-                </Button>
+                <div className="flex gap-3 mt-6">
+                  <Button variant="outline" size="xl" className="flex-1" onClick={handleAddToCart}>
+                    <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
+                  </Button>
+                  <Button variant="gradient" size="xl" className="flex-1" onClick={handleBuyNow}>
+                    Buy Now
+                  </Button>
+                </div>
               </div>
             </motion.div>
           </div>
