@@ -13,7 +13,8 @@ export interface LandingSection {
     | "guarantee"
     | "product-showcase"
     | "bonus"
-    | "countdown";
+    | "countdown"
+    | "checkout";
   label: string;
 }
 
