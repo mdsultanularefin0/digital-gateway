@@ -26,6 +26,7 @@ const SECTION_TYPE_LABELS: Record<string, string> = {
   "product-showcase": "Product Showcase",
   bonus: "Bonus Content",
   countdown: "Countdown Timer",
+  checkout: "Checkout Form",
 };
 
 // Which section types show which fields
