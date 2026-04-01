@@ -139,7 +139,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-16 items-center justify-between border-b border-border px-6">
+        <div className="flex h-16 items-center justify-between border-b border-border/50 px-6">
           <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold">
             <div className="flex h-7 w-7 items-center justify-center rounded-md gradient-bg">
               <Zap className="h-3.5 w-3.5 text-primary-foreground" />
