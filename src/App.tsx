@@ -27,6 +27,8 @@ const Login = lazy(() => import("./pages/Login"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Wishlist = lazy(() => import("./pages/Wishlist"));
 const Account = lazy(() => import("./pages/Account"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPostPage = lazy(() => import("./pages/BlogPost"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
 const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
