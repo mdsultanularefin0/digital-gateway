@@ -120,6 +120,20 @@ export default function ProductDetailPage() {
     toast({ title: `${product.name} added to cart` });
   };
 
+  const handleBuyNow = () => {
+    if (!product) return;
+    const price = activeTier ? activeTier.price : product.price;
+    addItem({
+      productId: product.id,
+      productName: product.name,
+      tierLabel: activeTier?.label || "",
+      tierId: activeTier?.id || null,
+      price,
+      image: product.image,
+    });
+    navigate("/checkout");
+  };
+
   if (isLoading) {
     return (
       <Layout>

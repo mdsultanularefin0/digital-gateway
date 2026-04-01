@@ -37,7 +37,7 @@ export function ProductImageGallery({ productId, fallbackLetter }: { productId: 
 
   return (
     <div className="space-y-3">
-      <div className="aspect-video overflow-hidden rounded-xl border border-border bg-muted relative">
+      <div className="aspect-square overflow-hidden rounded-xl border border-border bg-muted relative">
         <AnimatePresence mode="wait">
           <motion.img
             key={images[selectedIdx].id}
