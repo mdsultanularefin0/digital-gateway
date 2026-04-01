@@ -196,7 +196,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-background/80 backdrop-blur-sm px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b glass px-6">
           <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-muted-foreground hover:text-foreground">
             <Menu className="h-5 w-5" />
           </button>
