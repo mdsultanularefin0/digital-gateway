@@ -40,19 +40,12 @@ export default function LoginPage() {
         toast({ title: "Check your email", description: "We sent you a 6-digit verification code." });
       }
     } else {
-      const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
       } else {
-        // Check if user is admin
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", data.user.id)
-          .eq("role", "admin")
-          .maybeSingle();
         toast({ title: "Welcome back!", description: "You have signed in successfully." });
-        navigate(roleData ? "/admin" : "/account");
+        navigate("/account");
       }
     }
     setLoading(false);
