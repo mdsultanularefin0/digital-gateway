@@ -1,19 +1,24 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/Layout";
 import { toast } from "@/hooks/use-toast";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { useSiteSettings } from "@/hooks/use-site-settings";
+import { Mail, Lock, User, ArrowRight, ShieldCheck } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [otp, setOtp] = useState("");
   const navigate = useNavigate();
+  const { data: settings } = useSiteSettings();
+  const siteName = settings?.site_name || "Our Store";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,6 +28,9 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: { display_name: name },
+        },
       });
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -35,7 +43,8 @@ export default function LoginPage() {
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
       } else {
-        navigate("/admin");
+        toast({ title: "Welcome back!", description: "You have signed in successfully." });
+        navigate("/account");
       }
     }
     setLoading(false);
@@ -52,8 +61,8 @@ export default function LoginPage() {
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Success", description: "Email verified! You are now signed in." });
-      navigate("/");
+      toast({ title: "Welcome!", description: "Your account has been verified." });
+      navigate("/account");
     }
     setLoading(false);
   };
@@ -77,11 +86,16 @@ export default function LoginPage() {
       <Layout>
         <section className="py-16 md:py-24">
           <div className="container max-w-md">
-            <div className="rounded-xl border border-border bg-card p-8 shadow-card">
+            <div className="rounded-2xl border border-border bg-card p-8 md:p-10 shadow-lg">
+              <div className="flex justify-center mb-6">
+                <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
+                  <ShieldCheck className="h-7 w-7 text-primary" />
+                </div>
+              </div>
               <h1 className="text-2xl font-display font-bold text-center mb-2">
                 Verify Your Email
               </h1>
-              <p className="text-sm text-muted-foreground text-center mb-2">
+              <p className="text-sm text-muted-foreground text-center mb-1">
                 We sent a 6-digit code to
               </p>
               <p className="text-sm font-medium text-center mb-8">{email}</p>
@@ -105,7 +119,8 @@ export default function LoginPage() {
                   onClick={handleVerifyOtp}
                   disabled={loading || otp.length !== 6}
                 >
-                  {loading ? "Verifying..." : "Verify Email"}
+                  {loading ? "Verifying..." : "Verify & Continue"}
+                  {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
                 </Button>
 
                 <button
@@ -136,78 +151,126 @@ export default function LoginPage() {
     <Layout>
       <section className="py-16 md:py-24">
         <div className="container max-w-md">
-          <div className="rounded-xl border border-border bg-card p-8 shadow-card">
-            <h1 className="text-2xl font-display font-bold text-center mb-2">
-              {isSignUp ? "Create Account" : "Sign In"}
-            </h1>
-            <p className="text-sm text-muted-foreground text-center mb-8">
-              {isSignUp ? "Create your account to get started" : "Sign in to access the admin panel"}
-            </p>
+          <div className="rounded-2xl border border-border bg-card p-8 md:p-10 shadow-lg">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-2xl font-display font-bold mb-1">
+                {isSignUp ? "Create Your Account" : `Welcome Back`}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {isSignUp
+                  ? `Join ${siteName} to track orders & save your wishlist`
+                  : "Sign in to your account to continue"}
+              </p>
+            </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              {isSignUp && (
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Full Name</label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="h-11 w-full rounded-lg border border-border bg-background pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                      placeholder="John Doe"
+                    />
+                  </div>
+                </div>
+              )}
               <div>
-                <label className="text-sm font-medium mb-1 block">Email</label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-10 w-full rounded-lg border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="you@example.com"
-                />
+                <label className="text-sm font-medium mb-1.5 block">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="h-11 w-full rounded-lg border border-border bg-background pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                    placeholder="you@example.com"
+                  />
+                </div>
               </div>
               <div>
-                <label className="text-sm font-medium mb-1 block">Password</label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-10 w-full rounded-lg border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="••••••••"
-                />
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-sm font-medium">Password</label>
+                  {!isSignUp && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!email) {
+                          toast({ title: "Enter your email", description: "Please enter your email address first.", variant: "destructive" });
+                          return;
+                        }
+                        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                          redirectTo: `${window.location.origin}/reset-password`,
+                        });
+                        if (error) {
+                          toast({ title: "Error", description: error.message, variant: "destructive" });
+                        } else {
+                          toast({ title: "Check your email", description: "We sent you a password reset link." });
+                        }
+                      }}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-11 w-full rounded-lg border border-border bg-background pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                    placeholder="••••••••"
+                  />
+                </div>
+                {isSignUp && (
+                  <p className="text-xs text-muted-foreground mt-1.5">Must be at least 6 characters</p>
+                )}
               </div>
-              <Button variant="gradient" size="lg" type="submit" disabled={loading}>
-                {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
+
+              <Button variant="gradient" size="lg" type="submit" disabled={loading} className="mt-2">
+                {loading ? "Please wait..." : isSignUp ? "Create Account" : "Sign In"}
+                {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
               </Button>
             </form>
 
-            {!isSignUp && (
-              <div className="mt-4 text-center">
+            <div className="mt-6 pt-6 border-t border-border text-center">
+              <p className="text-sm text-muted-foreground">
+                {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
                 <button
-                  type="button"
-                  onClick={async () => {
-                    if (!email) {
-                      toast({ title: "Enter your email", description: "Please enter your email address first.", variant: "destructive" });
-                      return;
-                    }
-                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                      redirectTo: `${window.location.origin}/reset-password`,
-                    });
-                    if (error) {
-                      toast({ title: "Error", description: error.message, variant: "destructive" });
-                    } else {
-                      toast({ title: "Check your email", description: "We sent you a password reset link." });
-                    }
-                  }}
-                  className="text-sm text-primary hover:underline"
+                  onClick={() => setIsSignUp(!isSignUp)}
+                  className="text-primary font-medium hover:underline"
                 >
-                  Forgot password?
+                  {isSignUp ? "Sign In" : "Create Account"}
                 </button>
-              </div>
-            )}
-
-            <p className="mt-4 text-center text-sm text-muted-foreground">
-              {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-              <button
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="text-primary font-medium hover:underline"
-              >
-                {isSignUp ? "Sign In" : "Sign Up"}
-              </button>
-            </p>
+              </p>
+            </div>
           </div>
+
+          {/* Benefits for signup */}
+          {isSignUp && (
+            <div className="mt-6 grid grid-cols-3 gap-3 text-center">
+              {[
+                { icon: "📦", text: "Track Orders" },
+                { icon: "❤️", text: "Save Wishlist" },
+                { icon: "⚡", text: "Faster Checkout" },
+              ].map((b) => (
+                <div key={b.text} className="rounded-lg border border-border bg-card p-3">
+                  <span className="text-lg">{b.icon}</span>
+                  <p className="text-xs text-muted-foreground mt-1">{b.text}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </Layout>
