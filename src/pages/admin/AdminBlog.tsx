@@ -24,6 +24,25 @@ export default function AdminBlog() {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<BlogPost | BlogPostInsert | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("blog-images").upload(path, file);
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from("blog-images").getPublicUrl(path);
+      setEditing((prev) => prev ? { ...prev, image_url: publicUrl } : prev);
+      toast({ title: "Image uploaded" });
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const { data: posts, isLoading } = useQuery({
     queryKey: ["admin-blog-posts"],
