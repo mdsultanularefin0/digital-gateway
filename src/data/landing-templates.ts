@@ -37,6 +37,7 @@ export interface SectionContent {
   price?: string;
   originalPrice?: string;
   badge?: string;
+  countdownDate?: string;
 }
 
 export type SectionsData = Record<string, SectionContent>;
