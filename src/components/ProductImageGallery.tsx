@@ -28,7 +28,7 @@ export function ProductImageGallery({ productId, fallbackLetter }: { productId: 
 
   if (!images || images.length === 0) {
     return (
-      <div className="aspect-video overflow-hidden rounded-xl border border-border bg-muted flex items-center justify-center relative">
+      <div className="aspect-square overflow-hidden rounded-xl border border-border bg-muted flex items-center justify-center relative">
         <div className="gradient-bg opacity-10 absolute inset-0" />
         <span className="text-6xl font-display font-bold text-muted-foreground/20">{fallbackLetter}</span>
       </div>
