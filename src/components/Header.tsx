@@ -71,7 +71,7 @@ export function Header() {
             <Link
               key={link.to}
               to={link.to}
-              className={`rounded-[4px] px-4 py-2 text-sm font-medium tracking-wide transition-colors hover:bg-secondary ${
+              className={`rounded-full px-4 py-2 text-sm font-medium tracking-wide transition-colors hover:bg-secondary ${
                 location.pathname === link.to ? "text-primary" : "text-muted-foreground"
               }`}
             >
