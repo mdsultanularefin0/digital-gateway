@@ -216,9 +216,28 @@ Deno.serve(async (req) => {
         execute: result,
       };
 
-      // Determine success: trxID present means payment went through
+      // Verify paid amount matches expected total
       const isPaid = !!result.trxID;
-      const paymentStatus = isPaid ? "paid" : "failed";
+      if (isPaid && result.amount) {
+        // Recalculate expected total
+        const { data: verifyItems } = await supabase
+          .from("order_items")
+          .select("quantity, unit_price")
+          .eq("order_id", orderId);
+        const { data: verifyOrder } = await supabase
+          .from("orders")
+          .select("shipping_cost, discount")
+          .eq("id", orderId)
+          .single();
+        if (verifyItems && verifyOrder) {
+          const expectedSubtotal = verifyItems.reduce((s, i) => s + Number(i.quantity) * Number(i.unit_price), 0);
+          const expectedTotal = Math.max(0, expectedSubtotal - Number(verifyOrder.discount || 0) + Number(verifyOrder.shipping_cost || 0));
+          if (Math.abs(Number(result.amount) - expectedTotal) > 0.01) {
+            console.error(`Amount mismatch: paid=${result.amount}, expected=${expectedTotal}`);
+            return json({ success: false, message: "Payment amount does not match order total" }, 400);
+          }
+        }
+      }
 
       await supabase
         .from("orders")
