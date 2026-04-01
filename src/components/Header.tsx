@@ -102,7 +102,7 @@ export function Header() {
           </button>
           <Link
             to="/wishlist"
-            className="relative flex h-10 w-10 items-center justify-center rounded-[4px] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            className="relative flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             aria-label="Wishlist"
           >
             <Heart className="h-5 w-5" />
