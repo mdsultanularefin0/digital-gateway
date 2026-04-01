@@ -68,7 +68,7 @@ export function ProductCard({ product }: { product: Product }) {
           {product.tags.slice(0, 2).map((tag) => (
             <span
               key={tag}
-              className="rounded-[4px] bg-primary/10 px-2.5 py-0.5 text-xs font-medium tracking-wider uppercase text-primary"
+              className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium tracking-wider uppercase text-primary"
             >
               {tag}
             </span>
