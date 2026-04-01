@@ -46,10 +46,10 @@ export function ReviewForm({ productId, onSubmitted }: ReviewFormProps) {
     }
   };
 
-  const inputClass = "h-10 w-full rounded-[4px] border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
+  const inputClass = "h-10 w-full rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-[4px] border border-border p-6 space-y-4">
+    <form onSubmit={handleSubmit} className="rounded-xl border border-border p-6 space-y-4">
       <h3 className="text-lg font-display font-semibold">Write a Review</h3>
 
       {/* Star Rating */}
@@ -96,7 +96,7 @@ export function ReviewForm({ productId, onSubmitted }: ReviewFormProps) {
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="w-full rounded-[4px] border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[100px]"
+          className="w-full rounded-xl border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[100px]"
           placeholder="Share your experience..."
         />
       </div>

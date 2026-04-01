@@ -27,15 +27,15 @@ export default function ContactPage() {
               <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
                 <div>
                   <label className="text-sm font-medium mb-1 block">Name</label>
-                  <input className="h-10 w-full rounded-[4px] border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Your name" />
+                  <input className="h-10 w-full rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Your name" />
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1 block">Email</label>
-                  <input type="email" className="h-10 w-full rounded-[4px] border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="you@example.com" />
+                  <input type="email" className="h-10 w-full rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="you@example.com" />
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1 block">Message</label>
-                  <textarea className="w-full rounded-[4px] border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[120px]" placeholder="Your message..." />
+                  <textarea className="w-full rounded-xl border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[120px]" placeholder="Your message..." />
                 </div>
                 <Button variant="gradient" size="lg">Send Message</Button>
               </form>
@@ -43,7 +43,7 @@ export default function ContactPage() {
 
             <div className="flex flex-col gap-6">
               <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-[4px] bg-primary/10 shrink-0">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shrink-0">
                   <Mail className="h-5 w-5 text-primary" />
                 </div>
                 <div>
@@ -53,7 +53,7 @@ export default function ContactPage() {
               </div>
               {contactPhone && (
                 <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-[4px] bg-primary/10 shrink-0">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shrink-0">
                     <Phone className="h-5 w-5 text-primary" />
                   </div>
                   <div>
@@ -64,7 +64,7 @@ export default function ContactPage() {
               )}
               {whatsapp && (
                 <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-[4px] bg-primary/10 shrink-0">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shrink-0">
                     <MessageCircle className="h-5 w-5 text-primary" />
                   </div>
                   <div>
@@ -74,7 +74,7 @@ export default function ContactPage() {
                 </div>
               )}
               <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-[4px] bg-primary/10 shrink-0">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shrink-0">
                   <MapPin className="h-5 w-5 text-primary" />
                 </div>
                 <div>

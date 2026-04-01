@@ -108,7 +108,7 @@ export default function AdminIntegrations() {
         <select
           value={value || field.options[0].value}
           onChange={(e) => update(field.key, e.target.value)}
-          className="h-9 w-full rounded-[4px] border border-border bg-background px-3 text-sm"
+          className="h-9 w-full rounded-xl border border-border bg-background px-3 text-sm"
         >
           {field.options.map((opt: any) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -124,7 +124,7 @@ export default function AdminIntegrations() {
           value={value}
           onChange={(e) => update(field.key, e.target.value)}
           placeholder={field.placeholder}
-          className="h-9 w-full rounded-[4px] border border-border bg-background px-3 pr-10 text-sm"
+          className="h-9 w-full rounded-xl border border-border bg-background px-3 pr-10 text-sm"
         />
         {field.sensitive && (
           <button
@@ -166,9 +166,9 @@ export default function AdminIntegrations() {
         </div>
 
         {/* bKash Payment Gateway */}
-        <section className="rounded-[4px] border border-border">
+        <section className="rounded-xl border border-border">
           <div className="flex items-center gap-3 border-b border-border p-4">
-            <div className="flex h-9 w-9 items-center justify-center rounded-[4px] bg-pink-500/10">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-pink-500/10">
               <CreditCard className="h-4 w-4 text-pink-500" />
             </div>
             <div>
@@ -196,9 +196,9 @@ export default function AdminIntegrations() {
 
 
         {/* Outbound Webhook */}
-        <section className="rounded-[4px] border border-border">
+        <section className="rounded-xl border border-border">
           <div className="flex items-center gap-3 border-b border-border p-4">
-            <div className="flex h-9 w-9 items-center justify-center rounded-[4px] bg-accent/50">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/50">
               <Webhook className="h-4 w-4 text-foreground" />
             </div>
             <div>
@@ -216,7 +216,7 @@ export default function AdminIntegrations() {
                 value={settings["webhook_url"] || ""}
                 onChange={(e) => update("webhook_url", e.target.value)}
                 placeholder="https://your-service.com/api/webhook"
-                className="h-9 w-full rounded-[4px] border border-border bg-background px-3 text-sm"
+                className="h-9 w-full rounded-xl border border-border bg-background px-3 text-sm"
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Order data will be POSTed to this URL whenever an order is created or updated.
@@ -233,7 +233,7 @@ export default function AdminIntegrations() {
                   value={settings["webhook_secret"] || ""}
                   onChange={(e) => update("webhook_secret", e.target.value)}
                   placeholder="Shared secret included in payload for verification"
-                  className="h-9 w-full rounded-[4px] border border-border bg-background px-3 pr-10 text-sm"
+                  className="h-9 w-full rounded-xl border border-border bg-background px-3 pr-10 text-sm"
                 />
                 <button
                   type="button"
@@ -277,7 +277,7 @@ export default function AdminIntegrations() {
 
             <div>
               <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Payload Format</h4>
-              <pre className="text-xs bg-muted rounded-[4px] p-3 overflow-auto font-mono whitespace-pre-wrap">
+              <pre className="text-xs bg-muted rounded-xl p-3 overflow-auto font-mono whitespace-pre-wrap">
                 {`{
   "event": "order.updated",
   "order_id": "uuid",

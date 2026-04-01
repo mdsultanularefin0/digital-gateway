@@ -79,7 +79,7 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="fixed left-4 right-4 top-20 z-[61] mx-auto max-w-xl"
           >
-            <div className="rounded-[4px] border border-border/60 bg-background shadow-2xl overflow-hidden">
+            <div className="rounded-xl border border-border/60 bg-background shadow-2xl overflow-hidden">
               {/* Search input */}
               <div className="flex items-center gap-3 px-5">
                 <Search className="h-5 w-5 text-muted-foreground shrink-0" />
@@ -97,7 +97,7 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                 />
                 <button
                   onClick={onClose}
-                  className="flex h-7 w-7 items-center justify-center rounded-[4px] bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+                  className="flex h-7 w-7 items-center justify-center rounded-xl bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -129,7 +129,7 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                           onClick={() => goToProduct(product.id)}
                           className="w-full flex items-center gap-4 px-5 py-3 hover:bg-muted/40 transition-colors text-left group"
                         >
-                          <div className="h-11 w-11 rounded-[4px] bg-muted/50 border border-border/40 overflow-hidden shrink-0">
+                          <div className="h-11 w-11 rounded-xl bg-muted/50 border border-border/40 overflow-hidden shrink-0">
                             <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
                           </div>
                           <div className="flex-1 min-w-0">

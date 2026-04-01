@@ -243,13 +243,13 @@ export default function AdminOrders() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by order #, name, email..."
-            className="h-10 w-full rounded-[4px] border border-border bg-background pl-10 pr-4 text-sm"
+            className="h-10 w-full rounded-xl border border-border bg-background pl-10 pr-4 text-sm"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="h-10 rounded-[4px] border border-border bg-background px-3 text-sm"
+          className="h-10 rounded-xl border border-border bg-background px-3 text-sm"
         >
           <option value="all">All Status</option>
           {statuses.map((s) => (
@@ -260,12 +260,12 @@ export default function AdminOrders() {
 
       {/* Bulk Actions Bar */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 mb-4 p-3 rounded-[4px] border border-primary/20 bg-primary/5">
+        <div className="flex items-center gap-3 mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5">
           <span className="text-sm font-medium">{selectedIds.size} selected</span>
           <select
             value={bulkAction}
             onChange={(e) => setBulkAction(e.target.value)}
-            className="h-9 rounded-[4px] border border-border bg-background px-3 text-sm"
+            className="h-9 rounded-xl border border-border bg-background px-3 text-sm"
           >
             <option value="">Choose action...</option>
             <optgroup label="Set Status">
@@ -304,7 +304,7 @@ export default function AdminOrders() {
           <p className="text-muted-foreground">No orders found</p>
         </div>
       ) : (
-        <div className="rounded-[4px] border border-border overflow-x-auto">
+        <div className="rounded-xl border border-border overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">

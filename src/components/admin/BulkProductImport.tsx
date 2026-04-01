@@ -236,7 +236,7 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
     }
   };
 
-  const inputClass = "h-10 w-full rounded-[4px] border border-border bg-background px-4 text-sm";
+  const inputClass = "h-10 w-full rounded-xl border border-border bg-background px-4 text-sm";
 
   return (
     <div className="space-y-6">
@@ -248,7 +248,7 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
       </div>
 
       {/* Instructions */}
-      <div className="rounded-[4px] border border-border bg-muted/30 p-5 space-y-3">
+      <div className="rounded-xl border border-border bg-muted/30 p-5 space-y-3">
         <h4 className="text-sm font-medium">CSV Format</h4>
         <p className="text-sm text-muted-foreground">
           Upload a CSV with the following columns: <code className="text-xs bg-muted px-1.5 py-0.5 rounded">name</code> (required),{" "}
@@ -284,7 +284,7 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
       {preview.length > 0 && !result && (
         <div className="space-y-4">
           <h4 className="text-sm font-medium">{preview.length} product{preview.length > 1 ? "s" : ""} ready to import</h4>
-          <div className="rounded-[4px] border border-border overflow-hidden max-h-[300px] overflow-y-auto">
+          <div className="rounded-xl border border-border overflow-hidden max-h-[300px] overflow-y-auto">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 sticky top-0">
                 <tr>
@@ -303,7 +303,7 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
                     <td className="px-4 py-2 text-muted-foreground">{p.category}</td>
                     <td className="px-4 py-2">{p.price_label}</td>
                     <td className="px-4 py-2">
-                      <span className={`rounded-[4px] px-2 py-0.5 text-xs font-medium ${p.published ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
+                      <span className={`rounded-xl px-2 py-0.5 text-xs font-medium ${p.published ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
                         {p.published ? "Published" : "Draft"}
                       </span>
                     </td>
@@ -336,7 +336,7 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
             </span>
           </div>
           {result.errors.length > 0 && (
-            <div className="rounded-[4px] border border-destructive/30 bg-destructive/5 p-4 space-y-1 max-h-[150px] overflow-y-auto">
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 space-y-1 max-h-[150px] overflow-y-auto">
               {result.errors.map((e, i) => (
                 <p key={i} className="text-xs text-destructive">{e}</p>
               ))}

@@ -78,7 +78,7 @@ export default function BkashCallback() {
               <h1 className="text-3xl font-display font-bold mb-3">Payment Successful!</h1>
               <p className="text-muted-foreground mb-2">Your bKash payment has been confirmed.</p>
               {orderNumber && (
-                <p className="text-sm font-mono bg-muted rounded-[4px] inline-block px-4 py-2 mb-2">{orderNumber}</p>
+                <p className="text-sm font-mono bg-muted rounded-xl inline-block px-4 py-2 mb-2">{orderNumber}</p>
               )}
               {trxID && (
                 <p className="text-xs text-muted-foreground mb-8">Transaction ID: {trxID}</p>

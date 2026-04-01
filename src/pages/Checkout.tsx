@@ -267,7 +267,7 @@ export default function CheckoutPage() {
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6" />
             <h1 className="text-3xl font-display font-bold mb-3">Order Placed!</h1>
             <p className="text-muted-foreground mb-2">Thank you for your order.</p>
-            <p className="text-sm font-mono bg-muted rounded-[4px] inline-block px-4 py-2 mb-8">{orderPlaced}</p>
+            <p className="text-sm font-mono bg-muted rounded-xl inline-block px-4 py-2 mb-8">{orderPlaced}</p>
             <div className="flex gap-3 justify-center">
               <Button variant="gradient" asChild>
                 <Link to="/products">Continue Shopping</Link>
@@ -295,7 +295,7 @@ export default function CheckoutPage() {
     );
   }
 
-  const inputClass = "h-10 w-full rounded-[4px] border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
+  const inputClass = "h-10 w-full rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
 
   return (
     <Layout>
@@ -306,7 +306,7 @@ export default function CheckoutPage() {
           <div className="grid gap-8 lg:grid-cols-5">
             {/* Form */}
             <div className="lg:col-span-3 space-y-6">
-              <div className="rounded-[4px] border border-border">
+              <div className="rounded-xl border border-border">
                 <div className="p-4 border-b border-border">
                   <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Contact Information</h2>
                 </div>
@@ -328,17 +328,17 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <div className="rounded-[4px] border border-border">
+              <div className="rounded-xl border border-border">
                 <div className="p-4 border-b border-border">
                   <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Address</h2>
                 </div>
                 <div className="p-4">
                   <label className="text-xs font-medium mb-1 block">Full Address</label>
-                  <textarea value={form.address} onChange={(e) => update("address", e.target.value)} className="w-full rounded-[4px] border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]" placeholder="House/Apt, Street, Area, City, Country..." />
+                  <textarea value={form.address} onChange={(e) => update("address", e.target.value)} className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]" placeholder="House/Apt, Street, Area, City, Country..." />
                 </div>
               </div>
 
-              <div className="rounded-[4px] border border-border">
+              <div className="rounded-xl border border-border">
                 <div className="p-4 border-b border-border">
                   <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Payment Method</h2>
                 </div>
@@ -347,7 +347,7 @@ export default function CheckoutPage() {
                     <p className="text-sm text-muted-foreground">No payment methods available.</p>
                   )}
                   {paymentMethods.map((m) => (
-                    <label key={m.value} className={`flex items-center gap-3 rounded-[4px] border p-3 cursor-pointer transition-colors ${form.paymentMethod === m.value ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"}`}>
+                    <label key={m.value} className={`flex items-center gap-3 rounded-xl border p-3 cursor-pointer transition-colors ${form.paymentMethod === m.value ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"}`}>
                       <input
                         type="radio"
                         name="payment"
@@ -364,13 +364,13 @@ export default function CheckoutPage() {
 
               <div>
                 <label className="text-xs font-medium mb-1 block">Order Notes (optional)</label>
-                <textarea value={form.notes} onChange={(e) => update("notes", e.target.value)} className="w-full rounded-[4px] border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]" placeholder="Special instructions..." />
+                <textarea value={form.notes} onChange={(e) => update("notes", e.target.value)} className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]" placeholder="Special instructions..." />
               </div>
             </div>
 
             {/* Order Summary */}
             <div className="lg:col-span-2">
-              <div className="rounded-[4px] border border-border sticky top-24">
+              <div className="rounded-xl border border-border sticky top-24">
                 <div className="p-4 border-b border-border">
                   <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Order Summary</h2>
                 </div>
@@ -400,7 +400,7 @@ export default function CheckoutPage() {
                         value={form.couponCode}
                         onChange={(e) => update("couponCode", e.target.value)}
                         placeholder="Coupon code"
-                        className="h-9 flex-1 rounded-[4px] border border-border bg-background px-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="h-9 flex-1 rounded-xl border border-border bg-background px-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                       <Button variant="outline" size="sm" onClick={applyCoupon} disabled={couponLoading}>
                         {couponLoading ? "..." : "Apply"}

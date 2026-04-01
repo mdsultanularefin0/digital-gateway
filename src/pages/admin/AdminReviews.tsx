@@ -80,9 +80,9 @@ export default function AdminReviews() {
       <div className="flex flex-col gap-3 mb-6 md:flex-row md:items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search reviews..." className="h-10 w-full rounded-[4px] border border-border bg-background pl-10 pr-4 text-sm" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search reviews..." className="h-10 w-full rounded-xl border border-border bg-background pl-10 pr-4 text-sm" />
         </div>
-        <select value={filter} onChange={(e) => setFilter(e.target.value)} className="h-10 rounded-[4px] border border-border bg-background px-3 text-sm">
+        <select value={filter} onChange={(e) => setFilter(e.target.value)} className="h-10 rounded-xl border border-border bg-background px-3 text-sm">
           <option value="all">All Reviews</option>
           <option value="pending">Pending</option>
           <option value="approved">Approved</option>
@@ -100,7 +100,7 @@ export default function AdminReviews() {
       ) : (
         <div className="space-y-3">
           {filtered.map((r: any) => (
-            <div key={r.id} className={`rounded-[4px] border p-4 ${r.approved ? "border-border" : "border-yellow-500/30 bg-yellow-500/5"}`}>
+            <div key={r.id} className={`rounded-xl border p-4 ${r.approved ? "border-border" : "border-yellow-500/30 bg-yellow-500/5"}`}>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">

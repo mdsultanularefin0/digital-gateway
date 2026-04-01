@@ -57,7 +57,7 @@ export function ProductCard({ product }: { product: Product }) {
         </button>
         {/* Stock badge */}
         {!inStock && (
-          <span className="absolute top-3 left-3 rounded-[4px] bg-destructive/90 px-2.5 py-1 text-xs font-semibold text-destructive-foreground backdrop-blur-sm">
+          <span className="absolute top-3 left-3 rounded-xl bg-destructive/90 px-2.5 py-1 text-xs font-semibold text-destructive-foreground backdrop-blur-sm">
             Out of Stock
           </span>
         )}

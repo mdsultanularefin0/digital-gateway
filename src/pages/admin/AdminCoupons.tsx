@@ -89,7 +89,7 @@ export default function AdminCoupons() {
     }
   };
 
-  const inputClass = "h-10 w-full rounded-[4px] border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
+  const inputClass = "h-10 w-full rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
 
   if (editing) {
     return (
@@ -103,7 +103,7 @@ export default function AdminCoupons() {
             </Button>
           </div>
         </div>
-        <div className="max-w-xl rounded-[4px] border border-border divide-y divide-border">
+        <div className="max-w-xl rounded-xl border border-border divide-y divide-border">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 p-4">
             <label className="text-sm font-medium w-36 shrink-0">Code</label>
             <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} className={inputClass} placeholder="e.g. SAVE20" />
@@ -167,7 +167,7 @@ export default function AdminCoupons() {
           <p className="text-muted-foreground">No coupons yet</p>
         </div>
       ) : (
-        <div className="rounded-[4px] border border-border overflow-x-auto">
+        <div className="rounded-xl border border-border overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">

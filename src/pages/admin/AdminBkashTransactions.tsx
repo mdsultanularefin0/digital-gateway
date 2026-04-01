@@ -170,19 +170,19 @@ export default function AdminBkashTransactions() {
       <div className="space-y-6">
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="rounded-[4px] border border-border bg-card p-4 space-y-1">
+          <div className="rounded-xl border border-border bg-card p-4 space-y-1">
             <p className="text-xs text-muted-foreground font-medium">Total Transactions</p>
             <p className="text-2xl font-display font-bold">{totalCount}</p>
           </div>
-          <div className="rounded-[4px] border border-border bg-card p-4 space-y-1">
+          <div className="rounded-xl border border-border bg-card p-4 space-y-1">
             <p className="text-xs text-muted-foreground font-medium">Completed</p>
             <p className="text-2xl font-display font-bold text-success">{completedCount}</p>
           </div>
-          <div className="rounded-[4px] border border-border bg-card p-4 space-y-1">
+          <div className="rounded-xl border border-border bg-card p-4 space-y-1">
             <p className="text-xs text-muted-foreground font-medium">Pending</p>
             <p className="text-2xl font-display font-bold text-warning">{initiatedCount}</p>
           </div>
-          <div className="rounded-[4px] border border-border bg-card p-4 space-y-1">
+          <div className="rounded-xl border border-border bg-card p-4 space-y-1">
             <p className="text-xs text-muted-foreground font-medium">Total Received</p>
             <p className="text-2xl font-display font-bold">৳{totalAmount.toLocaleString()}</p>
           </div>
@@ -229,7 +229,7 @@ export default function AdminBkashTransactions() {
             <p className="text-muted-foreground">No bKash transactions found</p>
           </div>
         ) : (
-          <div className="rounded-[4px] border border-border overflow-hidden">
+          <div className="rounded-xl border border-border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">

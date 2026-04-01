@@ -472,7 +472,7 @@ export default function AdminPostGenerator() {
               Create editorial-grade social media images
             </p>
           </div>
-          <Button onClick={downloadImage} variant="default" className="gap-2 rounded-[4px]">
+          <Button onClick={downloadImage} variant="default" className="gap-2 rounded-xl">
             <Download className="h-4 w-4" /> EXPORT PNG
           </Button>
         </div>
@@ -491,7 +491,7 @@ export default function AdminPostGenerator() {
                       setColors(COLOR_PRESETS[t.colorIndex]);
                       setUseCustom(false);
                     }}
-                    className="text-left text-[11px] px-3 py-2.5 rounded-[4px] border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all group"
+                    className="text-left text-[11px] px-3 py-2.5 rounded-xl border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all group"
                   >
                     <span className="font-bold text-foreground block group-hover:text-primary transition-colors">{t.name}</span>
                     <span className="text-muted-foreground">{t.data.price}</span>
@@ -499,7 +499,7 @@ export default function AdminPostGenerator() {
                 ))}
                 <button
                   onClick={() => setData(emptyData)}
-                  className="text-[11px] px-3 py-2.5 rounded-[4px] border border-dashed border-border/60 hover:border-primary/40 text-muted-foreground hover:text-foreground transition-all col-span-2"
+                  className="text-[11px] px-3 py-2.5 rounded-xl border border-dashed border-border/60 hover:border-primary/40 text-muted-foreground hover:text-foreground transition-all col-span-2"
                 >
                   + Start blank
                 </button>
@@ -513,7 +513,7 @@ export default function AdminPostGenerator() {
                   <button
                     key={t.id}
                     onClick={() => setTemplate(t)}
-                    className={`text-[11px] font-medium px-3 py-2 rounded-[4px] border transition-all ${
+                    className={`text-[11px] font-medium px-3 py-2 rounded-xl border transition-all ${
                       template.id === t.id
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-border/60 text-muted-foreground hover:border-foreground/20"
@@ -533,7 +533,7 @@ export default function AdminPostGenerator() {
                     key={c.name}
                     onClick={() => { setColors(c); setUseCustom(false); }}
                     title={c.name}
-                    className={`group relative aspect-square rounded-[4px] border-2 transition-all overflow-hidden ${
+                    className={`group relative aspect-square rounded-xl border-2 transition-all overflow-hidden ${
                       !useCustom && colors.name === c.name
                         ? "border-primary scale-105 shadow-sm"
                         : "border-transparent hover:border-foreground/20"
@@ -562,7 +562,7 @@ export default function AdminPostGenerator() {
                         type="color"
                         value={customColors[key] || activeColors[key]}
                         onChange={(e) => setCustomColors((p) => ({ ...p, [key]: e.target.value }))}
-                        className="w-7 h-7 rounded-[4px] cursor-pointer border border-border/60 p-0.5"
+                        className="w-7 h-7 rounded-xl cursor-pointer border border-border/60 p-0.5"
                       />
                       <div className="flex-1">
                         <span className="text-[9px] uppercase text-muted-foreground font-medium tracking-wider block">{key}</span>
@@ -570,7 +570,7 @@ export default function AdminPostGenerator() {
                           type="text"
                           value={customColors[key] || activeColors[key]}
                           onChange={(e) => setCustomColors((p) => ({ ...p, [key]: e.target.value }))}
-                          className="w-full h-6 rounded-[4px] border border-border/60 bg-background px-1.5 text-[10px] font-mono"
+                          className="w-full h-6 rounded-xl border border-border/60 bg-background px-1.5 text-[10px] font-mono"
                         />
                       </div>
                     </div>
@@ -590,7 +590,7 @@ export default function AdminPostGenerator() {
                   className="hidden"
                 />
                 {customImageUrl ? (
-                  <div className="relative rounded-[4px] border border-border/60 overflow-hidden bg-muted/20">
+                  <div className="relative rounded-xl border border-border/60 overflow-hidden bg-muted/20">
                     <img
                       src={customImageUrl}
                       alt="Custom product"
@@ -598,7 +598,7 @@ export default function AdminPostGenerator() {
                     />
                     <button
                       onClick={clearCustomImage}
-                      className="absolute top-1.5 right-1.5 p-1 rounded-[4px] bg-background/90 border border-border/60 text-muted-foreground hover:text-destructive transition-colors"
+                      className="absolute top-1.5 right-1.5 p-1 rounded-xl bg-background/90 border border-border/60 text-muted-foreground hover:text-destructive transition-colors"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -606,7 +606,7 @@ export default function AdminPostGenerator() {
                 ) : (
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full h-24 rounded-[4px] border border-dashed border-border/60 hover:border-primary/40 flex flex-col items-center justify-center gap-1.5 text-muted-foreground hover:text-foreground transition-all group"
+                    className="w-full h-24 rounded-xl border border-dashed border-border/60 hover:border-primary/40 flex flex-col items-center justify-center gap-1.5 text-muted-foreground hover:text-foreground transition-all group"
                   >
                     <Upload className="h-5 w-5 group-hover:text-primary transition-colors" />
                     <span className="text-[11px]">Upload custom image</span>
@@ -686,7 +686,7 @@ export default function AdminPostGenerator() {
                       value={feat}
                       onChange={(e) => updateFeature(i, e.target.value)}
                       placeholder={`Feature ${i + 1}`}
-                      className="h-8 flex-1 rounded-[4px] border border-border/60 bg-background px-2.5 text-xs font-body focus:outline-none focus:border-primary/50 transition-colors"
+                      className="h-8 flex-1 rounded-xl border border-border/60 bg-background px-2.5 text-xs font-body focus:outline-none focus:border-primary/50 transition-colors"
                     />
                     {data.features.length > 1 && (
                       <button
@@ -711,14 +711,14 @@ export default function AdminPostGenerator() {
           {/* ── Canvas Preview ──────────────────────────────────── */}
           <div className="order-1 lg:order-2 sticky top-20">
             <div
-              className="rounded-[4px] border border-border/40 p-6 flex items-center justify-center"
+              className="rounded-xl border border-border/40 p-6 flex items-center justify-center"
               style={{
                 background: "linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 25%, #f0f0f0 50%, #e5e5e5 75%, #f2f2f2 100%)",
               }}
             >
               <canvas
                 ref={canvasRef}
-                className="max-w-full h-auto rounded-[4px] shadow-lg"
+                className="max-w-full h-auto rounded-xl shadow-lg"
                 style={{ maxHeight: "72vh" }}
               />
             </div>
@@ -752,7 +752,7 @@ function BentoSection({
   const isOpen = active === id || (active === null && defaultOpen);
 
   return (
-    <div className="rounded-[4px] border border-border/50 bg-background overflow-hidden">
+    <div className="rounded-xl border border-border/50 bg-background overflow-hidden">
       <button
         onClick={() => onToggle(id)}
         className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-muted/30 transition-colors"
@@ -791,14 +791,14 @@ function FieldInput({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={2}
-          className="w-full rounded-[4px] border border-border/60 bg-background px-2.5 py-2 text-xs font-body focus:outline-none focus:border-primary/50 transition-colors resize-none"
+          className="w-full rounded-xl border border-border/60 bg-background px-2.5 py-2 text-xs font-body focus:outline-none focus:border-primary/50 transition-colors resize-none"
         />
       ) : (
         <input
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="h-8 w-full rounded-[4px] border border-border/60 bg-background px-2.5 text-xs font-body focus:outline-none focus:border-primary/50 transition-colors"
+          className="h-8 w-full rounded-xl border border-border/60 bg-background px-2.5 text-xs font-body focus:outline-none focus:border-primary/50 transition-colors"
         />
       )}
     </div>

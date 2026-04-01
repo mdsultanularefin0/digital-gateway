@@ -37,8 +37,8 @@ export function CartDrawer() {
           <>
             <div className="flex-1 overflow-y-auto -mx-6 px-6 space-y-3 py-4">
               {items.map((item) => (
-                <div key={`${item.productId}-${item.tierId}`} className="flex gap-3 rounded-[4px] border border-border p-3">
-                  <div className="h-14 w-14 rounded-[4px] bg-muted flex items-center justify-center shrink-0">
+                <div key={`${item.productId}-${item.tierId}`} className="flex gap-3 rounded-xl border border-border p-3">
+                  <div className="h-14 w-14 rounded-xl bg-muted flex items-center justify-center shrink-0">
                     <span className="text-lg font-display font-bold text-muted-foreground/30">{item.productName[0]}</span>
                   </div>
                   <div className="flex-1 min-w-0">
