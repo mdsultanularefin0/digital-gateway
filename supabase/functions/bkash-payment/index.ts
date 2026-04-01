@@ -132,10 +132,10 @@ Deno.serve(async (req) => {
         return json({ error: "Missing required fields" }, 400);
       }
 
-      // Server-authoritative: read amount from the actual order
+      // Server-authoritative: recalculate total from order_items (never trust client-set total)
       const { data: order, error: orderErr } = await supabase
         .from("orders")
-        .select("total")
+        .select("id, shipping_cost, discount")
         .eq("id", orderId)
         .single();
 
@@ -143,7 +143,18 @@ Deno.serve(async (req) => {
         return json({ error: "Order not found" }, 404);
       }
 
-      const amount = Number(order.total).toFixed(2);
+      const { data: items, error: itemsErr } = await supabase
+        .from("order_items")
+        .select("quantity, unit_price")
+        .eq("order_id", orderId);
+
+      if (itemsErr || !items || items.length === 0) {
+        return json({ error: "Order has no items" }, 400);
+      }
+
+      const subtotal = items.reduce((sum, item) => sum + Number(item.quantity) * Number(item.unit_price), 0);
+      const calculatedTotal = Math.max(0, subtotal - Number(order.discount || 0) + Number(order.shipping_cost || 0));
+      const amount = calculatedTotal.toFixed(2);
 
       const baseUrl = await getBaseUrl(supabase);
       const { idToken } = await grantToken(baseUrl);
