@@ -44,6 +44,8 @@ const AdminSupportInbox = lazy(() => import("./pages/admin/AdminSupportInbox"));
 const AdminActivityLog = lazy(() => import("./pages/admin/AdminActivityLog"));
 const AdminNewsletter = lazy(() => import("./pages/admin/AdminNewsletter"));
 const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
+const AdminLandingPages = lazy(() => import("./pages/admin/AdminLandingPages"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
 const AdminBkashTransactions = lazy(() => import("./pages/admin/AdminBkashTransactions"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -102,7 +104,9 @@ const App = () => (
                     <Route path="/admin/activity" element={<AdminGuard><AdminActivityLog /></AdminGuard>} />
                     <Route path="/admin/newsletter" element={<AdminGuard><AdminNewsletter /></AdminGuard>} />
                     <Route path="/admin/blog" element={<AdminGuard><AdminBlog /></AdminGuard>} />
+                    <Route path="/admin/landing-pages" element={<AdminGuard><AdminLandingPages /></AdminGuard>} />
                     <Route path="/admin/bkash-transactions" element={<AdminGuard><AdminBkashTransactions /></AdminGuard>} />
+                    <Route path="/p/:slug" element={<LandingPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>

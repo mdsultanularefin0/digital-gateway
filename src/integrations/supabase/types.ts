@@ -224,6 +224,42 @@ export type Database = {
         }
         Relationships: []
       }
+      landing_pages: {
+        Row: {
+          created_at: string
+          id: string
+          published: boolean
+          sections_bn: Json
+          sections_en: Json
+          slug: string
+          template: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          published?: boolean
+          sections_bn?: Json
+          sections_en?: Json
+          slug: string
+          template?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          published?: boolean
+          sections_bn?: Json
+          sections_en?: Json
+          slug?: string
+          template?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mail_config: {
         Row: {
           id: string
