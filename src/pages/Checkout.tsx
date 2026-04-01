@@ -85,27 +85,15 @@ export default function CheckoutPage() {
     setCouponLoading(true);
     try {
       const { data, error } = await supabase
-        .from("coupons")
+        .from("coupons_public")
         .select("*")
         .eq("code", form.couponCode.trim().toUpperCase())
-        .eq("active", true)
+        .eq("is_valid", true)
         .maybeSingle();
 
       if (error) throw error;
       if (!data) {
-        toast({ title: "Invalid coupon", description: "This coupon code is not valid.", variant: "destructive" });
-        return;
-      }
-
-      // Check expiry
-      if (data.expires_at && new Date(data.expires_at) < new Date()) {
-        toast({ title: "Coupon expired", variant: "destructive" });
-        return;
-      }
-
-      // Check max uses
-      if (data.max_uses && data.used_count >= data.max_uses) {
-        toast({ title: "Coupon usage limit reached", variant: "destructive" });
+        toast({ title: "Invalid coupon", description: "This coupon code is not valid or has expired.", variant: "destructive" });
         return;
       }
 
@@ -120,7 +108,7 @@ export default function CheckoutPage() {
         : Number(data.discount_value);
 
       setDiscount(Math.min(discountAmount, subtotal));
-      setCouponApplied(data.code);
+      setCouponApplied(data.code!);
       toast({ title: `Coupon applied: ${data.discount_type === "percentage" ? `${data.discount_value}% off` : `${sym}${Number(data.discount_value).toFixed(2)} off`}` });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
