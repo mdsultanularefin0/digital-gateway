@@ -31,9 +31,10 @@ const SECTION_TYPE_LABELS: Record<string, string> = {
 const showBody = ["hero", "text-image", "testimonial", "guarantee", "pricing", "product-showcase"];
 const showImage = ["hero", "text-image", "product-showcase"];
 const showButton = ["hero", "cta", "pricing", "text-image"];
-const showPrice = ["hero", "pricing", "cta"];
-const showBadge = ["hero", "pricing"];
+const showPrice = ["hero", "pricing", "cta", "countdown"];
+const showBadge = ["hero", "pricing", "countdown"];
 const showItems = ["features", "faq", "stats", "how-it-works", "bonus", "pricing", "testimonial"];
+const showCountdown = ["countdown"];
 
 export function SectionEditor({ section, content, onChange, lang }: Props) {
   const update = (key: keyof SectionContent, value: any) => onChange({ ...content, [key]: value });
