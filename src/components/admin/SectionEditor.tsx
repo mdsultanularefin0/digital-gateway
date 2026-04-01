@@ -32,7 +32,7 @@ const SECTION_TYPE_LABELS: Record<string, string> = {
 // Which section types show which fields
 const showBody = ["hero", "text-image", "testimonial", "guarantee", "pricing", "product-showcase"];
 const showImage = ["hero", "text-image", "product-showcase"];
-const showButton = ["hero", "cta", "pricing", "text-image"];
+const showButton = ["hero", "cta", "pricing", "text-image", "checkout"];
 const showPrice = ["hero", "pricing", "cta", "countdown"];
 const showBadge = ["hero", "pricing", "countdown"];
 const showItems = ["features", "faq", "stats", "how-it-works", "bonus", "pricing", "testimonial"];
