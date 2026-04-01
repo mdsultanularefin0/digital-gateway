@@ -178,7 +178,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           )}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 border-t border-border p-4">
+        <div className="absolute bottom-0 left-0 right-0 border-t border-border/50 p-4 glass-surface">
           <div className="text-xs text-muted-foreground truncate mb-2">{user?.email}</div>
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" asChild className="flex-1">
