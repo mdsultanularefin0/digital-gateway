@@ -239,6 +239,8 @@ Deno.serve(async (req) => {
         }
       }
 
+      const paymentStatus = isPaid ? "paid" : "failed";
+
       await supabase
         .from("orders")
         .update({
