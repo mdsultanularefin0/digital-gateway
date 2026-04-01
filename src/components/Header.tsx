@@ -57,7 +57,7 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 font-display text-xl font-bold tracking-tight">
           {logoUrl ? (
-            <img src={logoUrl} alt={siteName} className="h-8 w-8 rounded-[4px] object-contain" />
+            <img src={logoUrl} alt={siteName} className="h-8 w-8 rounded-xl object-contain" />
           ) : (
             <div className="flex h-8 w-8 items-center justify-center rounded-[4px] gradient-bg">
               <Zap className="h-4 w-4 text-primary-foreground" />
