@@ -42,6 +42,7 @@ export default function ProductDetailPage() {
   const currencySymbol = settings?.currency_symbol || "$";
   const { addItem } = useCart();
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const navigate = useNavigate();
 
   const { data: tiers } = useQuery({
     queryKey: ["product-tiers", id],
