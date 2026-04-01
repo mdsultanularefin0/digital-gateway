@@ -82,6 +82,7 @@ export const landingTemplates: LandingTemplate[] = [
       { id: "guarantee", type: "guarantee", label: "Guarantee" },
       { id: "faq", type: "faq", label: "FAQ" },
       { id: "cta", type: "cta", label: "Download Now" },
+      { id: "checkout", type: "checkout", label: "Checkout" },
     ],
   },
   {
