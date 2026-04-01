@@ -25,15 +25,17 @@ const SECTION_TYPE_LABELS: Record<string, string> = {
   guarantee: "Guarantee / Trust",
   "product-showcase": "Product Showcase",
   bonus: "Bonus Content",
+  countdown: "Countdown Timer",
 };
 
 // Which section types show which fields
 const showBody = ["hero", "text-image", "testimonial", "guarantee", "pricing", "product-showcase"];
 const showImage = ["hero", "text-image", "product-showcase"];
 const showButton = ["hero", "cta", "pricing", "text-image"];
-const showPrice = ["hero", "pricing", "cta"];
-const showBadge = ["hero", "pricing"];
+const showPrice = ["hero", "pricing", "cta", "countdown"];
+const showBadge = ["hero", "pricing", "countdown"];
 const showItems = ["features", "faq", "stats", "how-it-works", "bonus", "pricing", "testimonial"];
+const showCountdown = ["countdown"];
 
 export function SectionEditor({ section, content, onChange, lang }: Props) {
   const update = (key: keyof SectionContent, value: any) => onChange({ ...content, [key]: value });
@@ -105,6 +107,19 @@ export function SectionEditor({ section, content, onChange, lang }: Props) {
             <label className="text-xs font-medium text-muted-foreground mb-1 block">Original Price (strikethrough)</label>
             <input value={content.originalPrice ?? ""} onChange={(e) => update("originalPrice", e.target.value)} className={inputCls} placeholder="৳1999" />
           </div>
+        </div>
+      )}
+
+      {showCountdown.includes(section.type) && (
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Countdown End Date & Time</label>
+          <input
+            type="datetime-local"
+            value={content.countdownDate ?? ""}
+            onChange={(e) => update("countdownDate", e.target.value)}
+            className={inputCls}
+          />
+          <p className="text-xs text-muted-foreground mt-1">The timer will count down to this date/time</p>
         </div>
       )}
 

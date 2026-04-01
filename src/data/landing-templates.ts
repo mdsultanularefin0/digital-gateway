@@ -12,7 +12,8 @@ export interface LandingSection {
     | "how-it-works"
     | "guarantee"
     | "product-showcase"
-    | "bonus";
+    | "bonus"
+    | "countdown";
   label: string;
 }
 
@@ -36,6 +37,7 @@ export interface SectionContent {
   price?: string;
   originalPrice?: string;
   badge?: string;
+  countdownDate?: string;
 }
 
 export type SectionsData = Record<string, SectionContent>;
@@ -53,6 +55,7 @@ export const landingTemplates: LandingTemplate[] = [
       { id: "features", type: "features", label: "What You Get" },
       { id: "how-it-works", type: "how-it-works", label: "How It Works" },
       { id: "testimonial", type: "testimonial", label: "Customer Reviews" },
+      { id: "countdown", type: "countdown", label: "Limited Time Offer" },
       { id: "pricing", type: "pricing", label: "Pricing" },
       { id: "guarantee", type: "guarantee", label: "Money-Back Guarantee" },
       { id: "faq", type: "faq", label: "FAQ" },
@@ -71,6 +74,7 @@ export const landingTemplates: LandingTemplate[] = [
       { id: "features", type: "features", label: "What's Inside" },
       { id: "bonus", type: "bonus", label: "Bonus Content" },
       { id: "testimonial", type: "testimonial", label: "Reader Reviews" },
+      { id: "countdown", type: "countdown", label: "Limited Time Offer" },
       { id: "pricing", type: "pricing", label: "Get Your Copy" },
       { id: "guarantee", type: "guarantee", label: "Guarantee" },
       { id: "faq", type: "faq", label: "FAQ" },
@@ -150,6 +154,7 @@ export function getDefaultSections(template: LandingTemplate): SectionsData {
   const data: SectionsData = {};
   for (const s of template.sections) {
     const hasItems = ["features", "faq", "stats", "how-it-works", "bonus"].includes(s.type);
+    const hasCountdown = s.type === "countdown";
     data[s.id] = {
       heading: "",
       subheading: "",
@@ -160,6 +165,7 @@ export function getDefaultSections(template: LandingTemplate): SectionsData {
       price: "",
       originalPrice: "",
       badge: "",
+      countdownDate: hasCountdown ? "" : undefined,
       items: hasItems
         ? [
             { title: "", description: "" },

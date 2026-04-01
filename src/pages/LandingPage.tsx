@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Globe, ArrowRight, CheckCircle, Star, HelpCircle, BarChart3, Shield, Gift, Zap, Package } from "lucide-react";
+import { Globe, ArrowRight, CheckCircle, Star, HelpCircle, BarChart3, Shield, Gift, Zap, Package, Clock } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
@@ -396,6 +396,97 @@ function FAQSection({ content }: { content: SectionContent }) {
   );
 }
 
+function CountdownSection({ content }: { content: SectionContent }) {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [expired, setExpired] = useState(false);
+
+  useEffect(() => {
+    if (!content.countdownDate) return;
+    const target = new Date(content.countdownDate).getTime();
+
+    const tick = () => {
+      const now = Date.now();
+      const diff = target - now;
+      if (diff <= 0) {
+        setExpired(true);
+        return;
+      }
+      setTimeLeft({
+        days: Math.floor(diff / 86400000),
+        hours: Math.floor((diff % 86400000) / 3600000),
+        minutes: Math.floor((diff % 3600000) / 60000),
+        seconds: Math.floor((diff % 60000) / 1000),
+      });
+    };
+
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [content.countdownDate]);
+
+  if (!content.heading && !content.countdownDate) return null;
+
+  const units = [
+    { label: "Days", value: timeLeft.days },
+    { label: "Hours", value: timeLeft.hours },
+    { label: "Minutes", value: timeLeft.minutes },
+    { label: "Seconds", value: timeLeft.seconds },
+  ];
+
+  return (
+    <section className="py-20">
+      <div className="container max-w-4xl mx-auto px-4 text-center">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-10 md:p-14">
+          {content.badge && (
+            <span className="inline-block rounded-full bg-destructive/10 text-destructive px-4 py-1.5 text-sm font-bold mb-4 animate-pulse">
+              {content.badge}
+            </span>
+          )}
+          <Clock className="h-10 w-10 text-primary mx-auto mb-4" />
+          {content.heading && <h2 className="text-3xl md:text-4xl font-display font-bold mb-2">{content.heading}</h2>}
+          {content.subheading && <p className="text-muted-foreground mb-8 max-w-xl mx-auto">{content.subheading}</p>}
+
+          {content.countdownDate && !expired && (
+            <div className="flex justify-center gap-3 md:gap-6 mb-8">
+              {units.map((u) => (
+                <div key={u.label} className="flex flex-col items-center">
+                  <motion.span
+                    key={u.value}
+                    initial={{ scale: 1.1 }}
+                    animate={{ scale: 1 }}
+                    className="text-4xl md:text-5xl font-bold bg-card border border-border rounded-xl w-16 md:w-20 h-16 md:h-20 flex items-center justify-center shadow-lg"
+                  >
+                    {String(u.value).padStart(2, "0")}
+                  </motion.span>
+                  <span className="text-xs text-muted-foreground mt-2 uppercase tracking-wider">{u.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {expired && content.countdownDate && (
+            <p className="text-lg font-semibold text-destructive mb-6">⏰ Offer has ended!</p>
+          )}
+
+          {content.price && (
+            <div className="mb-6">
+              {content.originalPrice && <span className="text-xl text-muted-foreground line-through mr-3">{content.originalPrice}</span>}
+              <span className="text-4xl font-bold text-foreground">{content.price}</span>
+            </div>
+          )}
+
+          {content.buttonText && (
+            <Button size="xl" variant="gradient" asChild>
+              <a href={content.buttonUrl || "#"}>{content.buttonText} <ArrowRight className="ml-2 h-5 w-5" /></a>
+            </Button>
+          )}
+          {content.body && <p className="text-xs text-muted-foreground mt-4">{content.body}</p>}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 function TextImageSection({ content }: { content: SectionContent }) {
   if (!content.heading) return null;
   return (
@@ -436,6 +527,7 @@ const renderers: Record<string, React.FC<{ content: SectionContent }>> = {
   guarantee: GuaranteeSection,
   "product-showcase": ProductShowcaseSection,
   bonus: BonusSection,
+  countdown: CountdownSection,
 };
 
 export default function LandingPage() {
