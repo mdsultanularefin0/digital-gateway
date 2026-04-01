@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, X } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Upload, ImageIcon } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type BlogPost = Database["public"]["Tables"]["blog_posts"]["Row"];
@@ -24,6 +24,25 @@ export default function AdminBlog() {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<BlogPost | BlogPostInsert | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("blog-images").upload(path, file);
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from("blog-images").getPublicUrl(path);
+      setEditing((prev) => prev ? { ...prev, image_url: publicUrl } : prev);
+      toast({ title: "Image uploaded" });
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const { data: posts, isLoading } = useQuery({
     queryKey: ["admin-blog-posts"],
@@ -120,6 +139,46 @@ export default function AdminBlog() {
               onChange={(e) => setEditing({ ...editing, slug: e.target.value })}
               className="h-10 w-full rounded-lg border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Cover Image</label>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleImageUpload(file);
+              }}
+            />
+            {(editing as any).image_url ? (
+              <div className="relative rounded-lg overflow-hidden border border-border">
+                <img src={(editing as any).image_url} alt="Cover" className="w-full h-40 object-cover" />
+                <div className="absolute top-2 right-2 flex gap-1">
+                  <Button type="button" variant="secondary" size="icon" className="h-8 w-8" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                    <Upload className="h-4 w-4" />
+                  </Button>
+                  <Button type="button" variant="secondary" size="icon" className="h-8 w-8" onClick={() => setEditing({ ...editing, image_url: null })}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="w-full h-32 rounded-lg border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {uploading ? (
+                  <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <ImageIcon className="h-8 w-8" />
+                )}
+                <span className="text-sm">{uploading ? "Uploading..." : "Click to upload cover image"}</span>
+              </button>
+            )}
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
