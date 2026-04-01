@@ -32,7 +32,7 @@ export function Footer() {
   ].filter((s) => s.url);
 
   return (
-    <footer className="border-t border-border">
+    <footer className="border-t border-border/50 glass-surface">
       <div className="container py-16 px-5 md:px-8">
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           <div>

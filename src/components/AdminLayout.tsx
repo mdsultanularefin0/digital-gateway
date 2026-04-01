@@ -135,11 +135,11 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background">
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-card transform transition-transform duration-200 lg:relative lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 border-r glass-strong transform transition-transform duration-200 lg:relative lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-16 items-center justify-between border-b border-border px-6">
+        <div className="flex h-16 items-center justify-between border-b border-border/50 px-6">
           <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold">
             <div className="flex h-7 w-7 items-center justify-center rounded-md gradient-bg">
               <Zap className="h-3.5 w-3.5 text-primary-foreground" />
@@ -178,7 +178,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           )}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 border-t border-border p-4">
+        <div className="absolute bottom-0 left-0 right-0 border-t border-border/50 p-4 glass-surface">
           <div className="text-xs text-muted-foreground truncate mb-2">{user?.email}</div>
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" asChild className="flex-1">
@@ -196,7 +196,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-background/80 backdrop-blur-sm px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b glass px-6">
           <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-muted-foreground hover:text-foreground">
             <Menu className="h-5 w-5" />
           </button>
