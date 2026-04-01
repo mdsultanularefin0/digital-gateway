@@ -15,6 +15,7 @@ const adminLinks = [
   { label: "Activity Log", to: "/admin/activity", icon: Clock },
   { label: "Integrations", to: "/admin/integrations", icon: Plug },
   { label: "bKash Transactions", to: "/admin/bkash-transactions", icon: CreditCard },
+  { label: "Blog", to: "/admin/blog", icon: FileText },
   { label: "Post Generator", to: "/admin/post-generator", icon: ImageIcon },
   { label: "Newsletter", to: "/admin/newsletter", icon: Newspaper },
   { label: "Mail Settings", to: "/admin/mail-settings", icon: Mail },
