@@ -262,9 +262,13 @@ export default function ProductDetailPage() {
                   <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
                 </Button>
               </div>
-
-              <p className="mt-6 text-muted-foreground leading-relaxed">{product.description}</p>
             </motion.div>
+          </div>
+
+          {/* Description */}
+          <div className="mt-20 max-w-3xl mx-auto">
+            <h2 className="text-2xl font-display font-bold mb-6">Description</h2>
+            <p className="text-muted-foreground leading-relaxed">{product.description}</p>
           </div>
 
           {/* Customer Reviews */}
