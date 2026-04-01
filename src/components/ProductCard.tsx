@@ -74,7 +74,7 @@ export function ProductCard({ product }: { product: Product }) {
             </span>
           ))}
           {inStock && (
-            <span className="rounded-[4px] bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">
+            <span className="rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">
               In Stock
             </span>
           )}
