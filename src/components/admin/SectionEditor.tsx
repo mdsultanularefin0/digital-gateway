@@ -110,6 +110,19 @@ export function SectionEditor({ section, content, onChange, lang }: Props) {
         </div>
       )}
 
+      {showCountdown.includes(section.type) && (
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Countdown End Date & Time</label>
+          <input
+            type="datetime-local"
+            value={content.countdownDate ?? ""}
+            onChange={(e) => update("countdownDate", e.target.value)}
+            className={inputCls}
+          />
+          <p className="text-xs text-muted-foreground mt-1">The timer will count down to this date/time</p>
+        </div>
+      )}
+
       {showButton.includes(section.type) && (
         <div className="grid gap-3 md:grid-cols-2">
           <div>

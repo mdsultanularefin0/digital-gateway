@@ -527,6 +527,7 @@ const renderers: Record<string, React.FC<{ content: SectionContent }>> = {
   guarantee: GuaranteeSection,
   "product-showcase": ProductShowcaseSection,
   bonus: BonusSection,
+  countdown: CountdownSection,
 };
 
 export default function LandingPage() {

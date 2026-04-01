@@ -165,6 +165,7 @@ export function getDefaultSections(template: LandingTemplate): SectionsData {
       price: "",
       originalPrice: "",
       badge: "",
+      countdownDate: hasCountdown ? "" : undefined,
       items: hasItems
         ? [
             { title: "", description: "" },
