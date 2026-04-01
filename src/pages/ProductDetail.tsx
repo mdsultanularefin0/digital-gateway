@@ -185,7 +185,20 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              <p className="mt-6 text-muted-foreground leading-relaxed">{product.description}</p>
+              {/* Features & Benefits inline */}
+              {product.features.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-sm font-medium tracking-executive uppercase text-muted-foreground mb-3">Features & Benefits</h3>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {product.features.map((f) => (
+                      <div key={f} className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-success shrink-0" />
+                        <span className="text-sm">{f}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Subscription Selector */}
               <div className="mt-10 rounded-xl border border-border p-6">
