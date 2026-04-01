@@ -1,6 +1,18 @@
 export interface LandingSection {
   id: string;
-  type: "hero" | "features" | "cta" | "testimonial" | "stats" | "faq" | "text-image";
+  type:
+    | "hero"
+    | "features"
+    | "cta"
+    | "testimonial"
+    | "stats"
+    | "faq"
+    | "text-image"
+    | "pricing"
+    | "how-it-works"
+    | "guarantee"
+    | "product-showcase"
+    | "bonus";
   label: string;
 }
 
@@ -10,7 +22,7 @@ export interface LandingTemplate {
   nameBn: string;
   description: string;
   sections: LandingSection[];
-  preview: string; // emoji for visual hint
+  preview: string;
 }
 
 export interface SectionContent {
@@ -20,62 +32,116 @@ export interface SectionContent {
   buttonText?: string;
   buttonUrl?: string;
   imageUrl?: string;
-  items?: { title: string; description: string }[];
+  items?: { title: string; description: string; icon?: string }[];
+  price?: string;
+  originalPrice?: string;
+  badge?: string;
 }
 
 export type SectionsData = Record<string, SectionContent>;
 
 export const landingTemplates: LandingTemplate[] = [
   {
-    id: "hero-features",
-    name: "Hero + Features",
-    nameBn: "হিরো + ফিচারস",
-    description: "A bold hero section followed by a feature grid and a CTA",
-    preview: "🚀",
+    id: "digital-sales",
+    name: "Digital Product Sales",
+    nameBn: "ডিজিটাল প্রোডাক্ট সেলস",
+    description: "High-converting page for selling ebooks, courses, templates, software, or any digital product",
+    preview: "💎",
     sections: [
-      { id: "hero", type: "hero", label: "Hero Banner" },
-      { id: "features", type: "features", label: "Features Grid" },
-      { id: "cta", type: "cta", label: "Call to Action" },
+      { id: "hero", type: "hero", label: "Product Hero" },
+      { id: "product-showcase", type: "product-showcase", label: "Product Showcase" },
+      { id: "features", type: "features", label: "What You Get" },
+      { id: "how-it-works", type: "how-it-works", label: "How It Works" },
+      { id: "testimonial", type: "testimonial", label: "Customer Reviews" },
+      { id: "pricing", type: "pricing", label: "Pricing" },
+      { id: "guarantee", type: "guarantee", label: "Money-Back Guarantee" },
+      { id: "faq", type: "faq", label: "FAQ" },
+      { id: "cta", type: "cta", label: "Final CTA" },
     ],
   },
   {
-    id: "product-launch",
-    name: "Product Launch",
-    nameBn: "প্রোডাক্ট লঞ্চ",
-    description: "Showcase a product with image, stats, testimonials and CTA",
-    preview: "🎯",
+    id: "ebook-landing",
+    name: "Ebook / Guide",
+    nameBn: "ইবুক / গাইড",
+    description: "Perfect for selling ebooks, PDF guides, cheat sheets, or checklists",
+    preview: "📖",
+    sections: [
+      { id: "hero", type: "hero", label: "Ebook Hero" },
+      { id: "text-image", type: "text-image", label: "About the Book" },
+      { id: "features", type: "features", label: "What's Inside" },
+      { id: "bonus", type: "bonus", label: "Bonus Content" },
+      { id: "testimonial", type: "testimonial", label: "Reader Reviews" },
+      { id: "pricing", type: "pricing", label: "Get Your Copy" },
+      { id: "guarantee", type: "guarantee", label: "Guarantee" },
+      { id: "faq", type: "faq", label: "FAQ" },
+      { id: "cta", type: "cta", label: "Download Now" },
+    ],
+  },
+  {
+    id: "course-landing",
+    name: "Online Course",
+    nameBn: "অনলাইন কোর্স",
+    description: "Sell online courses, masterclasses, tutorials, or coaching programs",
+    preview: "🎓",
+    sections: [
+      { id: "hero", type: "hero", label: "Course Hero" },
+      { id: "stats", type: "stats", label: "Course Stats" },
+      { id: "features", type: "features", label: "Course Modules" },
+      { id: "how-it-works", type: "how-it-works", label: "How to Enroll" },
+      { id: "bonus", type: "bonus", label: "Bonus Materials" },
+      { id: "testimonial", type: "testimonial", label: "Student Results" },
+      { id: "pricing", type: "pricing", label: "Pricing Plans" },
+      { id: "guarantee", type: "guarantee", label: "Guarantee" },
+      { id: "faq", type: "faq", label: "FAQ" },
+      { id: "cta", type: "cta", label: "Enroll Now" },
+    ],
+  },
+  {
+    id: "software-saas",
+    name: "Software / SaaS",
+    nameBn: "সফটওয়্যার / SaaS",
+    description: "Sell software licenses, SaaS subscriptions, plugins, or digital tools",
+    preview: "⚡",
     sections: [
       { id: "hero", type: "hero", label: "Product Hero" },
-      { id: "text-image", type: "text-image", label: "Product Details" },
-      { id: "stats", type: "stats", label: "Key Stats" },
+      { id: "product-showcase", type: "product-showcase", label: "Product Demo" },
+      { id: "features", type: "features", label: "Key Features" },
+      { id: "stats", type: "stats", label: "By the Numbers" },
+      { id: "how-it-works", type: "how-it-works", label: "Get Started" },
+      { id: "testimonial", type: "testimonial", label: "User Reviews" },
+      { id: "pricing", type: "pricing", label: "Pricing" },
+      { id: "faq", type: "faq", label: "FAQ" },
+      { id: "cta", type: "cta", label: "Start Now" },
+    ],
+  },
+  {
+    id: "template-toolkit",
+    name: "Template / Toolkit",
+    nameBn: "টেমপ্লেট / টুলকিট",
+    description: "Sell design templates, Notion templates, toolkits, or digital assets",
+    preview: "🎨",
+    sections: [
+      { id: "hero", type: "hero", label: "Template Hero" },
+      { id: "product-showcase", type: "product-showcase", label: "Preview Gallery" },
+      { id: "features", type: "features", label: "What's Included" },
+      { id: "bonus", type: "bonus", label: "Bonus Assets" },
       { id: "testimonial", type: "testimonial", label: "Testimonials" },
-      { id: "cta", type: "cta", label: "Buy Now CTA" },
+      { id: "pricing", type: "pricing", label: "Get the Bundle" },
+      { id: "guarantee", type: "guarantee", label: "Guarantee" },
+      { id: "cta", type: "cta", label: "Buy Now" },
     ],
   },
   {
     id: "coming-soon",
-    name: "Coming Soon",
+    name: "Coming Soon / Waitlist",
     nameBn: "শীঘ্রই আসছে",
-    description: "A teaser page with hero, FAQ and email capture CTA",
+    description: "Build hype before launch — collect emails and tease your upcoming digital product",
     preview: "⏳",
     sections: [
       { id: "hero", type: "hero", label: "Coming Soon Hero" },
-      { id: "faq", type: "faq", label: "FAQ Section" },
-      { id: "cta", type: "cta", label: "Notify Me CTA" },
-    ],
-  },
-  {
-    id: "services",
-    name: "Services Overview",
-    nameBn: "সেবা সমূহ",
-    description: "Highlight services with features, text/image blocks and CTA",
-    preview: "💼",
-    sections: [
-      { id: "hero", type: "hero", label: "Services Hero" },
-      { id: "features", type: "features", label: "Our Services" },
-      { id: "text-image", type: "text-image", label: "Why Choose Us" },
-      { id: "testimonial", type: "testimonial", label: "Client Testimonials" },
-      { id: "cta", type: "cta", label: "Get Started" },
+      { id: "features", type: "features", label: "Sneak Peek" },
+      { id: "faq", type: "faq", label: "FAQ" },
+      { id: "cta", type: "cta", label: "Join Waitlist" },
     ],
   },
 ];
@@ -83,6 +149,7 @@ export const landingTemplates: LandingTemplate[] = [
 export function getDefaultSections(template: LandingTemplate): SectionsData {
   const data: SectionsData = {};
   for (const s of template.sections) {
+    const hasItems = ["features", "faq", "stats", "how-it-works", "bonus"].includes(s.type);
     data[s.id] = {
       heading: "",
       subheading: "",
@@ -90,8 +157,15 @@ export function getDefaultSections(template: LandingTemplate): SectionsData {
       buttonText: "",
       buttonUrl: "",
       imageUrl: "",
-      items: s.type === "features" || s.type === "faq" || s.type === "stats"
-        ? [{ title: "", description: "" }, { title: "", description: "" }, { title: "", description: "" }]
+      price: "",
+      originalPrice: "",
+      badge: "",
+      items: hasItems
+        ? [
+            { title: "", description: "" },
+            { title: "", description: "" },
+            { title: "", description: "" },
+          ]
         : undefined,
     };
   }
