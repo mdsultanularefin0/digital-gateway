@@ -112,9 +112,9 @@ export function Header() {
             )}
           </Link>
           <Link
-            to="/login"
+            to="/account"
             className="flex h-10 w-10 items-center justify-center rounded-[4px] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-            aria-label="Profile"
+            aria-label="My Account"
           >
             <User className="h-5 w-5" />
           </Link>

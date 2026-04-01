@@ -26,6 +26,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Login = lazy(() => import("./pages/Login"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Wishlist = lazy(() => import("./pages/Wishlist"));
+const Account = lazy(() => import("./pages/Account"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
 const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
@@ -81,6 +82,7 @@ const App = () => (
                     <Route path="/login" element={<Login />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/wishlist" element={<Wishlist />} />
+                    <Route path="/account" element={<Account />} />
                     <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
                     <Route path="/admin/products" element={<AdminGuard><AdminProducts /></AdminGuard>} />
                     <Route path="/admin/orders" element={<AdminGuard><AdminOrders /></AdminGuard>} />
