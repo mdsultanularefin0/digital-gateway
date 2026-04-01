@@ -28,7 +28,7 @@ export function ProductImageGallery({ productId, fallbackLetter }: { productId: 
 
   if (!images || images.length === 0) {
     return (
-      <div className="aspect-video overflow-hidden rounded-[4px] border border-border bg-muted flex items-center justify-center relative">
+      <div className="aspect-video overflow-hidden rounded-xl border border-border bg-muted flex items-center justify-center relative">
         <div className="gradient-bg opacity-10 absolute inset-0" />
         <span className="text-6xl font-display font-bold text-muted-foreground/20">{fallbackLetter}</span>
       </div>
@@ -37,7 +37,7 @@ export function ProductImageGallery({ productId, fallbackLetter }: { productId: 
 
   return (
     <div className="space-y-3">
-      <div className="aspect-video overflow-hidden rounded-[4px] border border-border bg-muted relative">
+      <div className="aspect-video overflow-hidden rounded-xl border border-border bg-muted relative">
         <AnimatePresence mode="wait">
           <motion.img
             key={images[selectedIdx].id}
@@ -57,7 +57,7 @@ export function ProductImageGallery({ productId, fallbackLetter }: { productId: 
             <button
               key={img.id}
               onClick={() => setSelectedIdx(i)}
-              className={`shrink-0 w-16 h-16 rounded-[4px] overflow-hidden border-2 transition-colors ${
+              className={`shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-colors ${
                 i === selectedIdx ? "border-primary" : "border-border hover:border-foreground/20"
               }`}
             >

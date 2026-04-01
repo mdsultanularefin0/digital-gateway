@@ -56,13 +56,13 @@ export default function AdminActivityLog() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search actions..."
-            className="h-10 w-full rounded-[4px] border border-border bg-background pl-10 pr-4 text-sm"
+            className="h-10 w-full rounded-xl border border-border bg-background pl-10 pr-4 text-sm"
           />
         </div>
         <select
           value={entityFilter}
           onChange={(e) => setEntityFilter(e.target.value)}
-          className="h-10 rounded-[4px] border border-border bg-background px-3 text-sm"
+          className="h-10 rounded-xl border border-border bg-background px-3 text-sm"
         >
           <option value="all">All Types</option>
           {entityTypes.map((t) => (
@@ -83,7 +83,7 @@ export default function AdminActivityLog() {
           {filtered.map((log: any) => {
             const Icon = ENTITY_ICONS[log.entity_type] || Clock;
             return (
-              <div key={log.id} className="flex items-start gap-4 rounded-[4px] border border-border p-4 hover:bg-muted/30 transition-colors">
+              <div key={log.id} className="flex items-start gap-4 rounded-xl border border-border p-4 hover:bg-muted/30 transition-colors">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 mt-0.5">
                   <Icon className="h-4 w-4 text-primary" />
                 </div>

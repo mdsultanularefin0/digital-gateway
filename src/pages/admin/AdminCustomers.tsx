@@ -90,7 +90,7 @@ export default function AdminCustomers() {
   );
 
   if (editing) {
-    const inputClass = "h-10 w-full rounded-[4px] border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
+    const inputClass = "h-10 w-full rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
     return (
       <AdminLayout>
         <div className="mb-6 flex items-center justify-between">
@@ -103,7 +103,7 @@ export default function AdminCustomers() {
           </div>
         </div>
         <div className="max-w-2xl space-y-6">
-          <div className="rounded-[4px] border border-border divide-y divide-border">
+          <div className="rounded-xl border border-border divide-y divide-border">
             {[
               { key: "name", label: "Name" },
               { key: "email", label: "Email" },
@@ -117,7 +117,7 @@ export default function AdminCustomers() {
             ))}
           </div>
 
-          <div className="rounded-[4px] border border-border divide-y divide-border">
+          <div className="rounded-xl border border-border divide-y divide-border">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 p-4">
               <label className="text-sm font-medium w-32 shrink-0">Address</label>
               <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className={inputClass} />
@@ -143,7 +143,7 @@ export default function AdminCustomers() {
             </div>
           </div>
 
-          <div className="rounded-[4px] border border-border divide-y divide-border">
+          <div className="rounded-xl border border-border divide-y divide-border">
             <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-6 p-4">
               <label className="text-sm font-medium w-32 shrink-0 pt-2">Tags</label>
               <div className="flex-1">
@@ -172,7 +172,7 @@ export default function AdminCustomers() {
             </div>
             <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-6 p-4">
               <label className="text-sm font-medium w-32 shrink-0 pt-2">Notes</label>
-              <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="w-full rounded-[4px] border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]" />
+              <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]" />
             </div>
           </div>
         </div>
@@ -211,7 +211,7 @@ export default function AdminCustomers() {
 
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search customers..." className="h-10 w-full rounded-[4px] border border-border bg-background pl-10 pr-4 text-sm md:max-w-sm" />
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search customers..." className="h-10 w-full rounded-xl border border-border bg-background pl-10 pr-4 text-sm md:max-w-sm" />
       </div>
 
       {isLoading ? (
@@ -222,7 +222,7 @@ export default function AdminCustomers() {
           <p className="text-muted-foreground">No customers found</p>
         </div>
       ) : (
-        <div className="rounded-[4px] border border-border overflow-x-auto">
+        <div className="rounded-xl border border-border overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">

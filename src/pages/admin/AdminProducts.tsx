@@ -254,7 +254,7 @@ export default function AdminProducts() {
     setImages(images.filter((_, i) => i !== index));
   };
 
-  const inputClass = "h-10 w-full rounded-[4px] border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
+  const inputClass = "h-10 w-full rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
 
   if (showBulkImport) {
     return (
@@ -294,7 +294,7 @@ export default function AdminProducts() {
           </div>
           <div>
             <label className="text-sm font-medium mb-1 block">Description</label>
-            <textarea value={editing.description ?? ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="w-full rounded-[4px] border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[100px]" />
+            <textarea value={editing.description ?? ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="w-full rounded-xl border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[100px]" />
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             <div>
@@ -312,7 +312,7 @@ export default function AdminProducts() {
           </div>
 
           {/* Subscription Tiers */}
-          <div className="rounded-[4px] border border-border p-5">
+          <div className="rounded-xl border border-border p-5">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-xs font-medium tracking-executive uppercase text-muted-foreground">Subscription Tiers</h4>
               <Button type="button" variant="outline-primary" size="sm" onClick={addTier}>
@@ -325,7 +325,7 @@ export default function AdminProducts() {
             ) : (
               <div className="space-y-3">
                 {tiers.map((tier, i) => (
-                  <div key={i} className="grid grid-cols-[1fr_auto_1fr_auto] gap-3 items-end rounded-[4px] border border-border bg-muted/20 p-3">
+                  <div key={i} className="grid grid-cols-[1fr_auto_1fr_auto] gap-3 items-end rounded-xl border border-border bg-muted/20 p-3">
                     <div>
                       <label className="text-[11px] text-muted-foreground mb-1 block">Label *</label>
                       <input
@@ -367,7 +367,7 @@ export default function AdminProducts() {
           </div>
 
           {/* Product Images */}
-          <div className="rounded-[4px] border border-border p-5">
+          <div className="rounded-xl border border-border p-5">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-xs font-medium tracking-executive uppercase text-muted-foreground">Product Images</h4>
               <label className="cursor-pointer">
@@ -382,7 +382,7 @@ export default function AdminProducts() {
             ) : (
               <div className="grid grid-cols-4 gap-3">
                 {images.map((img, i) => (
-                  <div key={i} className="relative group rounded-[4px] overflow-hidden border border-border">
+                  <div key={i} className="relative group rounded-xl overflow-hidden border border-border">
                     <img src={img.image_url} alt={img.alt_text} className="w-full aspect-square object-cover" />
                     <button
                       type="button"
@@ -407,7 +407,7 @@ export default function AdminProducts() {
           </div>
           <div>
             <label className="text-sm font-medium mb-1 block">Features (one per line)</label>
-            <textarea value={featuresInput} onChange={(e) => setFeaturesInput(e.target.value)} className="w-full rounded-[4px] border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[120px]" placeholder="Feature 1&#10;Feature 2" />
+            <textarea value={featuresInput} onChange={(e) => setFeaturesInput(e.target.value)} className="w-full rounded-xl border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[120px]" placeholder="Feature 1&#10;Feature 2" />
           </div>
           <div className="flex gap-4 flex-wrap">
             <label className="flex items-center gap-2 text-sm">
@@ -482,7 +482,7 @@ export default function AdminProducts() {
 
       {/* Bulk Actions Bar */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 mb-4 p-3 rounded-[4px] border border-primary/20 bg-primary/5">
+        <div className="flex items-center gap-3 mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5">
           <span className="text-sm font-medium">{selectedIds.size} selected</span>
           <Button size="sm" variant="outline" onClick={() => bulkPublishMutation.mutate({ ids: Array.from(selectedIds), published: true })}>
             Publish
@@ -502,11 +502,11 @@ export default function AdminProducts() {
       {isLoading ? (
         <div className="text-muted-foreground">Loading...</div>
       ) : !products?.length ? (
-        <div className="rounded-[4px] border border-dashed border-border p-12 text-center text-muted-foreground">
+        <div className="rounded-xl border border-dashed border-border p-12 text-center text-muted-foreground">
           No products yet. Click "Add Product" to create one.
         </div>
       ) : (
-        <div className="rounded-[4px] border border-border overflow-hidden">
+        <div className="rounded-xl border border-border overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-muted/50">
               <tr>
@@ -538,12 +538,12 @@ export default function AdminProducts() {
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{p.category}</td>
                   <td className="px-4 py-3 hidden md:table-cell">{p.price_label}</td>
                   <td className="px-4 py-3 hidden md:table-cell">
-                    <span className={`rounded-[4px] px-2 py-0.5 text-xs font-medium ${(p as any).in_stock !== false ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
+                    <span className={`rounded-xl px-2 py-0.5 text-xs font-medium ${(p as any).in_stock !== false ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
                       {(p as any).in_stock !== false ? "In Stock" : "Out of Stock"}
                     </span>
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell">
-                    <span className={`rounded-[4px] px-2 py-0.5 text-xs font-medium ${p.published ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
+                    <span className={`rounded-xl px-2 py-0.5 text-xs font-medium ${p.published ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
                       {p.published ? "Published" : "Draft"}
                     </span>
                   </td>

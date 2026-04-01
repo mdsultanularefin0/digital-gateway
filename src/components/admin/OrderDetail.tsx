@@ -29,13 +29,13 @@ export default function OrderDetail({ order: o, currencySymbol, onBack, onDelete
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-[4px] border border-border p-4">
+          <div className="rounded-xl border border-border p-4">
             <h3 className="text-sm font-semibold mb-3 uppercase tracking-wider text-muted-foreground">Customer</h3>
             <p className="font-medium">{o.customer_name}</p>
             <p className="text-sm text-muted-foreground">{o.customer_email}</p>
             <p className="text-sm text-muted-foreground">{o.customer_phone}</p>
           </div>
-          <div className="rounded-[4px] border border-border p-4">
+          <div className="rounded-xl border border-border p-4">
             <h3 className="text-sm font-semibold mb-3 uppercase tracking-wider text-muted-foreground">Shipping</h3>
             <p className="text-sm">{o.shipping_address}</p>
             <p className="text-sm">{[o.shipping_city, o.shipping_state, o.shipping_zip].filter(Boolean).join(", ")}</p>
@@ -44,24 +44,24 @@ export default function OrderDetail({ order: o, currencySymbol, onBack, onDelete
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-[4px] border border-border p-4">
+          <div className="rounded-xl border border-border p-4">
             <h3 className="text-sm font-semibold mb-2 uppercase tracking-wider text-muted-foreground">Order Status</h3>
             <select
               value={o.status}
               onChange={(e) => onUpdateStatus(o.id, e.target.value)}
-              className="h-9 w-full rounded-[4px] border border-border bg-background px-3 text-sm"
+              className="h-9 w-full rounded-xl border border-border bg-background px-3 text-sm"
             >
               {["pending", "processing", "shipped", "delivered", "cancelled"].map((s) => (
                 <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
               ))}
             </select>
           </div>
-          <div className="rounded-[4px] border border-border p-4">
+          <div className="rounded-xl border border-border p-4">
             <h3 className="text-sm font-semibold mb-2 uppercase tracking-wider text-muted-foreground">Payment Status</h3>
             <select
               value={o.payment_status}
               onChange={(e) => onUpdatePayment(o.id, e.target.value)}
-              className="h-9 w-full rounded-[4px] border border-border bg-background px-3 text-sm"
+              className="h-9 w-full rounded-xl border border-border bg-background px-3 text-sm"
             >
               {["unpaid", "paid", "refunded"].map((s) => (
                 <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
@@ -70,7 +70,7 @@ export default function OrderDetail({ order: o, currencySymbol, onBack, onDelete
           </div>
         </div>
 
-        <div className="rounded-[4px] border border-border">
+        <div className="rounded-xl border border-border">
           <h3 className="text-sm font-semibold p-4 border-b border-border uppercase tracking-wider text-muted-foreground">Items</h3>
           <div className="divide-y divide-border">
             {(o.order_items || []).map((item: any) => (
@@ -98,16 +98,16 @@ export default function OrderDetail({ order: o, currencySymbol, onBack, onDelete
         </div>
 
         {o.notes && (
-          <div className="rounded-[4px] border border-border p-4">
+          <div className="rounded-xl border border-border p-4">
             <h3 className="text-sm font-semibold mb-2 uppercase tracking-wider text-muted-foreground">Notes</h3>
             <p className="text-sm">{o.notes}</p>
           </div>
         )}
 
         {o.bkash_response && (
-          <div className="rounded-[4px] border border-border p-4">
+          <div className="rounded-xl border border-border p-4">
             <h3 className="text-sm font-semibold mb-2 uppercase tracking-wider text-muted-foreground">bKash Payment Details</h3>
-            <pre className="text-xs bg-muted rounded-[4px] p-3 overflow-auto max-h-64 whitespace-pre-wrap">
+            <pre className="text-xs bg-muted rounded-xl p-3 overflow-auto max-h-64 whitespace-pre-wrap">
               {JSON.stringify(o.bkash_response, null, 2)}
             </pre>
           </div>

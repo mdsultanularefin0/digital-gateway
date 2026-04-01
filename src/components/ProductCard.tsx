@@ -38,7 +38,7 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <Link
       to={`/products/${product.id}`}
-      className="group relative flex flex-col overflow-hidden rounded-[4px] glass-card transition-all duration-300 hover:shadow-glow hover:border-primary/30"
+      className="group relative flex flex-col overflow-hidden rounded-2xl glass-card transition-all duration-300 hover:shadow-card-hover hover:border-primary/30"
     >
       <div className="aspect-video w-full overflow-hidden bg-secondary relative">
         {firstImage ? (
@@ -57,7 +57,7 @@ export function ProductCard({ product }: { product: Product }) {
         </button>
         {/* Stock badge */}
         {!inStock && (
-          <span className="absolute top-3 left-3 rounded-[4px] bg-destructive/90 px-2.5 py-1 text-xs font-semibold text-destructive-foreground backdrop-blur-sm">
+          <span className="absolute top-3 left-3 rounded-xl bg-destructive/90 px-2.5 py-1 text-xs font-semibold text-destructive-foreground backdrop-blur-sm">
             Out of Stock
           </span>
         )}
@@ -68,13 +68,13 @@ export function ProductCard({ product }: { product: Product }) {
           {product.tags.slice(0, 2).map((tag) => (
             <span
               key={tag}
-              className="rounded-[4px] bg-primary/10 px-2.5 py-0.5 text-xs font-medium tracking-wider uppercase text-primary"
+              className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium tracking-wider uppercase text-primary"
             >
               {tag}
             </span>
           ))}
           {inStock && (
-            <span className="rounded-[4px] bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">
+            <span className="rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">
               In Stock
             </span>
           )}

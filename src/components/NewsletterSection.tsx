@@ -52,7 +52,7 @@ export function NewsletterSection() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@company.com"
               required
-              className="h-12 rounded-[4px] border border-border bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 w-full sm:w-72"
+              className="h-12 rounded-xl border border-border bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 w-full sm:w-72"
             />
             <Button type="submit" variant="default" size="lg" className="w-full sm:w-auto" disabled={loading}>
               {loading ? "Subscribing..." : "Subscribe"}

@@ -159,12 +159,12 @@ export default function ProductDetailPage() {
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div className="flex flex-wrap gap-2">
                   {product.tags.map((tag) => (
-                    <span key={tag} className="rounded-[4px] bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{tag}</span>
+                    <span key={tag} className="rounded-xl bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{tag}</span>
                   ))}
                 </div>
                 <button
                   onClick={toggleWishlist}
-                  className="shrink-0 flex h-10 w-10 items-center justify-center rounded-[4px] border border-border hover:bg-secondary transition-colors"
+                  className="shrink-0 flex h-10 w-10 items-center justify-center rounded-xl border border-border hover:bg-secondary transition-colors"
                   aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
                 >
                   <Heart className={`h-5 w-5 transition-colors ${wishlisted ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
@@ -188,7 +188,7 @@ export default function ProductDetailPage() {
               <p className="mt-6 text-muted-foreground leading-relaxed">{product.description}</p>
 
               {/* Subscription Selector */}
-              <div className="mt-10 rounded-[4px] border border-border p-6">
+              <div className="mt-10 rounded-xl border border-border p-6">
                 {hasTiers ? (
                   <>
                     <h3 className="text-sm font-medium tracking-executive uppercase text-muted-foreground mb-4">Choose Plan</h3>
@@ -197,7 +197,7 @@ export default function ProductDetailPage() {
                         <button
                           key={tier.id}
                           onClick={() => setSelectedTierIdx(i)}
-                          className={`relative flex-1 rounded-[4px] border-2 px-4 py-3 text-center transition-all duration-300 ${
+                          className={`relative flex-1 rounded-xl border-2 px-4 py-3 text-center transition-all duration-300 ${
                             selectedTierIdx === i
                               ? "border-primary bg-primary/5"
                               : "border-border hover:border-foreground/20"
@@ -206,7 +206,7 @@ export default function ProductDetailPage() {
                           {tier.badge && (
                             <Badge
                               variant="default"
-                              className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] px-2 py-0.5 rounded-[4px]"
+                              className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] px-2 py-0.5 rounded-xl"
                             >
                               {tier.badge}
                             </Badge>
@@ -256,7 +256,7 @@ export default function ProductDetailPage() {
             <h2 className="text-2xl font-display font-bold mb-8">Features & Benefits</h2>
             <div className="grid gap-4 md:grid-cols-2">
               {product.features.map((f) => (
-                <div key={f} className="flex items-center gap-3 rounded-[4px] border border-border bg-card p-4">
+                <div key={f} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
                   <Check className="h-5 w-5 text-success shrink-0" />
                   <span className="text-sm">{f}</span>
                 </div>
@@ -274,7 +274,7 @@ export default function ProductDetailPage() {
             {reviews.length > 0 ? (
               <div className="grid gap-6 md:grid-cols-2 mb-10">
                 {reviews.map((r) => (
-                  <div key={r.id} className="rounded-[4px] border border-border bg-card p-6 shadow-card">
+                  <div key={r.id} className="rounded-xl border border-border bg-card p-6 shadow-card">
                     <div className="flex gap-1 mb-3">
                       {[1, 2, 3, 4, 5].map((i) => (
                         <Star key={i} className={`h-4 w-4 ${i <= (r.rating || 0) ? "fill-primary text-primary" : "text-border"}`} />

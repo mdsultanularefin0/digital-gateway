@@ -115,7 +115,7 @@ function SearchableSelect({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="h-10 w-full rounded-[4px] border border-border bg-background px-4 text-sm text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-primary"
+        className="h-10 w-full rounded-xl border border-border bg-background px-4 text-sm text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-primary"
       >
         <span className={value ? "text-foreground" : "text-muted-foreground"}>
           {value || placeholder}
@@ -123,7 +123,7 @@ function SearchableSelect({
         <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
       </button>
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-[4px] border border-border bg-background shadow-lg max-h-60 flex flex-col">
+        <div className="absolute z-50 mt-1 w-full rounded-xl border border-border bg-background shadow-lg max-h-60 flex flex-col">
           <div className="p-2 border-b border-border">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -132,7 +132,7 @@ function SearchableSelect({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search..."
-                className="h-8 w-full rounded-[4px] border border-border bg-muted pl-7 pr-3 text-xs focus:outline-none"
+                className="h-8 w-full rounded-xl border border-border bg-muted pl-7 pr-3 text-xs focus:outline-none"
               />
             </div>
           </div>
@@ -188,7 +188,7 @@ function PaymentMethodsEditor({ value, onChange }: { value: string; onChange: (v
   return (
     <div className="space-y-2">
       {AVAILABLE_PAYMENT_METHODS.map((m) => (
-        <label key={m.value} className={`flex items-center gap-3 rounded-[4px] border p-3 cursor-pointer transition-colors ${enabled.includes(m.value) ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"}`}>
+        <label key={m.value} className={`flex items-center gap-3 rounded-xl border p-3 cursor-pointer transition-colors ${enabled.includes(m.value) ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"}`}>
           <input
             type="checkbox"
             checked={enabled.includes(m.value)}
@@ -296,7 +296,7 @@ export default function AdminSettings() {
     setValues((prev) => ({ ...prev, [key]: value }));
   };
 
-  const inputClass = "h-10 w-full rounded-[4px] border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
+  const inputClass = "h-10 w-full rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
 
   if (isLoading) {
     return (
@@ -331,7 +331,7 @@ export default function AdminSettings() {
               <h3 className="text-sm font-semibold tracking-executive uppercase">{group.title}</h3>
               <p className="text-xs text-muted-foreground mt-0.5">{group.description}</p>
             </div>
-            <div className="rounded-[4px] border border-border divide-y divide-border">
+            <div className="rounded-xl border border-border divide-y divide-border">
               {group.fields.map((field) => (
                 <div key={field.key} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 p-4">
                   <label className="text-sm font-medium w-40 shrink-0">{field.label}</label>
@@ -372,7 +372,7 @@ export default function AdminSettings() {
                         value={values[field.key] || ""}
                         onChange={(e) => update(field.key, e.target.value)}
                         placeholder={field.placeholder}
-                        className="w-full rounded-[4px] border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]"
+                        className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]"
                       />
                     ) : field.type === "image" ? (
                       <div className="flex items-center gap-3">
@@ -380,7 +380,7 @@ export default function AdminSettings() {
                           <img
                             src={values[field.key]}
                             alt={field.label}
-                            className="h-10 w-10 rounded-[4px] border border-border object-contain bg-muted"
+                            className="h-10 w-10 rounded-xl border border-border object-contain bg-muted"
                           />
                         )}
                         <input
@@ -399,7 +399,7 @@ export default function AdminSettings() {
                               if (file) handleImageUpload(field.key, file);
                             }}
                           />
-                          <span className="inline-flex items-center gap-1 rounded-[4px] border border-border px-3 h-10 text-xs font-medium hover:bg-muted transition-colors">
+                          <span className="inline-flex items-center gap-1 rounded-xl border border-border px-3 h-10 text-xs font-medium hover:bg-muted transition-colors">
                             <Upload className="h-3.5 w-3.5" />
                             {uploading ? "..." : "Upload"}
                           </span>

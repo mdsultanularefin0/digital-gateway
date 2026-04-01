@@ -32,7 +32,7 @@ export default function ProductsPage() {
                 <button
                   key={cat}
                   onClick={() => setCategory(cat)}
-                  className={`rounded-[4px] px-4 py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${
+                  className={`rounded-xl px-4 py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${
                     category === cat
                       ? "gradient-bg text-primary-foreground"
                       : "bg-muted text-muted-foreground hover:text-foreground"
@@ -48,7 +48,7 @@ export default function ProductsPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search products..."
-                className="h-10 w-full rounded-[4px] border border-border bg-background pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary md:w-64"
+                className="h-10 w-full rounded-xl border border-border bg-background pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary md:w-64"
               />
             </div>
           </div>

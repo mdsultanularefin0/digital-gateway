@@ -57,9 +57,9 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 font-display text-xl font-bold tracking-tight">
           {logoUrl ? (
-            <img src={logoUrl} alt={siteName} className="h-8 w-8 rounded-[4px] object-contain" />
+            <img src={logoUrl} alt={siteName} className="h-8 w-8 rounded-xl object-contain" />
           ) : (
-            <div className="flex h-8 w-8 items-center justify-center rounded-[4px] gradient-bg">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl gradient-bg">
               <Zap className="h-4 w-4 text-primary-foreground" />
             </div>
           )}
@@ -71,7 +71,7 @@ export function Header() {
             <Link
               key={link.to}
               to={link.to}
-              className={`rounded-[4px] px-4 py-2 text-sm font-medium tracking-wide transition-colors hover:bg-secondary ${
+              className={`rounded-full px-4 py-2 text-sm font-medium tracking-wide transition-colors hover:bg-secondary ${
                 location.pathname === link.to ? "text-primary" : "text-muted-foreground"
               }`}
             >
@@ -84,14 +84,14 @@ export function Header() {
           <ThemeToggle />
           <button
             onClick={() => setSearchOpen(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-[4px] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             aria-label="Search"
           >
             <Search className="h-5 w-5" />
           </button>
           <button
             onClick={() => setIsOpen(true)}
-            className="relative flex h-10 w-10 items-center justify-center rounded-[4px] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            className="relative flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
           >
             <ShoppingCart className="h-5 w-5" />
             {itemCount > 0 && (
@@ -102,7 +102,7 @@ export function Header() {
           </button>
           <Link
             to="/wishlist"
-            className="relative flex h-10 w-10 items-center justify-center rounded-[4px] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            className="relative flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             aria-label="Wishlist"
           >
             <Heart className="h-5 w-5" />
@@ -114,7 +114,7 @@ export function Header() {
           </Link>
           <Link
             to="/account"
-            className="flex h-10 w-10 items-center justify-center rounded-[4px] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             aria-label="My Account"
           >
             <User className="h-5 w-5" />
@@ -125,14 +125,14 @@ export function Header() {
           <ThemeToggle />
           <button
             onClick={() => setSearchOpen(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-[4px] text-foreground hover:bg-secondary"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-foreground hover:bg-secondary"
             aria-label="Search"
           >
             <Search className="h-5 w-5" />
           </button>
           <button
             onClick={() => setIsOpen(true)}
-            className="relative flex h-10 w-10 items-center justify-center rounded-[4px] text-foreground hover:bg-secondary"
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl text-foreground hover:bg-secondary"
           >
             <ShoppingCart className="h-5 w-5" />
             {itemCount > 0 && (
@@ -143,7 +143,7 @@ export function Header() {
           </button>
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="flex h-10 w-10 items-center justify-center rounded-[4px] text-foreground hover:bg-secondary"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-foreground hover:bg-secondary"
             aria-label="Toggle menu"
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -164,7 +164,7 @@ export function Header() {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`rounded-[4px] px-4 py-3 text-sm font-medium transition-colors hover:bg-secondary ${
+                  className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors hover:bg-secondary ${
                     location.pathname === link.to ? "text-primary" : "text-muted-foreground"
                   }`}
                 >
@@ -173,7 +173,7 @@ export function Header() {
               ))}
               <div className="mt-2 border-t border-border pt-4 flex gap-2">
                 <Link to="/login" className="flex-1">
-                  <Button variant="outline" className="w-full gap-2 rounded-[4px]">
+                  <Button variant="outline" className="w-full gap-2 rounded-xl">
                     <User className="h-4 w-4" /> Profile
                   </Button>
                 </Link>

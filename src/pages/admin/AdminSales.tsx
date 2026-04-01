@@ -153,7 +153,7 @@ export default function AdminSales() {
           { label: "Customers", value: customerCount, icon: Users, sub: "Total registered" },
           { label: "Conversion", value: `${conversionRate}%`, icon: TrendingUp, sub: "Paid / Total orders" },
         ].map((s) => (
-          <div key={s.label} className="rounded-[4px] border border-border bg-card p-5">
+          <div key={s.label} className="rounded-xl border border-border bg-card p-5">
             <div className="flex items-center gap-3 mb-2">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
                 <s.icon className="h-4 w-4 text-primary" />
@@ -167,7 +167,7 @@ export default function AdminSales() {
       </div>
 
       {/* Revenue Trend (30 days) */}
-      <div className="rounded-[4px] border border-border bg-card p-5 mb-6">
+      <div className="rounded-xl border border-border bg-card p-5 mb-6">
         <h3 className="text-sm font-semibold mb-4 uppercase tracking-wider text-muted-foreground">Revenue Trend (30 Days)</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
@@ -186,7 +186,7 @@ export default function AdminSales() {
 
       <div className="grid gap-6 lg:grid-cols-3 mb-6">
         {/* Weekly Bar Chart */}
-        <div className="rounded-[4px] border border-border bg-card p-5">
+        <div className="rounded-xl border border-border bg-card p-5">
           <h3 className="text-sm font-semibold mb-4 uppercase tracking-wider text-muted-foreground">Last 7 Days</h3>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
@@ -204,7 +204,7 @@ export default function AdminSales() {
         </div>
 
         {/* Order Status Pie */}
-        <div className="rounded-[4px] border border-border bg-card p-5">
+        <div className="rounded-xl border border-border bg-card p-5">
           <h3 className="text-sm font-semibold mb-4 uppercase tracking-wider text-muted-foreground">Order Status</h3>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
@@ -221,7 +221,7 @@ export default function AdminSales() {
         </div>
 
         {/* Payment Methods Pie */}
-        <div className="rounded-[4px] border border-border bg-card p-5">
+        <div className="rounded-xl border border-border bg-card p-5">
           <h3 className="text-sm font-semibold mb-4 uppercase tracking-wider text-muted-foreground">Payment Methods</h3>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
@@ -239,7 +239,7 @@ export default function AdminSales() {
       </div>
 
       {/* Top Products */}
-      <div className="rounded-[4px] border border-border bg-card mb-6">
+      <div className="rounded-xl border border-border bg-card mb-6">
         <div className="p-4 border-b border-border">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Top Products by Revenue</h3>
         </div>
@@ -264,7 +264,7 @@ export default function AdminSales() {
       </div>
 
       {/* Recent Orders */}
-      <div className="rounded-[4px] border border-border">
+      <div className="rounded-xl border border-border">
         <div className="p-4 border-b border-border">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Recent Orders</h3>
         </div>
