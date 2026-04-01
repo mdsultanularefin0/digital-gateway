@@ -91,7 +91,7 @@ export function Header() {
           </button>
           <button
             onClick={() => setIsOpen(true)}
-            className="relative flex h-10 w-10 items-center justify-center rounded-[4px] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            className="relative flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
           >
             <ShoppingCart className="h-5 w-5" />
             {itemCount > 0 && (
