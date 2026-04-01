@@ -258,9 +258,14 @@ export default function ProductDetailPage() {
                   </motion.p>
                 )}
 
-                <Button variant="gradient" size="xl" className="w-full mt-6" onClick={handleAddToCart}>
-                  <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
-                </Button>
+                <div className="flex gap-3 mt-6">
+                  <Button variant="outline" size="xl" className="flex-1" onClick={handleAddToCart}>
+                    <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
+                  </Button>
+                  <Button variant="gradient" size="xl" className="flex-1" onClick={handleBuyNow}>
+                    Buy Now
+                  </Button>
+                </div>
               </div>
             </motion.div>
           </div>
