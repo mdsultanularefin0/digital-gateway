@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Check, ShoppingCart, Star, Heart } from "lucide-react";
+import { ArrowLeft, Check, ShoppingCart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/Layout";
 import { SEOHead } from "@/components/SEOHead";
