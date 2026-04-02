@@ -46,12 +46,6 @@ export function ProductCard({ product }: { product: Product }) {
 
   const displayPrice = defaultTier ? Number(defaultTier.price) : product.price;
 
-  const toggleWishlist = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (wishlisted) removeFromWishlist(product.id);
-    else addToWishlist(product.id);
-  };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
