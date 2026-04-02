@@ -2,9 +2,15 @@ import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Mail, MapPin, Phone, MessageCircle } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { usePageContents } from "@/hooks/use-page-contents";
+import DOMPurify from "dompurify";
 
 export default function ContactPage() {
   const { data: settings } = useSiteSettings();
+  const { data: pageContent } = usePageContents("contact");
+
+  const heading = pageContent?.heading || "Get in Touch";
+  const subheading = pageContent?.subheading || "Have questions? We'd love to hear from you.";
 
   const contactEmail = settings?.contact_email || settings?.support_email || "hello@example.com";
   const contactPhone = settings?.contact_phone || "";
@@ -18,8 +24,8 @@ export default function ContactPage() {
       <section className="py-16 md:py-24">
         <div className="container px-5 md:px-8 max-w-4xl">
           <div className="text-center mb-16">
-            <h1 className="text-3xl font-display font-bold md:text-5xl">Get in Touch</h1>
-            <p className="mt-4 text-muted-foreground">Have questions? We'd love to hear from you.</p>
+            <h1 className="text-3xl font-display font-bold md:text-5xl">{heading}</h1>
+            <p className="mt-4 text-muted-foreground">{subheading}</p>
           </div>
 
           <div className="grid gap-12 md:grid-cols-2">
@@ -82,6 +88,13 @@ export default function ContactPage() {
                   <p className="text-sm text-muted-foreground">{address}</p>
                 </div>
               </div>
+
+              {pageContent?.body && (
+                <div
+                  className="prose prose-sm max-w-none text-muted-foreground mt-4 dark:prose-invert"
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(pageContent.body) }}
+                />
+              )}
             </div>
           </div>
         </div>
