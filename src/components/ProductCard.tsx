@@ -130,7 +130,7 @@ export function ProductCard({ product }: { product: Product }) {
 
         <div className="mt-auto flex items-center justify-between pt-4 border-t border-border mt-4">
           <span className="text-lg font-bold text-foreground">
-            {currencySymbol}{product.price}
+            {currencySymbol}{displayPrice}
           </span>
           <div className="flex items-center gap-2">
             {inStock && (
