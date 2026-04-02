@@ -111,7 +111,7 @@ const App = () => (
                   </Routes>
                 </Suspense>
               </BrowserRouter>
-            </WishlistProvider>
+            
           </CartProvider>
         </AuthProvider>
       </TooltipProvider>
