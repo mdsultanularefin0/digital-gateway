@@ -30,6 +30,32 @@ export function ProductCard({ product }: { product: Product }) {
     },
   });
 
+  const { data: defaultTier } = useQuery({
+    queryKey: ["product-default-tier", product.id],
+    queryFn: async () => {
+      // First try to find a tier marked as default
+      const { data: defTier } = await supabase
+        .from("product_tiers")
+        .select("price, label")
+        .eq("product_id", product.id)
+        .eq("is_default" as any, true)
+        .limit(1)
+        .maybeSingle();
+      if (defTier) return defTier as { price: number; label: string };
+      // Fallback: get the first tier by sort_order
+      const { data: firstTier } = await supabase
+        .from("product_tiers")
+        .select("price, label")
+        .eq("product_id", product.id)
+        .order("sort_order", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      return firstTier as { price: number; label: string } | null;
+    },
+  });
+
+  const displayPrice = defaultTier ? Number(defaultTier.price) : product.price;
+
   const toggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
