@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { uploadToStorage } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Upload, Loader2, Trash2, FileText, Film, X } from "lucide-react";
+import { Upload, Loader2, Trash2, FileText, Film } from "lucide-react";
 
 export interface DigitalFile {
   id?: string;

@@ -48,6 +48,7 @@ export default function AdminProducts() {
   const [featuresInput, setFeaturesInput] = useState("");
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [images, setImages] = useState<{ id?: string; image_url: string; alt_text: string }[]>([]);
+  const [digitalFiles, setDigitalFiles] = useState<DigitalFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showBulkImport, setShowBulkImport] = useState(false);
