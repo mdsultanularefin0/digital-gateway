@@ -55,6 +55,7 @@ export interface FAQ {
 function mapDBProduct(p: DBProduct): Product {
   return {
     id: p.id,
+    slug: (p as any).slug || p.id,
     name: p.name,
     tagline: p.tagline,
     description: p.description,
