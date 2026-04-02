@@ -114,6 +114,7 @@ export default function AdminProducts() {
             price: t.price,
             badge: t.badge || null,
             sort_order: i,
+            is_default: t.is_default,
           }));
           const { error } = await supabase.from("product_tiers").insert(tierRows);
           if (error) throw error;
