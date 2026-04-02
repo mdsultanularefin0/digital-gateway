@@ -242,12 +242,8 @@ export default function AdminProducts() {
     setUploading(true);
     try {
       for (const file of Array.from(files)) {
-        const ext = file.name.split(".").pop();
-        const path = `${crypto.randomUUID()}.${ext}`;
-        const { error: uploadErr } = await supabase.storage.from("product-images").upload(path, file);
-        if (uploadErr) throw uploadErr;
-        const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
-        setImages((prev) => [...prev, { image_url: urlData.publicUrl, alt_text: file.name.replace(/\.[^.]+$/, '') }]);
+        const result = await uploadToStorage(file, "products");
+        setImages((prev) => [...prev, { image_url: result.url, alt_text: file.name.replace(/\.[^.]+$/, '') }]);
       }
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });
