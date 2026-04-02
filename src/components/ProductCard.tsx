@@ -12,9 +12,7 @@ import { toast } from "@/hooks/use-toast";
 export function ProductCard({ product }: { product: Product }) {
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "$";
-  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const { addItem } = useCart();
-  const wishlisted = isInWishlist(product.id);
 
   const { data: firstImage } = useQuery({
     queryKey: ["product-first-image", product.id],
