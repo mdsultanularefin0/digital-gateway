@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useCart } from "@/contexts/CartContext";
 import { SearchOverlay } from "@/components/SearchOverlay";
-import { useWishlist } from "@/contexts/WishlistContext";
+
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function Header() {
