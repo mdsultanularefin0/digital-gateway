@@ -70,7 +70,7 @@ export default function AdminProducts() {
       .order("sort_order", { ascending: true })
       .then(({ data }) => {
         if (data) {
-          setTiers(data.map((t) => ({ id: t.id, label: t.label, price: Number(t.price), badge: t.badge || "", sort_order: t.sort_order })));
+          setTiers(data.map((t) => ({ id: t.id, label: t.label, price: Number(t.price), badge: t.badge || "", sort_order: t.sort_order, is_default: (t as any).is_default ?? false })));
         }
       });
     // Load images
