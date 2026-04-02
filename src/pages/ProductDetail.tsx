@@ -321,9 +321,9 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Description */}
-          <div className="mt-20 max-w-3xl mx-auto">
+          <div className="mt-20">
             <h2 className="text-2xl font-display font-bold mb-6">Description</h2>
-            <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{product.description}</p>
           </div>
 
           {/* Customer Reviews */}
