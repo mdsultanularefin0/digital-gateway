@@ -10,7 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Navigate } from "react-router-dom";
 import {
-  Package, MapPin, Heart, User, ChevronRight, Save, LogOut,
+  Package, MapPin, User, ChevronRight, Save, LogOut,
 } from "lucide-react";
 
 const statusColors: Record<string, string> = {
