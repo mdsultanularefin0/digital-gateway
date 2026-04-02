@@ -10,8 +10,9 @@ import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Navigate } from "react-router-dom";
 import {
-  Package, MapPin, User, ChevronRight, Save, LogOut,
+  Package, MapPin, User, ChevronRight, Save, LogOut, Download,
 } from "lucide-react";
+import { DownloadLinks } from "@/components/DownloadLinks";
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/10 text-yellow-600",
