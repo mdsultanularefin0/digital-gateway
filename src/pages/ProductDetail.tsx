@@ -44,18 +44,20 @@ export default function ProductDetailPage() {
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const navigate = useNavigate();
 
+  const productId = product?.id;
+
   const { data: tiers } = useQuery({
-    queryKey: ["product-tiers", id],
+    queryKey: ["product-tiers", productId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("product_tiers")
         .select("*")
-        .eq("product_id", id!)
+        .eq("product_id", productId!)
         .order("sort_order", { ascending: true });
       if (error) throw error;
       return data as Tier[];
     },
-    enabled: !!id,
+    enabled: !!productId,
   });
 
   const { data: reviews = [], refetch: refetchReviews } = useQuery({
