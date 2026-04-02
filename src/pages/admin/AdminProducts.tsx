@@ -147,6 +147,23 @@ export default function AdminProducts() {
             if (error) throw error;
           }
         }
+
+        // Save digital files: delete existing, then insert current
+        if (productId) {
+          await supabase.from("product_files").delete().eq("product_id", productId);
+          if (digitalFiles.length > 0) {
+            const fileRows = digitalFiles.map((f, i) => ({
+              product_id: productId!,
+              file_url: f.file_url,
+              filename: f.filename,
+              file_type: f.file_type,
+              file_size: f.file_size,
+              sort_order: i,
+            }));
+            const { error } = await supabase.from("product_files").insert(fileRows as any);
+            if (error) throw error;
+          }
+        }
       }
     },
     onSuccess: () => {
