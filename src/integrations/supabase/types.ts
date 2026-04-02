@@ -442,6 +442,30 @@ export type Database = {
           },
         ]
       }
+      page_contents: {
+        Row: {
+          content: string
+          id: string
+          page_slug: string
+          section_key: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string
+          id?: string
+          page_slug: string
+          section_key: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          id?: string
+          page_slug?: string
+          section_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_images: {
         Row: {
           alt_text: string

@@ -11,9 +11,11 @@ import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { WelcomePopup } from "@/components/WelcomePopup";
 import { useProducts } from "@/data/products";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { usePageContents } from "@/hooks/use-page-contents";
 import defaultHeroImage from "@/assets/hero-glass-render.png";
+import DOMPurify from "dompurify";
 
-const stats = [
+const defaultStats = [
   { value: "50K+", label: "Active Users" },
   { value: "99.9%", label: "Uptime" },
   { value: "120+", label: "Countries" },
@@ -23,10 +25,26 @@ const stats = [
 export default function HomePage() {
   const { data: allProducts = [] } = useProducts();
   const { data: settings } = useSiteSettings();
+  const { data: pageContent } = usePageContents("home");
   const featured = allProducts.filter((p) => p.featured).slice(0, 3);
   const siteName = settings?.site_name || "GiftCardVibe";
-  const tagline = settings?.site_tagline || "Premium digital products designed for teams who demand precision, speed, and simplicity.";
+  const tagline = pageContent?.hero_description || settings?.site_tagline || "Premium digital products designed for teams who demand precision, speed, and simplicity.";
   const heroImage = settings?.hero_image_url || defaultHeroImage;
+
+  const heroBadge = pageContent?.hero_badge || "Digital Subscription Boutique";
+  const heroHeading = pageContent?.hero_heading || "Tools that<br />elevate your<br /><span class=\"text-primary\">workflow</span>";
+  const ctaPrimary = pageContent?.hero_cta_primary || "Browse Products";
+  const ctaSecondary = pageContent?.hero_cta_secondary || "Learn More";
+  const featuredHeading = pageContent?.featured_heading || "Featured Products";
+  const featuredBadge = pageContent?.featured_badge || "Curated Selection";
+
+  let stats = defaultStats;
+  if (pageContent?.stats) {
+    try {
+      const parsed = JSON.parse(pageContent.stats);
+      if (Array.isArray(parsed) && parsed.length > 0) stats = parsed;
+    } catch {}
+  }
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -64,16 +82,15 @@ export default function HomePage() {
                   transition={{ duration: 0.6 }}
                   className="text-[11px] font-semibold tracking-wide-custom uppercase text-muted-foreground mb-5"
                 >
-                  Digital Subscription Boutique
+                  {heroBadge}
                 </motion.p>
                 <motion.h1
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.7, delay: 0.1 }}
                   className="text-4xl sm:text-5xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.08] text-foreground"
-                >
-                  Tools that<br />elevate your<br /><span className="text-primary">workflow</span>
-                </motion.h1>
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(heroHeading) }}
+                />
                 <motion.p
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -89,10 +106,10 @@ export default function HomePage() {
                   className="mt-6 md:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3"
                 >
                   <Button variant="gradient" size="default" asChild>
-                    <Link to="/products">Browse Products <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                    <Link to="/products">{ctaPrimary} <ArrowRight className="ml-2 h-4 w-4" /></Link>
                   </Button>
                   <Button variant="outline-primary" size="default" asChild>
-                    <Link to="/about">Learn More</Link>
+                    <Link to="/about">{ctaSecondary}</Link>
                   </Button>
                 </motion.div>
               </div>
@@ -149,8 +166,8 @@ export default function HomePage() {
             <div className="container px-5 md:px-8">
               <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 md:mb-16 gap-4">
                 <div>
-                  <p className="text-[11px] font-semibold tracking-wide-custom uppercase text-muted-foreground mb-3">Curated Selection</p>
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground">Featured Products</h2>
+                  <p className="text-[11px] font-semibold tracking-wide-custom uppercase text-muted-foreground mb-3">{featuredBadge}</p>
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground">{featuredHeading}</h2>
                 </div>
                 <Button variant="outline-primary" size="sm" asChild className="hidden md:flex">
                   <Link to="/products">View All <ArrowRight className="ml-2 h-4 w-4" /></Link>

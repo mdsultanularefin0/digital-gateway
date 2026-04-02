@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, Users, BarChart3, Tag,
   MessageSquare, Settings, LogOut, Menu, X, Zap, ChevronLeft, Plug,
   ImageIcon, Mail, Inbox, Clock, Newspaper, CreditCard, FileText,
-  PanelTop, ChevronDown,
+  PanelTop, ChevronDown, FileEdit,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -50,6 +50,7 @@ const navStructure: NavEntry[] = [
     label: "Content",
     icon: FileText,
     items: [
+      { label: "Page Editor", to: "/admin/page-editor", icon: FileEdit },
       { label: "Landing Pages", to: "/admin/landing-pages", icon: PanelTop },
       { label: "Blog", to: "/admin/blog", icon: FileText },
       { label: "Post Generator", to: "/admin/post-generator", icon: ImageIcon },
