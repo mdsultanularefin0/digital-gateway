@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Layout } from "@/components/Layout";
-import { ProductCard } from "@/components/ProductCard";
+
 import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { toast } from "@/hooks/use-toast";
