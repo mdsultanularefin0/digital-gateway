@@ -534,6 +534,7 @@ export type Database = {
           price: number
           price_label: string
           published: boolean
+          slug: string
           tagline: string
           tags: string[]
           updated_at: string
@@ -553,6 +554,7 @@ export type Database = {
           price?: number
           price_label?: string
           published?: boolean
+          slug?: string
           tagline?: string
           tags?: string[]
           updated_at?: string
@@ -572,6 +574,7 @@ export type Database = {
           price?: number
           price_label?: string
           published?: boolean
+          slug?: string
           tagline?: string
           tags?: string[]
           updated_at?: string
