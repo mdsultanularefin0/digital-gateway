@@ -34,15 +34,15 @@ export function ProductCard({ product }: { product: Product }) {
     queryKey: ["product-default-tier", product.id],
     queryFn: async () => {
       // First try to find a tier marked as default
-      const { data: defTier } = await supabase
+      const { data: allTiers } = await supabase
         .from("product_tiers")
-        .select("price, label")
+        .select("price, label, sort_order")
         .eq("product_id", product.id)
-        .eq("is_default" as any, true)
-        .limit(1)
-        .maybeSingle();
-      if (defTier) return defTier as { price: number; label: string };
-      // Fallback: get the first tier by sort_order
+        .order("sort_order", { ascending: true });
+      if (!allTiers || allTiers.length === 0) return null;
+      const defTier = (allTiers as any[]).find((t) => t.is_default);
+      const chosen = defTier || allTiers[0];
+      return { price: Number(chosen.price), label: chosen.label as string };
       const { data: firstTier } = await supabase
         .from("product_tiers")
         .select("price, label")
