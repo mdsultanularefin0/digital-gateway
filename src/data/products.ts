@@ -109,12 +109,15 @@ export function useProductBySlug(slug: string) {
     queryKey: ["public-product-slug", slug],
     queryFn: async () => {
       // Try slug first, fall back to id for backward compatibility
-      let { data, error } = await supabase
+      const { data: rows, error } = await supabase
         .from("products")
         .select("*")
-        .eq("slug" as any, slug)
-        .eq("published", true)
-        .maybeSingle();
+        .eq("published", true);
+      if (error) throw error;
+      const allProducts = rows as DBProduct[];
+      let match = allProducts.find((p) => (p as any).slug === slug);
+      if (!match) match = allProducts.find((p) => p.id === slug);
+      const data = match || null;
       if (error) throw error;
       if (!data) {
         // Fallback: try by id
