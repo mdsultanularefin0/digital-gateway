@@ -78,7 +78,7 @@ export default function AdminIntegrations() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-display font-bold">Integrations</h2>
-            <p className="text-sm text-muted-foreground">Manage payment, mail, SMS, and webhook integrations</p>
+            <p className="text-sm text-muted-foreground">Manage payment, mail, SMS, webhook, and storage integrations</p>
           </div>
           <Button
             onClick={() => saveMutation.mutate(settings)}
