@@ -160,7 +160,7 @@ export default function LoginPage() {
               </h1>
               <p className="text-sm text-muted-foreground">
                 {isSignUp
-                  ? `Join ${siteName} to track orders & save your wishlist`
+                  ? `Join ${siteName} to track orders & get faster checkout`
                   : "Sign in to your account to continue"}
               </p>
             </div>
