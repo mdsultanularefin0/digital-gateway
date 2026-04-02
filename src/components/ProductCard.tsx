@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Heart, ShoppingCart } from "lucide-react";
+import { ArrowRight, ShoppingCart } from "lucide-react";
 import { type Product } from "@/data/products";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useWishlist } from "@/contexts/WishlistContext";
