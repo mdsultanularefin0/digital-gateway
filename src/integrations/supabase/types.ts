@@ -224,6 +224,54 @@ export type Database = {
         }
         Relationships: []
       }
+      download_tokens: {
+        Row: {
+          created_at: string
+          download_count: number
+          expires_at: string | null
+          id: string
+          max_downloads: number
+          order_id: string
+          product_file_id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          download_count?: number
+          expires_at?: string | null
+          id?: string
+          max_downloads?: number
+          order_id: string
+          product_file_id: string
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          download_count?: number
+          expires_at?: string | null
+          id?: string
+          max_downloads?: number
+          order_id?: string
+          product_file_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "download_tokens_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "download_tokens_product_file_id_fkey"
+            columns: ["product_file_id"]
+            isOneToOne: false
+            referencedRelation: "product_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       landing_pages: {
         Row: {
           created_at: string
@@ -465,6 +513,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      product_files: {
+        Row: {
+          created_at: string
+          file_size: number
+          file_type: string
+          file_url: string
+          filename: string
+          id: string
+          product_id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          file_size?: number
+          file_type?: string
+          file_url: string
+          filename?: string
+          id?: string
+          product_id: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          file_size?: number
+          file_type?: string
+          file_url?: string
+          filename?: string
+          id?: string
+          product_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_files_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_images: {
         Row: {
@@ -793,6 +882,10 @@ export type Database = {
       }
     }
     Functions: {
+      generate_download_tokens: {
+        Args: { _order_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
