@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Check, ShoppingCart, Star, Heart } from "lucide-react";
+import { ArrowLeft, Check, ShoppingCart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/Layout";
 import { SEOHead } from "@/components/SEOHead";
 import { useProductBySlug, faqs } from "@/data/products";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useCart } from "@/contexts/CartContext";
-import { useWishlist } from "@/contexts/WishlistContext";
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -42,7 +42,7 @@ export default function ProductDetailPage() {
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "$";
   const { addItem } = useCart();
-  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  
   const navigate = useNavigate();
 
   const productId = product?.id;
@@ -82,12 +82,6 @@ export default function ProductDetailPage() {
   const baseTierPrice = hasTiers ? tiers[0].price : 0;
   const savings = activeTier && selectedTierIdx > 0 ? baseTierPrice - activeTier.price : 0;
 
-  const wishlisted = product ? isInWishlist(product.id) : false;
-  const toggleWishlist = () => {
-    if (!product) return;
-    if (wishlisted) removeFromWishlist(product.id);
-    else addToWishlist(product.id);
-  };
 
   // Track ViewContent when product loads
   useEffect(() => {
@@ -212,13 +206,6 @@ export default function ProductDetailPage() {
                     <span key={tag} className="rounded-xl bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{tag}</span>
                   ))}
                 </div>
-                <button
-                  onClick={toggleWishlist}
-                  className="shrink-0 flex h-10 w-10 items-center justify-center rounded-xl border border-border hover:bg-secondary transition-colors"
-                  aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-                >
-                  <Heart className={`h-5 w-5 transition-colors ${wishlisted ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
-                </button>
               </div>
               <h1 className="text-3xl font-display font-bold md:text-4xl">{product.name}</h1>
               <p className="mt-2 text-lg text-muted-foreground">{product.tagline}</p>

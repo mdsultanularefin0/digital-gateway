@@ -4,7 +4,7 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 const footerLinks = {
   Product: [
     { label: "Features", to: "/products" },
-    { label: "Wishlist", to: "/wishlist" },
+    
     { label: "FAQ", to: "/faq" },
   ],
   Company: [

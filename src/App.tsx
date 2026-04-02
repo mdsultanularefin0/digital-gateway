@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
-import { WishlistProvider } from "@/contexts/WishlistContext";
+
 import { AdminGuard } from "@/components/AdminGuard";
 import { CartDrawer } from "@/components/CartDrawer";
 import { MetaPixelProvider } from "@/components/MetaPixelProvider";
@@ -25,7 +25,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Login = lazy(() => import("./pages/Login"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const Wishlist = lazy(() => import("./pages/Wishlist"));
+
 const Account = lazy(() => import("./pages/Account"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPostPage = lazy(() => import("./pages/BlogPost"));
@@ -65,7 +65,7 @@ const App = () => (
       <TooltipProvider>
         <AuthProvider>
           <CartProvider>
-            <WishlistProvider>
+            
               <Toaster />
               <Sonner />
               <BrowserRouter>
@@ -85,7 +85,7 @@ const App = () => (
                     <Route path="/terms" element={<Terms />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
-                    <Route path="/wishlist" element={<Wishlist />} />
+                    
                     <Route path="/account" element={<Account />} />
                     <Route path="/blog" element={<Blog />} />
                     <Route path="/blog/:slug" element={<BlogPostPage />} />
@@ -111,7 +111,7 @@ const App = () => (
                   </Routes>
                 </Suspense>
               </BrowserRouter>
-            </WishlistProvider>
+            
           </CartProvider>
         </AuthProvider>
       </TooltipProvider>

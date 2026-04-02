@@ -2,17 +2,15 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useWishlist } from "@/contexts/WishlistContext";
-import { useProducts } from "@/data/products";
 import { Layout } from "@/components/Layout";
-import { ProductCard } from "@/components/ProductCard";
+
 import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Navigate } from "react-router-dom";
 import {
-  Package, MapPin, Heart, User, ChevronRight, Save, LogOut,
+  Package, MapPin, User, ChevronRight, Save, LogOut,
 } from "lucide-react";
 
 const statusColors: Record<string, string> = {
@@ -29,7 +27,7 @@ const paymentColors: Record<string, string> = {
   refunded: "bg-yellow-500/10 text-yellow-600",
 };
 
-type Tab = "orders" | "address" | "wishlist";
+type Tab = "orders" | "address";
 
 export default function AccountPage() {
   const { user, loading, signOut } = useAuth();
@@ -127,10 +125,6 @@ export default function AccountPage() {
     },
   });
 
-  // Wishlist
-  const { items: wishlistIds } = useWishlist();
-  const { data: products = [] } = useProducts();
-  const wishlistProducts = products.filter((p) => wishlistIds.includes(p.id));
 
   if (loading) {
     return (
@@ -147,7 +141,7 @@ export default function AccountPage() {
   const tabs: { key: Tab; label: string; icon: typeof Package }[] = [
     { key: "orders", label: "Order History", icon: Package },
     { key: "address", label: "Saved Address", icon: MapPin },
-    { key: "wishlist", label: "Wishlist", icon: Heart },
+    
   ];
 
   return (
@@ -184,11 +178,6 @@ export default function AccountPage() {
               >
                 <t.icon className="h-4 w-4" />
                 {t.label}
-                {t.key === "wishlist" && wishlistIds.length > 0 && (
-                  <span className="ml-1 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
-                    {wishlistIds.length}
-                  </span>
-                )}
               </button>
             ))}
           </div>
@@ -333,26 +322,6 @@ export default function AccountPage() {
             </div>
           )}
 
-          {/* Wishlist */}
-          {tab === "wishlist" && (
-            <div>
-              {wishlistProducts.length === 0 ? (
-                <div className="text-center py-16">
-                  <Heart className="h-12 w-12 mx-auto mb-3 text-muted-foreground/30" />
-                  <p className="text-muted-foreground mb-4">Your wishlist is empty</p>
-                  <Button variant="gradient" asChild>
-                    <a href="/products">Browse Products</a>
-                  </Button>
-                </div>
-              ) : (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {wishlistProducts.map((p) => (
-                    <ProductCard key={p.id} product={p} />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </section>
     </Layout>
