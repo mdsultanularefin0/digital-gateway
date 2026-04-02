@@ -173,6 +173,7 @@ export default function AdminProducts() {
       setEditing(null);
       setTiers([]);
       setImages([]);
+      setDigitalFiles([]);
       toast({ title: "Product saved" });
     },
     onError: (err: Error) => {
