@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Zap, ShoppingCart, Search, User, Heart } from "lucide-react";
+import { Menu, X, Zap, ShoppingCart, Search, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useCart } from "@/contexts/CartContext";
