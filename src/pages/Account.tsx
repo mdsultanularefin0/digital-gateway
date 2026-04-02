@@ -241,6 +241,32 @@ export default function AccountPage() {
             </div>
           )}
 
+          {/* My Downloads */}
+          {tab === "downloads" && (
+            <div>
+              {ordersLoading ? (
+                <p className="text-muted-foreground">Loading...</p>
+              ) : orders.filter((o: any) => o.payment_status === "paid").length === 0 ? (
+                <div className="text-center py-16">
+                  <Download className="h-12 w-12 mx-auto mb-3 text-muted-foreground/30" />
+                  <p className="text-muted-foreground">No downloads available yet</p>
+                  <p className="text-sm text-muted-foreground mt-1">Downloads appear here after your order is paid</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {orders.filter((o: any) => o.payment_status === "paid").map((o: any) => (
+                    <div key={o.id}>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Order <span className="font-mono">{o.order_number}</span> — {format(new Date(o.created_at), "PP")}
+                      </p>
+                      <DownloadLinks orderId={o.id} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Saved Address */}
           {tab === "address" && (
             <div className="max-w-lg">
