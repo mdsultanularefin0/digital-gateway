@@ -18,6 +18,7 @@ interface Tier {
   price: number;
   badge: string;
   sort_order: number;
+  is_default: boolean;
 }
 
 const emptyProduct: ProductInsert = {
