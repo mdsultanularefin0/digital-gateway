@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
-import { WishlistProvider } from "@/contexts/WishlistContext";
+
 import { AdminGuard } from "@/components/AdminGuard";
 import { CartDrawer } from "@/components/CartDrawer";
 import { MetaPixelProvider } from "@/components/MetaPixelProvider";
