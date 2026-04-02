@@ -12,7 +12,7 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "quantity">) => void;
+  addItem: (item: Omit<CartItem, "quantity">, openDrawer?: boolean) => void;
   removeItem: (productId: string, tierId: string | null) => void;
   updateQuantity: (productId: string, tierId: string | null, quantity: number) => void;
   clearCart: () => void;
