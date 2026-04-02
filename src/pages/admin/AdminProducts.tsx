@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, X, Upload, Loader2, Download, CheckSquare, Square, FileUp } from "lucide-react";
 import { exportToCSV, logActivity } from "@/lib/admin-utils";
+import { uploadToStorage } from "@/lib/storage";
 import type { Database } from "@/integrations/supabase/types";
 import BulkProductImport from "@/components/admin/BulkProductImport";
 
