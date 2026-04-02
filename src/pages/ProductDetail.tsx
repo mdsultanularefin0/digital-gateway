@@ -35,8 +35,8 @@ interface Review {
 }
 
 export default function ProductDetailPage() {
-  const { id } = useParams();
-  const { data: product, isLoading } = useProduct(id ?? "");
+  const { slug } = useParams();
+  const { data: product, isLoading } = useProductBySlug(slug ?? "");
   const [selectedTierIdx, setSelectedTierIdx] = useState(0);
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "$";
