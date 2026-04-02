@@ -82,12 +82,6 @@ export default function ProductDetailPage() {
   const baseTierPrice = hasTiers ? tiers[0].price : 0;
   const savings = activeTier && selectedTierIdx > 0 ? baseTierPrice - activeTier.price : 0;
 
-  const wishlisted = product ? isInWishlist(product.id) : false;
-  const toggleWishlist = () => {
-    if (!product) return;
-    if (wishlisted) removeFromWishlist(product.id);
-    else addToWishlist(product.id);
-  };
 
   // Track ViewContent when product loads
   useEffect(() => {
