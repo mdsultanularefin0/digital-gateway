@@ -220,7 +220,11 @@ export default function AdminProducts() {
   };
 
   const addTier = () => {
-    setTiers([...tiers, { label: "", price: 0, badge: "", sort_order: tiers.length }]);
+    setTiers([...tiers, { label: "", price: 0, badge: "", sort_order: tiers.length, is_default: tiers.length === 0 }]);
+  };
+
+  const setDefaultTier = (index: number) => {
+    setTiers(tiers.map((t, i) => ({ ...t, is_default: i === index })));
   };
 
   const updateTier = (index: number, field: keyof Tier, value: string | number) => {
