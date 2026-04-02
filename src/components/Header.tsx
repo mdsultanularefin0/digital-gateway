@@ -101,18 +101,6 @@ export function Header() {
             )}
           </button>
           <Link
-            to="/wishlist"
-            className="relative flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-            aria-label="Wishlist"
-          >
-            <Heart className="h-5 w-5" />
-            {wishlistCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
-                {wishlistCount}
-              </span>
-            )}
-          </Link>
-          <Link
             to="/account"
             className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             aria-label="My Account"
