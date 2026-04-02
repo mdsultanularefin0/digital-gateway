@@ -5,11 +5,12 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { Save, CreditCard, Mail, MessageSquare, Webhook } from "lucide-react";
+import { Save, CreditCard, Mail, MessageSquare, Webhook, HardDrive } from "lucide-react";
 import { PaymentTab } from "@/components/admin/integrations/PaymentTab";
 import { WebhookTab } from "@/components/admin/integrations/WebhookTab";
 import { MailTab } from "@/components/admin/integrations/MailTab";
 import { SmsTab } from "@/components/admin/integrations/SmsTab";
+import { StorageTab } from "@/components/admin/integrations/StorageTab";
 
 interface SettingsMap {
   [key: string]: string;
@@ -77,7 +78,7 @@ export default function AdminIntegrations() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-display font-bold">Integrations</h2>
-            <p className="text-sm text-muted-foreground">Manage payment, mail, SMS, and webhook integrations</p>
+            <p className="text-sm text-muted-foreground">Manage payment, mail, SMS, webhook, and storage integrations</p>
           </div>
           <Button
             onClick={() => saveMutation.mutate(settings)}
@@ -90,7 +91,7 @@ export default function AdminIntegrations() {
         </div>
 
         <Tabs defaultValue="payment" className="w-full">
-          <TabsList className="w-full grid grid-cols-4">
+          <TabsList className="w-full grid grid-cols-5">
             <TabsTrigger value="payment" className="gap-1.5 text-xs sm:text-sm">
               <CreditCard className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Payment</span>
@@ -106,6 +107,10 @@ export default function AdminIntegrations() {
             <TabsTrigger value="webhook" className="gap-1.5 text-xs sm:text-sm">
               <Webhook className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Webhook</span>
+            </TabsTrigger>
+            <TabsTrigger value="storage" className="gap-1.5 text-xs sm:text-sm">
+              <HardDrive className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Storage</span>
             </TabsTrigger>
           </TabsList>
 
@@ -123,6 +128,10 @@ export default function AdminIntegrations() {
 
           <TabsContent value="webhook">
             <WebhookTab settings={settings} update={update} />
+          </TabsContent>
+
+          <TabsContent value="storage">
+            <StorageTab settings={settings} update={update} />
           </TabsContent>
         </Tabs>
       </div>
