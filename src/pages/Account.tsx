@@ -141,7 +141,7 @@ export default function AccountPage() {
   const tabs: { key: Tab; label: string; icon: typeof Package }[] = [
     { key: "orders", label: "Order History", icon: Package },
     { key: "address", label: "Saved Address", icon: MapPin },
-    { key: "wishlist", label: "Wishlist", icon: Heart },
+    
   ];
 
   return (
