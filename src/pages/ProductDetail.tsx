@@ -42,7 +42,7 @@ export default function ProductDetailPage() {
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "$";
   const { addItem } = useCart();
-  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  
   const navigate = useNavigate();
 
   const productId = product?.id;
