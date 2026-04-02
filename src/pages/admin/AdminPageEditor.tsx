@@ -72,6 +72,17 @@ const pages: PageConfig[] = [
       { key: "items", label: "FAQ Items (JSON: [{question, answer}])", type: "text" },
     ],
   },
+  {
+    slug: "footer",
+    label: "Footer",
+    sections: [
+      { key: "tagline", label: "Footer Tagline", type: "text" },
+      { key: "footer_text", label: "Copyright / Bottom Text", type: "text" },
+      { key: "product_links", label: 'Product Links (JSON: [{"label":"...", "to":"..."}])', type: "text" },
+      { key: "company_links", label: 'Company Links (JSON: [{"label":"...", "to":"..."}])', type: "text" },
+      { key: "legal_links", label: 'Legal Links (JSON: [{"label":"...", "to":"..."}])', type: "text" },
+    ],
+  },
 ];
 
 export default function AdminPageEditor() {
