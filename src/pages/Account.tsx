@@ -178,11 +178,6 @@ export default function AccountPage() {
               >
                 <t.icon className="h-4 w-4" />
                 {t.label}
-                {t.key === "wishlist" && wishlistIds.length > 0 && (
-                  <span className="ml-1 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
-                    {wishlistIds.length}
-                  </span>
-                )}
               </button>
             ))}
           </div>
