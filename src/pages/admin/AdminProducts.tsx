@@ -35,6 +35,7 @@ const emptyProduct: ProductInsert = {
   featured: false,
   published: true,
   in_stock: true,
+  slug: "",
 };
 
 export default function AdminProducts() {
