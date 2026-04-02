@@ -16,7 +16,7 @@ export function Header() {
   const location = useLocation();
   const { data: settings } = useSiteSettings();
   const { itemCount, setIsOpen } = useCart();
-  const { itemCount: wishlistCount } = useWishlist();
+  
 
   const navLinks = [
     { label: "Products", to: "/products" },

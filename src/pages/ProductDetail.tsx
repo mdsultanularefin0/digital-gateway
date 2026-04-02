@@ -206,13 +206,6 @@ export default function ProductDetailPage() {
                     <span key={tag} className="rounded-xl bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{tag}</span>
                   ))}
                 </div>
-                <button
-                  onClick={toggleWishlist}
-                  className="shrink-0 flex h-10 w-10 items-center justify-center rounded-xl border border-border hover:bg-secondary transition-colors"
-                  aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-                >
-                  <Heart className={`h-5 w-5 transition-colors ${wishlisted ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
-                </button>
               </div>
               <h1 className="text-3xl font-display font-bold md:text-4xl">{product.name}</h1>
               <p className="mt-2 text-lg text-muted-foreground">{product.tagline}</p>

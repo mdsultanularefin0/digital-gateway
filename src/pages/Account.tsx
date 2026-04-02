@@ -322,26 +322,6 @@ export default function AccountPage() {
             </div>
           )}
 
-          {/* Wishlist */}
-          {tab === "wishlist" && (
-            <div>
-              {wishlistProducts.length === 0 ? (
-                <div className="text-center py-16">
-                  <Heart className="h-12 w-12 mx-auto mb-3 text-muted-foreground/30" />
-                  <p className="text-muted-foreground mb-4">Your wishlist is empty</p>
-                  <Button variant="gradient" asChild>
-                    <a href="/products">Browse Products</a>
-                  </Button>
-                </div>
-              ) : (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {wishlistProducts.map((p) => (
-                    <ProductCard key={p.id} product={p} />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </section>
     </Layout>

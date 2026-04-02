@@ -76,13 +76,6 @@ export function ProductCard({ product }: { product: Product }) {
             <span className="text-4xl font-display font-bold text-foreground/20">{product.name[0]}</span>
           </div>
         )}
-        <button
-          onClick={toggleWishlist}
-          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm border border-border hover:bg-background transition-colors z-10"
-          aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-        >
-          <Heart className={`h-4 w-4 transition-colors ${wishlisted ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
-        </button>
         {!inStock && (
           <span className="absolute top-3 left-3 rounded-xl bg-destructive/90 px-2.5 py-1 text-xs font-semibold text-destructive-foreground backdrop-blur-sm">
             Out of Stock
