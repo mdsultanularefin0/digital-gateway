@@ -86,6 +86,15 @@ export default function AdminProducts() {
       .then(({ data }) => {
         if (data) setImages(data.map((img) => ({ id: img.id, image_url: img.image_url, alt_text: img.alt_text })));
       });
+    // Load digital files
+    supabase
+      .from("product_files")
+      .select("*")
+      .eq("product_id", editingId)
+      .order("sort_order", { ascending: true })
+      .then(({ data }) => {
+        if (data) setDigitalFiles(data.map((f: any) => ({ id: f.id, file_url: f.file_url, filename: f.filename, file_type: f.file_type, file_size: Number(f.file_size) })));
+      });
   }, [editingId]);
 
   const saveMutation = useMutation({
