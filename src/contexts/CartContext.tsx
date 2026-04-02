@@ -12,7 +12,7 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "quantity">) => void;
+  addItem: (item: Omit<CartItem, "quantity">, openDrawer?: boolean) => void;
   removeItem: (productId: string, tierId: string | null) => void;
   updateQuantity: (productId: string, tierId: string | null, quantity: number) => void;
   clearCart: () => void;
@@ -43,7 +43,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
-  const addItem = (item: Omit<CartItem, "quantity">) => {
+  const addItem = (item: Omit<CartItem, "quantity">, openDrawer = true) => {
     setItems((prev) => {
       const existing = prev.find((i) => i.productId === item.productId && i.tierId === item.tierId);
       if (existing) {
@@ -55,7 +55,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, { ...item, quantity: 1 }];
     });
-    setIsOpen(true);
+    if (openDrawer) setIsOpen(true);
   };
 
   const removeItem = (productId: string, tierId: string | null) => {

@@ -130,7 +130,7 @@ export default function ProductDetailPage() {
       tierId: activeTier?.id || null,
       price,
       image: product.image,
-    });
+    }, false);
     navigate("/checkout");
   };
 
