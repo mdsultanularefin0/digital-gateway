@@ -331,7 +331,17 @@ export default function AdminProducts() {
             ) : (
               <div className="space-y-3">
                 {tiers.map((tier, i) => (
-                  <div key={i} className="grid grid-cols-[1fr_auto_1fr_auto] gap-3 items-end rounded-xl border border-border bg-muted/20 p-3">
+                  <div key={i} className={`grid grid-cols-[auto_1fr_auto_1fr_auto] gap-3 items-end rounded-xl border p-3 ${tier.is_default ? "border-primary bg-primary/5" : "border-border bg-muted/20"}`}>
+                    <div className="flex flex-col items-center gap-1 pb-1">
+                      <label className="text-[11px] text-muted-foreground mb-1 block">Default</label>
+                      <button
+                        type="button"
+                        onClick={() => setDefaultTier(i)}
+                        className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors ${tier.is_default ? "border-primary bg-primary" : "border-muted-foreground hover:border-primary"}`}
+                      >
+                        {tier.is_default && <span className="h-2 w-2 rounded-full bg-primary-foreground" />}
+                      </button>
+                    </div>
                     <div>
                       <label className="text-[11px] text-muted-foreground mb-1 block">Label *</label>
                       <input
