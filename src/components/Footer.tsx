@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { usePageContents } from "@/hooks/use-page-contents";
 
-const footerLinks = {
+const defaultLinks = {
   Product: [
     { label: "Features", to: "/products" },
-    
     { label: "FAQ", to: "/faq" },
   ],
   Company: [
@@ -17,11 +17,30 @@ const footerLinks = {
   ],
 };
 
+function parseLinks(json: string | undefined, fallback: { label: string; to: string }[]): { label: string; to: string }[] {
+  if (!json) return fallback;
+  try {
+    const parsed = JSON.parse(json);
+    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    return fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export function Footer() {
   const { data: settings } = useSiteSettings();
+  const { data: content } = usePageContents("footer");
+
   const siteName = settings?.site_name || "GiftCardVibe";
-  const tagline = settings?.site_tagline || "Premium digital products and subscriptions to elevate your workflow.";
-  const footerText = settings?.footer_text || `© ${new Date().getFullYear()} ${siteName}. All rights reserved.`;
+  const tagline = content?.tagline || settings?.site_tagline || "Premium digital products and subscriptions to elevate your workflow.";
+  const footerText = content?.footer_text || settings?.footer_text || `© ${new Date().getFullYear()} ${siteName}. All rights reserved.`;
+
+  const footerLinks: Record<string, { label: string; to: string }[]> = {
+    Product: parseLinks(content?.product_links, defaultLinks.Product),
+    Company: parseLinks(content?.company_links, defaultLinks.Company),
+    Legal: parseLinks(content?.legal_links, defaultLinks.Legal),
+  };
 
   const socialLinks = [
     { label: "Twitter", url: settings?.twitter_url },
