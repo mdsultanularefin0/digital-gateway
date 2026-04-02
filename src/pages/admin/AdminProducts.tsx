@@ -9,6 +9,7 @@ import { exportToCSV, logActivity } from "@/lib/admin-utils";
 import { uploadToStorage } from "@/lib/storage";
 import type { Database } from "@/integrations/supabase/types";
 import BulkProductImport from "@/components/admin/BulkProductImport";
+import DigitalFilesEditor, { type DigitalFile } from "@/components/admin/DigitalFilesEditor";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
@@ -47,6 +48,7 @@ export default function AdminProducts() {
   const [featuresInput, setFeaturesInput] = useState("");
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [images, setImages] = useState<{ id?: string; image_url: string; alt_text: string }[]>([]);
+  const [digitalFiles, setDigitalFiles] = useState<DigitalFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showBulkImport, setShowBulkImport] = useState(false);
@@ -83,6 +85,15 @@ export default function AdminProducts() {
       .order("sort_order", { ascending: true })
       .then(({ data }) => {
         if (data) setImages(data.map((img) => ({ id: img.id, image_url: img.image_url, alt_text: img.alt_text })));
+      });
+    // Load digital files
+    supabase
+      .from("product_files")
+      .select("*")
+      .eq("product_id", editingId)
+      .order("sort_order", { ascending: true })
+      .then(({ data }) => {
+        if (data) setDigitalFiles(data.map((f: any) => ({ id: f.id, file_url: f.file_url, filename: f.filename, file_type: f.file_type, file_size: Number(f.file_size) })));
       });
   }, [editingId]);
 
@@ -136,6 +147,23 @@ export default function AdminProducts() {
             if (error) throw error;
           }
         }
+
+        // Save digital files: delete existing, then insert current
+        if (productId) {
+          await supabase.from("product_files").delete().eq("product_id", productId);
+          if (digitalFiles.length > 0) {
+            const fileRows = digitalFiles.map((f, i) => ({
+              product_id: productId!,
+              file_url: f.file_url,
+              filename: f.filename,
+              file_type: f.file_type,
+              file_size: f.file_size,
+              sort_order: i,
+            }));
+            const { error } = await supabase.from("product_files").insert(fileRows as any);
+            if (error) throw error;
+          }
+        }
       }
     },
     onSuccess: () => {
@@ -145,6 +173,7 @@ export default function AdminProducts() {
       setEditing(null);
       setTiers([]);
       setImages([]);
+      setDigitalFiles([]);
       toast({ title: "Product saved" });
     },
     onError: (err: Error) => {
@@ -212,6 +241,7 @@ export default function AdminProducts() {
       setFeaturesInput("");
       setTiers([]);
       setImages([]);
+      setDigitalFiles([]);
     }
   };
 
@@ -424,6 +454,9 @@ export default function AdminProducts() {
               </div>
             )}
           </div>
+
+          {/* Digital Files */}
+          <DigitalFilesEditor files={digitalFiles} onChange={setDigitalFiles} />
 
           <div>
             <label className="text-sm font-medium mb-1 block">External URL *</label>

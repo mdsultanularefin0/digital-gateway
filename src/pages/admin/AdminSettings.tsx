@@ -67,6 +67,14 @@ const settingGroups = [
     ],
   },
   {
+    title: "Digital Downloads",
+    description: "Configure download link expiry and limits for digital products",
+    fields: [
+      { key: "download_expiry_hours", label: "Link Expiry (hours)", placeholder: "168 (7 days). Set 0 for no expiry" },
+      { key: "download_max_count", label: "Max Downloads Per Link", placeholder: "5. Set 0 for unlimited" },
+    ],
+  },
+  {
     title: "Social Media",
     description: "Links to your social profiles",
     fields: [

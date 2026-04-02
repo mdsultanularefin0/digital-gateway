@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
 import { trackInitiateCheckout, trackPurchase } from "@/lib/meta-pixel";
+import { DownloadLinks } from "@/components/DownloadLinks";
 
 interface CheckoutForm {
   name: string;
@@ -44,6 +45,7 @@ export default function CheckoutPage() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState<string | null>(null);
+  const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
 
   const shippingCost = 0;
   const currency = settings?.currency || "USD";
@@ -239,6 +241,7 @@ export default function CheckoutPage() {
         currency,
       });
       clearCart();
+      setPlacedOrderId(order.id);
       setOrderPlaced(order.order_number);
     } catch (err: any) {
       toast({ title: "Failed to place order", description: err.message, variant: "destructive" });
@@ -255,8 +258,9 @@ export default function CheckoutPage() {
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6" />
             <h1 className="text-3xl font-display font-bold mb-3">Order Placed!</h1>
             <p className="text-muted-foreground mb-2">Thank you for your order.</p>
-            <p className="text-sm font-mono bg-muted rounded-xl inline-block px-4 py-2 mb-8">{orderPlaced}</p>
-            <div className="flex gap-3 justify-center">
+            <p className="text-sm font-mono bg-muted rounded-xl inline-block px-4 py-2 mb-4">{orderPlaced}</p>
+            {placedOrderId && <DownloadLinks orderId={placedOrderId} />}
+            <div className="flex gap-3 justify-center mt-6">
               <Button variant="gradient" asChild>
                 <Link to="/products">Continue Shopping</Link>
               </Button>

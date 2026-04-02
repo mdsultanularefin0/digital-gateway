@@ -10,8 +10,9 @@ import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Navigate } from "react-router-dom";
 import {
-  Package, MapPin, User, ChevronRight, Save, LogOut,
+  Package, MapPin, User, ChevronRight, Save, LogOut, Download,
 } from "lucide-react";
+import { DownloadLinks } from "@/components/DownloadLinks";
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/10 text-yellow-600",
@@ -27,7 +28,7 @@ const paymentColors: Record<string, string> = {
   refunded: "bg-yellow-500/10 text-yellow-600",
 };
 
-type Tab = "orders" | "address";
+type Tab = "orders" | "downloads" | "address";
 
 export default function AccountPage() {
   const { user, loading, signOut } = useAuth();
@@ -140,8 +141,8 @@ export default function AccountPage() {
 
   const tabs: { key: Tab; label: string; icon: typeof Package }[] = [
     { key: "orders", label: "Order History", icon: Package },
+    { key: "downloads", label: "My Downloads", icon: Download },
     { key: "address", label: "Saved Address", icon: MapPin },
-    
   ];
 
   return (
@@ -233,6 +234,32 @@ export default function AccountPage() {
                           {currencySymbol}{Number(o.total).toFixed(2)}
                         </span>
                       </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* My Downloads */}
+          {tab === "downloads" && (
+            <div>
+              {ordersLoading ? (
+                <p className="text-muted-foreground">Loading...</p>
+              ) : orders.filter((o: any) => o.payment_status === "paid").length === 0 ? (
+                <div className="text-center py-16">
+                  <Download className="h-12 w-12 mx-auto mb-3 text-muted-foreground/30" />
+                  <p className="text-muted-foreground">No downloads available yet</p>
+                  <p className="text-sm text-muted-foreground mt-1">Downloads appear here after your order is paid</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {orders.filter((o: any) => o.payment_status === "paid").map((o: any) => (
+                    <div key={o.id}>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Order <span className="font-mono">{o.order_number}</span> — {format(new Date(o.created_at), "PP")}
+                      </p>
+                      <DownloadLinks orderId={o.id} />
                     </div>
                   ))}
                 </div>
