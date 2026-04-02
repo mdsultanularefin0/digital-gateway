@@ -9,6 +9,7 @@ import { exportToCSV, logActivity } from "@/lib/admin-utils";
 import { uploadToStorage } from "@/lib/storage";
 import type { Database } from "@/integrations/supabase/types";
 import BulkProductImport from "@/components/admin/BulkProductImport";
+import DigitalFilesEditor, { type DigitalFile } from "@/components/admin/DigitalFilesEditor";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
