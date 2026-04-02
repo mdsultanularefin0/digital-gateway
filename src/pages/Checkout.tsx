@@ -240,6 +240,7 @@ export default function CheckoutPage() {
         currency,
       });
       clearCart();
+      setPlacedOrderId(order.id);
       setOrderPlaced(order.order_number);
     } catch (err: any) {
       toast({ title: "Failed to place order", description: err.message, variant: "destructive" });
