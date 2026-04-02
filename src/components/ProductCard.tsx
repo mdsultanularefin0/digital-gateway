@@ -30,6 +30,24 @@ export function ProductCard({ product }: { product: Product }) {
     },
   });
 
+  const { data: defaultTier } = useQuery({
+    queryKey: ["product-default-tier", product.id],
+    queryFn: async () => {
+      // First try to find a tier marked as default
+      const { data: allTiers } = await supabase
+        .from("product_tiers")
+        .select("price, label, sort_order")
+        .eq("product_id", product.id)
+        .order("sort_order", { ascending: true });
+      if (!allTiers || allTiers.length === 0) return null;
+      const defTier = (allTiers as any[]).find((t) => t.is_default);
+      const chosen = defTier || allTiers[0];
+      return { price: Number(chosen.price), label: chosen.label as string };
+    },
+  });
+
+  const displayPrice = defaultTier ? Number(defaultTier.price) : product.price;
+
   const toggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -104,7 +122,7 @@ export function ProductCard({ product }: { product: Product }) {
 
         <div className="mt-auto flex items-center justify-between pt-4 border-t border-border mt-4">
           <span className="text-lg font-bold text-foreground">
-            {currencySymbol}{product.price}
+            {currencySymbol}{displayPrice}
           </span>
           <div className="flex items-center gap-2">
             {inStock && (

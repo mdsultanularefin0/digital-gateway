@@ -482,6 +482,7 @@ export type Database = {
           badge: string | null
           created_at: string
           id: string
+          is_default: boolean
           label: string
           price: number
           product_id: string
@@ -491,6 +492,7 @@ export type Database = {
           badge?: string | null
           created_at?: string
           id?: string
+          is_default?: boolean
           label?: string
           price?: number
           product_id: string
@@ -500,6 +502,7 @@ export type Database = {
           badge?: string | null
           created_at?: string
           id?: string
+          is_default?: boolean
           label?: string
           price?: number
           product_id?: string

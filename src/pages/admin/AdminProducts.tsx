@@ -18,6 +18,7 @@ interface Tier {
   price: number;
   badge: string;
   sort_order: number;
+  is_default: boolean;
 }
 
 const emptyProduct: ProductInsert = {
@@ -69,7 +70,7 @@ export default function AdminProducts() {
       .order("sort_order", { ascending: true })
       .then(({ data }) => {
         if (data) {
-          setTiers(data.map((t) => ({ id: t.id, label: t.label, price: Number(t.price), badge: t.badge || "", sort_order: t.sort_order })));
+          setTiers(data.map((t) => ({ id: t.id, label: t.label, price: Number(t.price), badge: t.badge || "", sort_order: t.sort_order, is_default: (t as any).is_default ?? false })));
         }
       });
     // Load images
@@ -113,6 +114,7 @@ export default function AdminProducts() {
             price: t.price,
             badge: t.badge || null,
             sort_order: i,
+            is_default: t.is_default,
           }));
           const { error } = await supabase.from("product_tiers").insert(tierRows);
           if (error) throw error;
@@ -218,7 +220,11 @@ export default function AdminProducts() {
   };
 
   const addTier = () => {
-    setTiers([...tiers, { label: "", price: 0, badge: "", sort_order: tiers.length }]);
+    setTiers([...tiers, { label: "", price: 0, badge: "", sort_order: tiers.length, is_default: tiers.length === 0 }]);
+  };
+
+  const setDefaultTier = (index: number) => {
+    setTiers(tiers.map((t, i) => ({ ...t, is_default: i === index })));
   };
 
   const updateTier = (index: number, field: keyof Tier, value: string | number) => {
@@ -325,7 +331,17 @@ export default function AdminProducts() {
             ) : (
               <div className="space-y-3">
                 {tiers.map((tier, i) => (
-                  <div key={i} className="grid grid-cols-[1fr_auto_1fr_auto] gap-3 items-end rounded-xl border border-border bg-muted/20 p-3">
+                  <div key={i} className={`grid grid-cols-[auto_1fr_auto_1fr_auto] gap-3 items-end rounded-xl border p-3 ${tier.is_default ? "border-primary bg-primary/5" : "border-border bg-muted/20"}`}>
+                    <div className="flex flex-col items-center gap-1 pb-1">
+                      <label className="text-[11px] text-muted-foreground mb-1 block">Default</label>
+                      <button
+                        type="button"
+                        onClick={() => setDefaultTier(i)}
+                        className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors ${tier.is_default ? "border-primary bg-primary" : "border-muted-foreground hover:border-primary"}`}
+                      >
+                        {tier.is_default && <span className="h-2 w-2 rounded-full bg-primary-foreground" />}
+                      </button>
+                    </div>
                     <div>
                       <label className="text-[11px] text-muted-foreground mb-1 block">Label *</label>
                       <input
