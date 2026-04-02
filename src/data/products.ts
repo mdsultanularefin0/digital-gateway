@@ -6,6 +6,7 @@ type DBProduct = Database["public"]["Tables"]["products"]["Row"];
 
 export interface Product {
   id: string;
+  slug: string;
   name: string;
   tagline: string;
   description: string;
