@@ -241,6 +241,7 @@ export default function AdminProducts() {
       setFeaturesInput("");
       setTiers([]);
       setImages([]);
+      setDigitalFiles([]);
     }
   };
 
