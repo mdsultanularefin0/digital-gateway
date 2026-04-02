@@ -125,10 +125,6 @@ export default function AccountPage() {
     },
   });
 
-  // Wishlist
-  const { items: wishlistIds } = useWishlist();
-  const { data: products = [] } = useProducts();
-  const wishlistProducts = products.filter((p) => wishlistIds.includes(p.id));
 
   if (loading) {
     return (
