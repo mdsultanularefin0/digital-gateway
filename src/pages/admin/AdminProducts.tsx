@@ -35,6 +35,7 @@ const emptyProduct: ProductInsert = {
   featured: false,
   published: true,
   in_stock: true,
+  slug: "",
 };
 
 export default function AdminProducts() {
@@ -287,8 +288,22 @@ export default function AdminProducts() {
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="text-sm font-medium mb-1 block">Name *</label>
-              <input required value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className={inputClass} />
+              <input required value={editing.name} onChange={(e) => {
+                const newName = e.target.value;
+                const updates: any = { ...editing, name: newName };
+                // Auto-generate slug from name if slug is empty or was auto-generated
+                if (isNew || !(editing as any).slug) {
+                  updates.slug = newName.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
+                }
+                setEditing(updates);
+              }} className={inputClass} />
             </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Slug *</label>
+              <input required value={(editing as any).slug ?? ""} onChange={(e) => setEditing({ ...editing, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') } as any)} className={inputClass} placeholder="product-url-slug" />
+            </div>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="text-sm font-medium mb-1 block">Category</label>
               <input value={editing.category ?? ""} onChange={(e) => setEditing({ ...editing, category: e.target.value })} className={inputClass} />

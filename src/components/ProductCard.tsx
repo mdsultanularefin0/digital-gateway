@@ -73,7 +73,7 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <Link
-      to={`/products/${product.id}`}
+      to={`/products/${product.slug || product.id}`}
       className="group relative flex flex-col overflow-hidden rounded-2xl glass-card transition-all duration-300 hover:shadow-card-hover hover:border-primary/30"
     >
       <div className="aspect-video w-full overflow-hidden bg-secondary relative">

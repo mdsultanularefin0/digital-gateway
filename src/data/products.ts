@@ -6,6 +6,7 @@ type DBProduct = Database["public"]["Tables"]["products"]["Row"];
 
 export interface Product {
   id: string;
+  slug: string;
   name: string;
   tagline: string;
   description: string;
@@ -54,6 +55,7 @@ export interface FAQ {
 function mapDBProduct(p: DBProduct): Product {
   return {
     id: p.id,
+    slug: (p as any).slug || p.id,
     name: p.name,
     tagline: p.tagline,
     description: p.description,
@@ -99,6 +101,27 @@ export function useProduct(id: string) {
       if (error) throw error;
       return data ? mapDBProduct(data) : null;
     },
+  });
+}
+
+export function useProductBySlug(slug: string) {
+  return useQuery({
+    queryKey: ["public-product-slug", slug],
+    queryFn: async () => {
+      // Try slug first, fall back to id for backward compatibility
+      const { data: rows, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("published", true);
+      if (error) throw error;
+      const allProducts = rows as DBProduct[];
+      let match = allProducts.find((p) => (p as any).slug === slug);
+      if (!match) match = allProducts.find((p) => p.id === slug);
+      const data = match || null;
+      if (error) throw error;
+      return data ? mapDBProduct(data) : null;
+    },
+    enabled: !!slug,
   });
 }
 

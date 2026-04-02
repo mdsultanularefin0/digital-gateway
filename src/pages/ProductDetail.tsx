@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check, ShoppingCart, Star, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/Layout";
-import { useProduct, faqs } from "@/data/products";
+import { useProductBySlug, faqs } from "@/data/products";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -35,8 +35,8 @@ interface Review {
 }
 
 export default function ProductDetailPage() {
-  const { id } = useParams();
-  const { data: product, isLoading } = useProduct(id ?? "");
+  const { slug } = useParams();
+  const { data: product, isLoading } = useProductBySlug(slug ?? "");
   const [selectedTierIdx, setSelectedTierIdx] = useState(0);
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "$";
@@ -44,32 +44,34 @@ export default function ProductDetailPage() {
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const navigate = useNavigate();
 
+  const productId = product?.id;
+
   const { data: tiers } = useQuery({
-    queryKey: ["product-tiers", id],
+    queryKey: ["product-tiers", productId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("product_tiers")
         .select("*")
-        .eq("product_id", id!)
+        .eq("product_id", productId!)
         .order("sort_order", { ascending: true });
       if (error) throw error;
       return data as Tier[];
     },
-    enabled: !!id,
+    enabled: !!productId,
   });
 
   const { data: reviews = [], refetch: refetchReviews } = useQuery({
-    queryKey: ["product-reviews", id],
+    queryKey: ["product-reviews", productId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reviews_public")
         .select("*")
-        .eq("product_id", id!)
+        .eq("product_id", productId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Review[];
     },
-    enabled: !!id,
+    enabled: !!productId,
   });
 
   const avgRating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length : 0;
