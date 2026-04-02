@@ -104,6 +104,35 @@ export function useProduct(id: string) {
   });
 }
 
+export function useProductBySlug(slug: string) {
+  return useQuery({
+    queryKey: ["public-product-slug", slug],
+    queryFn: async () => {
+      // Try slug first, fall back to id for backward compatibility
+      let { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("slug" as any, slug)
+        .eq("published", true)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) {
+        // Fallback: try by id
+        const res = await supabase
+          .from("products")
+          .select("*")
+          .eq("id", slug)
+          .eq("published", true)
+          .maybeSingle();
+        if (res.error) throw res.error;
+        data = res.data;
+      }
+      return data ? mapDBProduct(data) : null;
+    },
+    enabled: !!slug,
+  });
+}
+
 export function useBlogPosts() {
   return useQuery({
     queryKey: ["public-blog-posts"],
