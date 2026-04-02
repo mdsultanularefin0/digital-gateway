@@ -119,17 +119,6 @@ export function useProductBySlug(slug: string) {
       if (!match) match = allProducts.find((p) => p.id === slug);
       const data = match || null;
       if (error) throw error;
-      if (!data) {
-        // Fallback: try by id
-        const res = await supabase
-          .from("products")
-          .select("*")
-          .eq("id", slug)
-          .eq("published", true)
-          .maybeSingle();
-        if (res.error) throw res.error;
-        data = res.data;
-      }
       return data ? mapDBProduct(data) : null;
     },
     enabled: !!slug,
