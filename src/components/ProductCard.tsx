@@ -43,14 +43,8 @@ export function ProductCard({ product }: { product: Product }) {
       const defTier = (allTiers as any[]).find((t) => t.is_default);
       const chosen = defTier || allTiers[0];
       return { price: Number(chosen.price), label: chosen.label as string };
-      const { data: firstTier } = await supabase
-        .from("product_tiers")
-        .select("price, label")
-        .eq("product_id", product.id)
-        .order("sort_order", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-      return firstTier as { price: number; label: string } | null;
+    },
+  });
     },
   });
 
