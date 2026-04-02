@@ -5,11 +5,12 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { Save, CreditCard, Mail, MessageSquare, Webhook } from "lucide-react";
+import { Save, CreditCard, Mail, MessageSquare, Webhook, HardDrive } from "lucide-react";
 import { PaymentTab } from "@/components/admin/integrations/PaymentTab";
 import { WebhookTab } from "@/components/admin/integrations/WebhookTab";
 import { MailTab } from "@/components/admin/integrations/MailTab";
 import { SmsTab } from "@/components/admin/integrations/SmsTab";
+import { StorageTab } from "@/components/admin/integrations/StorageTab";
 
 interface SettingsMap {
   [key: string]: string;
