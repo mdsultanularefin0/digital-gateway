@@ -121,6 +121,12 @@ export default function AdminOrders() {
       const { error } = await supabase.from("orders").update({ payment_status }).in("id", ids);
       if (error) throw error;
       ids.forEach((id) => fireWebhook(id, "order.payment_changed"));
+      // Auto-generate download tokens when bulk payment marked as paid
+      if (payment_status === "paid") {
+        for (const id of ids) {
+          await supabase.rpc("generate_download_tokens", { _order_id: id } as any);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
