@@ -45,8 +45,6 @@ export function ProductCard({ product }: { product: Product }) {
       return { price: Number(chosen.price), label: chosen.label as string };
     },
   });
-    },
-  });
 
   const displayPrice = defaultTier ? Number(defaultTier.price) : product.price;
 
