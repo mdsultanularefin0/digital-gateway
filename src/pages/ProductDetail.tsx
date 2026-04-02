@@ -17,6 +17,7 @@ import { toast } from "@/hooks/use-toast";
 import { ProductImageGallery } from "@/components/ProductImageGallery";
 import { ReviewForm } from "@/components/ReviewForm";
 import { trackViewContent, trackAddToCart } from "@/lib/meta-pixel";
+import DOMPurify from "dompurify";
 
 interface Tier {
   id: string;
