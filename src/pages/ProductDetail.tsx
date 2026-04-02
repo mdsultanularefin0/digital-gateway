@@ -160,8 +160,40 @@ export default function ProductDetailPage() {
 
   const displayPrice = activeTier ? activeTier.price : product.price;
 
+  const siteUrl = window.location.origin;
+  const canonicalUrl = `${siteUrl}/products/${product.slug || product.id}`;
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.tagline || product.description,
+    image: product.image !== "/placeholder.svg" ? product.image : undefined,
+    url: canonicalUrl,
+    offers: {
+      "@type": "Offer",
+      price: displayPrice,
+      priceCurrency: settings?.currency || "USD",
+      availability: product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    },
+    ...(reviews.length > 0 && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: avgRating.toFixed(1),
+        reviewCount: reviews.length,
+      },
+    }),
+  };
+
   return (
     <Layout>
+      <SEOHead
+        title={`${product.name} — GiftCardVibe`}
+        description={product.tagline || product.description.slice(0, 155)}
+        canonical={canonicalUrl}
+        ogImage={product.image !== "/placeholder.svg" ? product.image : undefined}
+        type="product"
+        jsonLd={productJsonLd}
+      />
       <section className="py-16 md:py-24">
         <div className="container px-5 md:px-8">
           <Link to="/products" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
