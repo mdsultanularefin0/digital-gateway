@@ -296,7 +296,7 @@ export default function LoginPage() {
             <div className="mt-6 grid grid-cols-3 gap-3 text-center">
               {[
                 { icon: "📦", text: "Track Orders" },
-                { icon: "❤️", text: "Save Wishlist" },
+                { icon: "🎯", text: "Order History" },
                 { icon: "⚡", text: "Faster Checkout" },
               ].map((b) => (
                 <div key={b.text} className="rounded-lg border border-border bg-card p-3">
