@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, X, Upload, Loader2, Download, CheckSquare, Square, FileUp } from "lucide-react";
 import { exportToCSV, logActivity } from "@/lib/admin-utils";
+import { uploadToStorage } from "@/lib/storage";
 import type { Database } from "@/integrations/supabase/types";
 import BulkProductImport from "@/components/admin/BulkProductImport";
 
@@ -242,12 +243,8 @@ export default function AdminProducts() {
     setUploading(true);
     try {
       for (const file of Array.from(files)) {
-        const ext = file.name.split(".").pop();
-        const path = `${crypto.randomUUID()}.${ext}`;
-        const { error: uploadErr } = await supabase.storage.from("product-images").upload(path, file);
-        if (uploadErr) throw uploadErr;
-        const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
-        setImages((prev) => [...prev, { image_url: urlData.publicUrl, alt_text: file.name.replace(/\.[^.]+$/, '') }]);
+        const result = await uploadToStorage(file, "products");
+        setImages((prev) => [...prev, { image_url: result.url, alt_text: file.name.replace(/\.[^.]+$/, '') }]);
       }
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });
