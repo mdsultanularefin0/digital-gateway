@@ -61,17 +61,17 @@ export default function ProductDetailPage() {
   });
 
   const { data: reviews = [], refetch: refetchReviews } = useQuery({
-    queryKey: ["product-reviews", id],
+    queryKey: ["product-reviews", productId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reviews_public")
         .select("*")
-        .eq("product_id", id!)
+        .eq("product_id", productId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Review[];
     },
-    enabled: !!id,
+    enabled: !!productId,
   });
 
   const avgRating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length : 0;
