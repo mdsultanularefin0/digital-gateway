@@ -43,7 +43,7 @@ function ToolbarButton({
   );
 }
 
-export function RichTextEditor({ value, onChange, placeholder }: Props) {
+export function RichTextEditor({ value, onChange }: Props) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({

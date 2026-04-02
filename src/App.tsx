@@ -107,6 +107,7 @@ const App = () => (
                     <Route path="/admin/blog" element={<AdminGuard><AdminBlog /></AdminGuard>} />
                     <Route path="/admin/landing-pages" element={<AdminGuard><AdminLandingPages /></AdminGuard>} />
                     <Route path="/admin/bkash-transactions" element={<AdminGuard><AdminBkashTransactions /></AdminGuard>} />
+                    <Route path="/admin/page-editor" element={<AdminGuard><AdminPageEditor /></AdminGuard>} />
                     <Route path="/p/:slug" element={<LandingPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>

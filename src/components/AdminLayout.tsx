@@ -50,6 +50,7 @@ const navStructure: NavEntry[] = [
     label: "Content",
     icon: FileText,
     items: [
+      { label: "Page Editor", to: "/admin/page-editor", icon: FileEdit },
       { label: "Landing Pages", to: "/admin/landing-pages", icon: PanelTop },
       { label: "Blog", to: "/admin/blog", icon: FileText },
       { label: "Post Generator", to: "/admin/post-generator", icon: ImageIcon },
