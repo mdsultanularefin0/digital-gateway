@@ -1,15 +1,19 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Heart } from "lucide-react";
+import { ArrowRight, Heart, ShoppingCart } from "lucide-react";
 import { type Product } from "@/data/products";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useWishlist } from "@/contexts/WishlistContext";
+import { useCart } from "@/contexts/CartContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
 
 export function ProductCard({ product }: { product: Product }) {
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "$";
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const { addItem } = useCart();
   const wishlisted = isInWishlist(product.id);
 
   const { data: firstImage } = useQuery({
@@ -31,6 +35,20 @@ export function ProductCard({ product }: { product: Product }) {
     e.stopPropagation();
     if (wishlisted) removeFromWishlist(product.id);
     else addToWishlist(product.id);
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addItem({
+      productId: product.id,
+      productName: product.name,
+      tierLabel: "",
+      tierId: null,
+      price: product.price,
+      image: (product as any).image || "",
+    });
+    toast({ title: `${product.name} added to cart` });
   };
 
   const inStock = (product as any).inStock !== false;
@@ -55,7 +73,6 @@ export function ProductCard({ product }: { product: Product }) {
         >
           <Heart className={`h-4 w-4 transition-colors ${wishlisted ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
         </button>
-        {/* Stock badge */}
         {!inStock && (
           <span className="absolute top-3 left-3 rounded-xl bg-destructive/90 px-2.5 py-1 text-xs font-semibold text-destructive-foreground backdrop-blur-sm">
             Out of Stock
@@ -89,9 +106,21 @@ export function ProductCard({ product }: { product: Product }) {
           <span className="text-lg font-bold text-foreground">
             {currencySymbol}{product.price}
           </span>
-          <span className="flex items-center gap-1 text-sm text-primary font-medium group-hover:gap-2 transition-all">
-            View Details <ArrowRight className="h-4 w-4" />
-          </span>
+          <div className="flex items-center gap-2">
+            {inStock && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-xl"
+                onClick={handleAddToCart}
+              >
+                <ShoppingCart className="h-3.5 w-3.5 mr-1" /> Add
+              </Button>
+            )}
+            <span className="flex items-center gap-1 text-sm text-primary font-medium group-hover:gap-2 transition-all">
+              Details <ArrowRight className="h-4 w-4" />
+            </span>
+          </div>
         </div>
       </div>
     </Link>
