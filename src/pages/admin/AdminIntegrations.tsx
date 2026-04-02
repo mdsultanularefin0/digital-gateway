@@ -129,6 +129,10 @@ export default function AdminIntegrations() {
           <TabsContent value="webhook">
             <WebhookTab settings={settings} update={update} />
           </TabsContent>
+
+          <TabsContent value="storage">
+            <StorageTab settings={settings} update={update} />
+          </TabsContent>
         </Tabs>
       </div>
     </AdminLayout>
