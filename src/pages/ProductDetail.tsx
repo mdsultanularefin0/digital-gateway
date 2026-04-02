@@ -310,7 +310,10 @@ export default function ProductDetailPage() {
           {/* Description */}
           <div className="mt-20">
             <h2 className="text-2xl font-display font-bold mb-6">Description</h2>
-            <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{product.description}</p>
+            <div
+              className="prose prose-sm md:prose-base max-w-none text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-ul:text-muted-foreground prose-li:marker:text-primary"
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }}
+            />
           </div>
 
           {/* Customer Reviews */}
