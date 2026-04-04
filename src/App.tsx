@@ -47,6 +47,7 @@ const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
 const AdminLandingPages = lazy(() => import("./pages/admin/AdminLandingPages"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const AdminBkashTransactions = lazy(() => import("./pages/admin/AdminBkashTransactions"));
+const AdminPaymentSettings = lazy(() => import("./pages/admin/AdminPaymentSettings"));
 const AdminPageEditor = lazy(() => import("./pages/admin/AdminPageEditor"));
 const AdminEmailTemplates = lazy(() => import("./pages/admin/AdminEmailTemplates"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -108,6 +109,7 @@ const App = () => (
                     <Route path="/admin/blog" element={<AdminGuard><AdminBlog /></AdminGuard>} />
                     <Route path="/admin/landing-pages" element={<AdminGuard><AdminLandingPages /></AdminGuard>} />
                     <Route path="/admin/bkash-transactions" element={<AdminGuard><AdminBkashTransactions /></AdminGuard>} />
+                    <Route path="/admin/payment-settings" element={<AdminGuard><AdminPaymentSettings /></AdminGuard>} />
                     <Route path="/admin/page-editor" element={<AdminGuard><AdminPageEditor /></AdminGuard>} />
                     <Route path="/admin/email-templates" element={<AdminGuard><AdminEmailTemplates /></AdminGuard>} />
                     <Route path="/p/:slug" element={<LandingPage />} />

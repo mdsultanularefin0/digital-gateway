@@ -29,6 +29,10 @@ export interface SiteSettings {
   hero_image_url: string;
   facebook_pixel_id: string;
   payment_methods: string;
+  bkash_send_number: string;
+  bkash_send_instructions: string;
+  nagad_send_number: string;
+  nagad_send_instructions: string;
 }
 
 const defaults: SiteSettings = {
@@ -59,6 +63,10 @@ const defaults: SiteSettings = {
   hero_image_url: "",
   facebook_pixel_id: "",
   payment_methods: '["cod"]',
+  bkash_send_number: "",
+  bkash_send_instructions: "",
+  nagad_send_number: "",
+  nagad_send_instructions: "",
 };
 
 export function useSiteSettings() {

@@ -53,20 +53,6 @@ const settingGroups = [
     ],
   },
   {
-    title: "Payment Methods",
-    description: "Choose which payment methods to show at checkout",
-    fields: [
-      { key: "payment_methods", label: "Enabled Methods", placeholder: "", type: "payment_methods" },
-    ],
-  },
-  {
-    title: "bKash PGW",
-    description: "bKash payment gateway configuration",
-    fields: [
-      { key: "bkash_sandbox", label: "Sandbox Mode", placeholder: "", type: "toggle" },
-    ],
-  },
-  {
     title: "Digital Downloads",
     description: "Configure download link expiry and limits for digital products",
     fields: [
