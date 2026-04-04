@@ -8,40 +8,53 @@ declare global {
   }
 }
 
-let initialized = false;
 let pixelId: string | null = null;
+let scriptLoaded = false;
 
 export function initMetaPixel(id: string) {
-  if (!id || initialized) return;
+  if (!id) return;
+
+  // If already initialized with this ID, skip
+  if (pixelId === id && scriptLoaded) return;
+
   pixelId = id;
-  initialized = true;
 
-  // Standard Meta Pixel base code
-  const f = window;
-  const b = document;
-  if (f.fbq) return;
+  // Only inject the script once
+  if (!scriptLoaded) {
+    scriptLoaded = true;
 
-  const n: any = (f.fbq = function (...args: any[]) {
-    n.callMethod ? n.callMethod.apply(n, args) : n.queue.push(args);
-  });
-  if (!f._fbq) f._fbq = n;
-  n.push = n;
-  n.loaded = true;
-  n.version = "2.0";
-  n.queue = [];
+    // Standard Meta Pixel base code
+    const f = window;
+    const b = document;
 
-  const s = b.createElement("script");
-  s.async = true;
-  s.src = "https://connect.facebook.net/en_US/fbevents.js";
-  const firstScript = b.getElementsByTagName("script")[0];
-  firstScript?.parentNode?.insertBefore(s, firstScript);
+    if (!f.fbq) {
+      const n: any = (f.fbq = function (...args: any[]) {
+        n.callMethod ? n.callMethod.apply(n, args) : n.queue.push(args);
+      });
+      if (!f._fbq) f._fbq = n;
+      n.push = n;
+      n.loaded = true;
+      n.version = "2.0";
+      n.queue = [];
+
+      const s = b.createElement("script");
+      s.async = true;
+      s.src = "https://connect.facebook.net/en_US/fbevents.js";
+      const firstScript = b.getElementsByTagName("script")[0];
+      firstScript?.parentNode?.insertBefore(s, firstScript);
+    }
+  }
 
   window.fbq("init", id);
   window.fbq("track", "PageView");
 }
 
+function isFbqReady(): boolean {
+  return !!pixelId && typeof window.fbq === "function";
+}
+
 export function trackPageView() {
-  if (!pixelId || !window.fbq) return;
+  if (!isFbqReady()) return;
   window.fbq("track", "PageView");
 }
 
@@ -52,7 +65,7 @@ export function trackViewContent(params: {
   value?: number;
   currency?: string;
 }) {
-  if (!pixelId || !window.fbq) return;
+  if (!isFbqReady()) return;
   window.fbq("track", "ViewContent", params);
 }
 
@@ -63,7 +76,7 @@ export function trackAddToCart(params: {
   value: number;
   currency: string;
 }) {
-  if (!pixelId || !window.fbq) return;
+  if (!isFbqReady()) return;
   window.fbq("track", "AddToCart", params);
 }
 
@@ -73,7 +86,7 @@ export function trackInitiateCheckout(params: {
   value: number;
   currency: string;
 }) {
-  if (!pixelId || !window.fbq) return;
+  if (!isFbqReady()) return;
   window.fbq("track", "InitiateCheckout", params);
 }
 
@@ -84,6 +97,6 @@ export function trackPurchase(params: {
   value: number;
   currency: string;
 }) {
-  if (!pixelId || !window.fbq) return;
+  if (!isFbqReady()) return;
   window.fbq("track", "Purchase", params);
 }
