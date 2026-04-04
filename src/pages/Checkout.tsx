@@ -10,6 +10,11 @@ import { Loader2, CheckCircle, ShoppingBag, Copy, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { trackInitiateCheckout, trackPurchase } from "@/lib/meta-pixel";
 import { DownloadLinks } from "@/components/DownloadLinks";
+import paymentBkash from "@/assets/payment-bkash.png";
+import paymentNagad from "@/assets/payment-nagad.png";
+import paymentCod from "@/assets/payment-cod.png";
+import paymentBank from "@/assets/payment-bank.png";
+import paymentStripe from "@/assets/payment-stripe.png";
 
 interface CheckoutForm {
   name: string;
@@ -29,12 +34,12 @@ const emptyForm: CheckoutForm = {
 };
 
 const ALL_PAYMENT_METHODS = [
-  { value: "cod", label: "Cash on Delivery" },
-  { value: "bkash", label: "bKash (PGW)" },
-  { value: "bkash_send", label: "bKash Send Money" },
-  { value: "nagad_send", label: "Nagad Send Money" },
-  { value: "bank", label: "Bank Transfer" },
-  { value: "stripe", label: "Credit/Debit Card" },
+  { value: "cod", label: "Cash on Delivery", logo: paymentCod },
+  { value: "bkash", label: "bKash (PGW)", logo: paymentBkash },
+  { value: "bkash_send", label: "bKash Send Money", logo: paymentBkash },
+  { value: "nagad_send", label: "Nagad Send Money", logo: paymentNagad },
+  { value: "bank", label: "Bank Transfer", logo: paymentBank },
+  { value: "stripe", label: "Credit/Debit Card", logo: paymentStripe },
 ];
 
 // Send Money Panel Component
@@ -483,6 +488,7 @@ export default function CheckoutPage() {
                         onChange={(e) => update("paymentMethod", e.target.value)}
                         className="h-4 w-4 accent-primary"
                       />
+                      <img src={m.logo} alt={m.label} className="h-7 w-7 object-contain rounded" loading="lazy" width={28} height={28} />
                       <span className="text-sm font-medium">{m.label}</span>
                     </label>
                   ))}
