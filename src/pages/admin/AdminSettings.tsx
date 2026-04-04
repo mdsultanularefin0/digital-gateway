@@ -79,6 +79,8 @@ const settingGroups = [
       { key: "meta_description", label: "Default Meta Description", placeholder: "Discover curated digital tools...", type: "textarea" },
       { key: "google_analytics_id", label: "Google Analytics ID", placeholder: "G-XXXXXXXXXX" },
       { key: "facebook_pixel_id", label: "Facebook Pixel ID", placeholder: "e.g. 123456789012345" },
+      { key: "facebook_capi_access_token", label: "Conversions API Access Token", placeholder: "EAAxxxxxxx...", type: "password" },
+      { key: "facebook_capi_test_code", label: "CAPI Test Event Code (optional)", placeholder: "TEST12345" },
     ],
   },
 ];
