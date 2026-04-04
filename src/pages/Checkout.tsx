@@ -10,6 +10,11 @@ import { Loader2, CheckCircle, ShoppingBag, Copy, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { trackInitiateCheckout, trackPurchase } from "@/lib/meta-pixel";
 import { DownloadLinks } from "@/components/DownloadLinks";
+import paymentBkash from "@/assets/payment-bkash.png";
+import paymentNagad from "@/assets/payment-nagad.png";
+import paymentCod from "@/assets/payment-cod.png";
+import paymentBank from "@/assets/payment-bank.png";
+import paymentStripe from "@/assets/payment-stripe.png";
 
 interface CheckoutForm {
   name: string;
