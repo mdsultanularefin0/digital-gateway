@@ -232,6 +232,7 @@ export default function AdminPostGenerator() {
   const [mockupImage, setMockupImage] = useState<HTMLImageElement | null>(null);
   const [customImageUrl, setCustomImageUrl] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<string | null>("content");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [layout, setLayout] = useState(LAYOUTS[0]);
 
   const activeColors = useCustom
