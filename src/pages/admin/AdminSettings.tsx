@@ -401,6 +401,14 @@ export default function AdminSettings() {
                           </span>
                         </label>
                       </div>
+                    ) : field.type === "password" ? (
+                      <input
+                        type="password"
+                        value={values[field.key] || ""}
+                        onChange={(e) => update(field.key, e.target.value)}
+                        placeholder={field.placeholder}
+                        className={inputClass}
+                      />
                     ) : (
                       <input
                         type={field.type || "text"}
