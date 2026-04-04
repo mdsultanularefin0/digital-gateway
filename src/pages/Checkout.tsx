@@ -19,10 +19,13 @@ interface CheckoutForm {
   couponCode: string;
   notes: string;
   paymentMethod: string;
+  senderNumber: string;
+  trxId: string;
 }
 
 const emptyForm: CheckoutForm = {
   name: "", email: "", phone: "", address: "", couponCode: "", notes: "", paymentMethod: "",
+  senderNumber: "", trxId: "",
 };
 
 const ALL_PAYMENT_METHODS = [
