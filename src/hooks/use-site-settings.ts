@@ -63,6 +63,10 @@ const defaults: SiteSettings = {
   hero_image_url: "",
   facebook_pixel_id: "",
   payment_methods: '["cod"]',
+  bkash_send_number: "",
+  bkash_send_instructions: "",
+  nagad_send_number: "",
+  nagad_send_instructions: "",
 };
 
 export function useSiteSettings() {
