@@ -76,6 +76,28 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Extract a valid public IP (skip private/internal ranges)
+    const rawIp = req.headers.get("x-real-ip")
+      || (req.headers.get("x-forwarded-for") || "").split(",")[0].trim()
+      || req.headers.get("cf-connecting-ip")
+      || "";
+
+    const isValidPublicIp = (ip: string) => {
+      if (!ip) return false;
+      // Skip private IPv4 ranges and localhost
+      if (/^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|127\.|0\.)/.test(ip)) return false;
+      // Must look like an IP (v4 or v6)
+      return /^[\d.:a-fA-F]+$/.test(ip);
+    };
+
+    const userData: Record<string, unknown> = {
+      ...(user_data || {}),
+      client_user_agent: req.headers.get("user-agent") || undefined,
+    };
+    if (isValidPublicIp(rawIp)) {
+      userData.client_ip_address = rawIp;
+    }
+
     // Build event
     const event: CAPIEvent = {
       event_name,
@@ -83,11 +105,7 @@ Deno.serve(async (req) => {
       event_time: Math.floor(Date.now() / 1000),
       event_source_url: event_source_url || "",
       action_source: "website",
-      user_data: {
-        client_ip_address: req.headers.get("x-forwarded-for") || req.headers.get("cf-connecting-ip") || undefined,
-        client_user_agent: req.headers.get("user-agent") || undefined,
-        ...(user_data || {}),
-      },
+      user_data: userData as CAPIEvent["user_data"],
       custom_data: custom_data || undefined,
     };
 
