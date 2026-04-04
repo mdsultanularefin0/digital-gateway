@@ -331,7 +331,43 @@ export default function CheckoutPage() {
         }
       }
 
-      // 5. Non-bKash: complete normally
+      // 5. Handle Send Money (bkash_send / nagad_send)
+      if (form.paymentMethod === "bkash_send" || form.paymentMethod === "nagad_send") {
+        const projectId2 = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+        const res = await fetch(
+          `https://${projectId2}.supabase.co/functions/v1/verify-send-money`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              orderId: order.id,
+              senderNumber: form.senderNumber.trim(),
+              trxId: form.trxId.trim(),
+              provider: form.paymentMethod,
+            }),
+          }
+        );
+        const sendResult = await res.json();
+        if (sendResult.verified) {
+          // Auto-verified
+          trackPurchase({
+            content_ids: items.map((i) => i.productId),
+            content_type: "product",
+            num_items: items.reduce((s, i) => s + i.quantity, 0),
+            value: total,
+            currency,
+          });
+        }
+        clearCart();
+        setPlacedOrderId(order.id);
+        setOrderPlaced(order.order_number);
+        if (!sendResult.verified) {
+          toast({ title: "Payment submitted", description: "Your payment is pending verification. You'll receive confirmation once verified." });
+        }
+        return;
+      }
+
+      // 6. Non-bKash: complete normally
       trackPurchase({
         content_ids: items.map((i) => i.productId),
         content_type: "product",
