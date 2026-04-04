@@ -67,7 +67,10 @@ async function sendCAPIEvent(
         event_name: eventName,
         event_id: eventId,
         event_source_url: window.location.href,
-        user_data: userData || {},
+        user_data: {
+          client_user_agent: navigator.userAgent,
+          ...(userData || {}),
+        },
         custom_data: customData || undefined,
       },
     });
