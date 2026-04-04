@@ -76,27 +76,30 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Extract a valid public IP (skip private/internal ranges)
+    // Build user_data — only include fields that have valid values
+    // IP: try to extract from proxy headers, skip if private/invalid
     const rawIp = req.headers.get("x-real-ip")
       || (req.headers.get("x-forwarded-for") || "").split(",")[0].trim()
-      || req.headers.get("cf-connecting-ip")
       || "";
 
     const isValidPublicIp = (ip: string) => {
       if (!ip) return false;
-      // Skip private IPv4 ranges and localhost
-      if (/^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|127\.|0\.)/.test(ip)) return false;
-      // Must look like an IP (v4 or v6)
-      return /^[\d.:a-fA-F]+$/.test(ip);
+      if (/^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|127\.|0\.|::1|fc|fd)/.test(ip)) return false;
+      return /^[\d.]+$/.test(ip) || /^[a-fA-F0-9:]+$/.test(ip);
     };
 
-    const userData: Record<string, unknown> = {
-      ...(user_data || {}),
-      client_user_agent: req.headers.get("user-agent") || undefined,
-    };
-    if (isValidPublicIp(rawIp)) {
-      userData.client_ip_address = rawIp;
+    const finalUserData: Record<string, unknown> = {};
+    // Prefer client-sent user_agent over server header
+    if (user_data?.client_user_agent) {
+      finalUserData.client_user_agent = user_data.client_user_agent;
     }
+    if (isValidPublicIp(rawIp)) {
+      finalUserData.client_ip_address = rawIp;
+    }
+    // Merge any hashed identifiers (em, ph, fn) from client
+    if (user_data?.em) finalUserData.em = user_data.em;
+    if (user_data?.ph) finalUserData.ph = user_data.ph;
+    if (user_data?.fn) finalUserData.fn = user_data.fn;
 
     // Build event
     const event: CAPIEvent = {
