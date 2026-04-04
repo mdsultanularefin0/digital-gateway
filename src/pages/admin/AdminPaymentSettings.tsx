@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Save, CreditCard, Smartphone, Eye, EyeOff } from "lucide-react";
+import { Save, CreditCard, Smartphone } from "lucide-react";
 
 interface SettingsMap {
   [key: string]: string;
