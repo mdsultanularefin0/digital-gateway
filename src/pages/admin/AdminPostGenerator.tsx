@@ -763,6 +763,26 @@ export default function AdminPostGenerator() {
               </div>
             </BentoSection>
 
+            {/* Layout */}
+            <BentoSection title="LAYOUT" id="layout" active={activeSection} onToggle={toggleSection}>
+              <div className="grid grid-cols-2 gap-1.5">
+                {LAYOUTS.map((l) => (
+                  <button
+                    key={l.id}
+                    onClick={() => setLayout(l)}
+                    className={`text-[11px] font-medium px-3 py-2.5 rounded-xl border transition-all flex items-center gap-2 ${
+                      layout.id === l.id
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border/60 text-muted-foreground hover:border-foreground/20"
+                    }`}
+                  >
+                    <span className="text-base leading-none">{l.icon}</span>
+                    {l.label}
+                  </button>
+                ))}
+              </div>
+            </BentoSection>
+
             {/* Color Palette */}
             <BentoSection title="COLOR PALETTE" id="colors" active={activeSection} onToggle={toggleSection}>
               <div className="grid grid-cols-5 gap-2 mb-3">
