@@ -356,6 +356,20 @@ export default function CheckoutPage() {
                     </label>
                   ))}
                 </div>
+
+                {/* Send Money Instructions Panel */}
+                {(form.paymentMethod === "bkash_send" || form.paymentMethod === "nagad_send") && (
+                  <SendMoneyPanel
+                    provider={form.paymentMethod}
+                    amount={total}
+                    currencySymbol={sym}
+                    senderNumber={form.senderNumber}
+                    trxId={form.trxId}
+                    onSenderChange={(v) => update("senderNumber", v)}
+                    onTrxIdChange={(v) => update("trxId", v)}
+                    settings={settings}
+                  />
+                )}
               </div>
 
               <div>
