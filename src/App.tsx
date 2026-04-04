@@ -48,6 +48,7 @@ const AdminLandingPages = lazy(() => import("./pages/admin/AdminLandingPages"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const AdminBkashTransactions = lazy(() => import("./pages/admin/AdminBkashTransactions"));
 const AdminPageEditor = lazy(() => import("./pages/admin/AdminPageEditor"));
+const AdminEmailTemplates = lazy(() => import("./pages/admin/AdminEmailTemplates"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
