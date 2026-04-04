@@ -514,6 +514,50 @@ export type Database = {
         }
         Relationships: []
       }
+      product_email_templates: {
+        Row: {
+          active: boolean
+          body_html: string
+          created_at: string
+          id: string
+          is_global: boolean
+          name: string
+          product_id: string | null
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          body_html?: string
+          created_at?: string
+          id?: string
+          is_global?: boolean
+          name?: string
+          product_id?: string | null
+          subject?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          body_html?: string
+          created_at?: string
+          id?: string
+          is_global?: boolean
+          name?: string
+          product_id?: string | null
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_email_templates_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_files: {
         Row: {
           created_at: string
