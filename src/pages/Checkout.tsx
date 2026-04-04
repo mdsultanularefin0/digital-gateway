@@ -488,6 +488,7 @@ export default function CheckoutPage() {
                         onChange={(e) => update("paymentMethod", e.target.value)}
                         className="h-4 w-4 accent-primary"
                       />
+                      <img src={m.logo} alt={m.label} className="h-7 w-7 object-contain rounded" loading="lazy" width={28} height={28} />
                       <span className="text-sm font-medium">{m.label}</span>
                     </label>
                   ))}
