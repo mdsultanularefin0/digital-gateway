@@ -46,6 +46,14 @@ const TEMPLATES = [
   { id: "facebook", label: "1200×630", width: 1200, height: 630 },
 ];
 
+const LAYOUTS = [
+  { id: "split", label: "Split Card", icon: "◧" },
+  { id: "centered", label: "Centered Hero", icon: "◉" },
+  { id: "bold-stack", label: "Bold Stack", icon: "▦" },
+  { id: "minimal", label: "Minimal Card", icon: "▢" },
+  { id: "diagonal", label: "Diagonal Cut", icon: "◤" },
+];
+
 const COLOR_PRESETS = [
   { name: "Midnight", bg: "#0d0d0d", accent: "#ff5722", text: "#ffffff", card: "#ffffff" },
   { name: "Ocean", bg: "#0a1628", accent: "#3b82f6", text: "#ffffff", card: "#f0f4ff" },
