@@ -47,6 +47,7 @@ const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
 const AdminLandingPages = lazy(() => import("./pages/admin/AdminLandingPages"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const AdminBkashTransactions = lazy(() => import("./pages/admin/AdminBkashTransactions"));
+const AdminPaymentSettings = lazy(() => import("./pages/admin/AdminPaymentSettings"));
 const AdminPageEditor = lazy(() => import("./pages/admin/AdminPageEditor"));
 const AdminEmailTemplates = lazy(() => import("./pages/admin/AdminEmailTemplates"));
 const NotFound = lazy(() => import("./pages/NotFound"));
