@@ -226,6 +226,13 @@ export default function CheckoutPage() {
       toast({ title: "Cart is empty", variant: "destructive" });
       return;
     }
+    // Validate send money fields
+    if (form.paymentMethod === "bkash_send" || form.paymentMethod === "nagad_send") {
+      if (!form.senderNumber.trim() || !form.trxId.trim()) {
+        toast({ title: "Please enter your sender number and Transaction ID", variant: "destructive" });
+        return;
+      }
+    }
 
     setSubmitting(true);
     try {
