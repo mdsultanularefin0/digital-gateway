@@ -5,6 +5,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function replaceVars(text: string, vars: Record<string, string>): string {
+  return text.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] || "");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -30,10 +34,10 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Order not found" }), { status: 404, headers: corsHeaders });
     }
 
-    // Fetch order items
+    // Fetch order items with product_id
     const { data: items } = await supabase
       .from("order_items")
-      .select("product_name, tier_label, quantity, unit_price, total")
+      .select("product_name, tier_label, quantity, unit_price, total, product_id")
       .eq("order_id", order_id);
 
     // Fetch site settings for branding
@@ -43,6 +47,50 @@ Deno.serve(async (req) => {
 
     const siteName = settings.site_name || "GiftCardVibe";
     const currencySymbol = settings.currency_symbol || "$";
+
+    // Fetch product-specific and global email templates
+    const productIds = (items || []).map((i: any) => i.product_id).filter(Boolean);
+    let productTemplates: any[] = [];
+    let globalTemplates: any[] = [];
+
+    const { data: allTemplates } = await supabase
+      .from("product_email_templates")
+      .select("*")
+      .eq("active", true);
+
+    if (allTemplates) {
+      globalTemplates = allTemplates.filter((t: any) => t.is_global);
+      productTemplates = allTemplates.filter((t: any) => !t.is_global && productIds.includes(t.product_id));
+    }
+
+    // Template variables
+    const templateVars: Record<string, string> = {
+      customer_name: order.customer_name,
+      order_number: order.order_number,
+      product_name: (items || []).map((i: any) => i.product_name).join(", "),
+    };
+
+    // Build product-specific email sections
+    let productEmailSections = "";
+    const processedProducts = new Set<string>();
+
+    for (const item of items || []) {
+      if (!item.product_id || processedProducts.has(item.product_id)) continue;
+      processedProducts.add(item.product_id);
+
+      // Find template: product-specific first, then global fallback
+      const template = productTemplates.find((t: any) => t.product_id === item.product_id)
+        || (globalTemplates.length > 0 ? globalTemplates[0] : null);
+
+      if (template) {
+        const vars = { ...templateVars, product_name: item.product_name };
+        productEmailSections += `
+          <div style="background:#f0f7ff;border-radius:8px;padding:20px;margin-top:20px;border-left:4px solid hsl(210,100%,45%);">
+            <h3 style="margin:0 0 8px;font-size:16px;color:#1a1a2e;">${replaceVars(template.subject, vars)}</h3>
+            <div style="font-size:14px;color:#333;line-height:1.6;">${replaceVars(template.body_html, vars)}</div>
+          </div>`;
+      }
+    }
 
     // Build HTML email
     const itemsHtml = (items || []).map((item: any) => `
@@ -84,6 +132,7 @@ Deno.serve(async (req) => {
               ${Number(order.discount) > 0 ? `<p style="margin:4px 0;font-size:14px;color:#22c55e;">Discount: -${currencySymbol}${Number(order.discount).toFixed(2)}</p>` : ''}
               <p style="margin:4px 0;font-size:18px;font-weight:bold;color:#1a1a2e;">Total: ${currencySymbol}${Number(order.total).toFixed(2)}</p>
             </div>
+            ${productEmailSections}
             <p style="margin:24px 0 0;font-size:13px;color:#888;">If you have any questions, reply to this email or contact our support team.</p>
           </div>
         </div>
@@ -98,7 +147,6 @@ Deno.serve(async (req) => {
     (mailRows || []).forEach((r: any) => { mailCfg[r.key] = r.value; });
 
     if (mailCfg.smtp_host && mailCfg.smtp_username && mailCfg.smtp_password) {
-      // Send via SMTP
       const smtpPort = parseInt(mailCfg.smtp_port || "587");
       const useSSL = mailCfg.smtp_encryption === "ssl";
       const conn = useSSL
@@ -115,18 +163,16 @@ Deno.serve(async (req) => {
         return await read();
       };
 
-      await read(); // greeting
+      await read();
       await write("EHLO localhost");
       if (!useSSL && mailCfg.smtp_encryption === "tls") {
         await write("STARTTLS");
-        // Note: Deno.startTls not used here for simplicity, assumes STARTTLS upgrade handled
         await write("EHLO localhost");
       }
       
       const credentials = btoa(`\0${mailCfg.smtp_username}\0${mailCfg.smtp_password}`);
       await write(`AUTH PLAIN ${credentials}`);
       
-      // Use orders-specific from address, fallback to smtp_from
       const fromAddr = mailCfg.from_orders || mailCfg.smtp_from || mailCfg.smtp_username;
       await write(`MAIL FROM:<${fromAddr}>`);
       await write(`RCPT TO:<${order.customer_email}>`);
