@@ -6,7 +6,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, CheckCircle, ShoppingBag } from "lucide-react";
+import { Loader2, CheckCircle, ShoppingBag, Copy, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { trackInitiateCheckout, trackPurchase } from "@/lib/meta-pixel";
 import { DownloadLinks } from "@/components/DownloadLinks";
