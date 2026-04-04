@@ -34,12 +34,12 @@ const emptyForm: CheckoutForm = {
 };
 
 const ALL_PAYMENT_METHODS = [
-  { value: "cod", label: "Cash on Delivery" },
-  { value: "bkash", label: "bKash (PGW)" },
-  { value: "bkash_send", label: "bKash Send Money" },
-  { value: "nagad_send", label: "Nagad Send Money" },
-  { value: "bank", label: "Bank Transfer" },
-  { value: "stripe", label: "Credit/Debit Card" },
+  { value: "cod", label: "Cash on Delivery", logo: paymentCod },
+  { value: "bkash", label: "bKash (PGW)", logo: paymentBkash },
+  { value: "bkash_send", label: "bKash Send Money", logo: paymentBkash },
+  { value: "nagad_send", label: "Nagad Send Money", logo: paymentNagad },
+  { value: "bank", label: "Bank Transfer", logo: paymentBank },
+  { value: "stripe", label: "Credit/Debit Card", logo: paymentStripe },
 ];
 
 // Send Money Panel Component
