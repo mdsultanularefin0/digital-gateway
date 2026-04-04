@@ -30,8 +30,9 @@ const emptyForm: CheckoutForm = {
 
 const ALL_PAYMENT_METHODS = [
   { value: "cod", label: "Cash on Delivery" },
-  { value: "bkash", label: "bKash" },
-  { value: "nagad", label: "Nagad" },
+  { value: "bkash", label: "bKash (PGW)" },
+  { value: "bkash_send", label: "bKash Send Money" },
+  { value: "nagad_send", label: "Nagad Send Money" },
   { value: "bank", label: "Bank Transfer" },
   { value: "stripe", label: "Credit/Debit Card" },
 ];
