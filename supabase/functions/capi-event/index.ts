@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
       event_time: Math.floor(Date.now() / 1000),
       event_source_url: event_source_url || "",
       action_source: "website",
-      user_data: userData as CAPIEvent["user_data"],
+      user_data: finalUserData as CAPIEvent["user_data"],
       custom_data: custom_data || undefined,
     };
 
