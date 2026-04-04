@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
-import { Download, Plus, X, ChevronDown, Upload, ImageIcon, Trash2 } from "lucide-react";
+import { Download, Plus, X, ChevronDown, Upload, ImageIcon, Trash2, LayoutGrid } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 import mockupDatacamp from "@/assets/mockup-datacamp.png";
@@ -44,6 +44,14 @@ const TEMPLATES = [
   { id: "story", label: "1080×1920", width: 1080, height: 1920 },
   { id: "landscape", label: "1920×1080", width: 1920, height: 1080 },
   { id: "facebook", label: "1200×630", width: 1200, height: 630 },
+];
+
+const LAYOUTS = [
+  { id: "split", label: "Split Card", icon: "◧" },
+  { id: "centered", label: "Centered Hero", icon: "◉" },
+  { id: "bold-stack", label: "Bold Stack", icon: "▦" },
+  { id: "minimal", label: "Minimal Card", icon: "▢" },
+  { id: "diagonal", label: "Diagonal Cut", icon: "◤" },
 ];
 
 const COLOR_PRESETS = [
@@ -223,8 +231,9 @@ export default function AdminPostGenerator() {
   const [useCustom, setUseCustom] = useState(false);
   const [mockupImage, setMockupImage] = useState<HTMLImageElement | null>(null);
   const [customImageUrl, setCustomImageUrl] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeSection, setActiveSection] = useState<string | null>("content");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [layout, setLayout] = useState(LAYOUTS[0]);
 
   const activeColors = useCustom
     ? {
@@ -284,251 +293,396 @@ export default function AdminPostGenerator() {
     canvas.height = H;
 
     const scale = Math.min(W, H) / 1080;
-    const isLandscape = W > H;
 
-    // ── Background ─────────────────────────────────────────────
-    ctx.fillStyle = activeColors.bg;
-    ctx.fillRect(0, 0, W, H);
-
-    // Subtle noise texture
-    ctx.globalAlpha = 0.025;
-    for (let i = 0; i < W * H * 0.0015; i++) {
-      ctx.fillStyle = activeColors.text;
-      ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
-    }
-    ctx.globalAlpha = 1;
-
-    // ── Layout Split ───────────────────────────────────────────
-    const splitX = isLandscape ? W * 0.42 : W * 0.4;
-    const cardMargin = 40 * scale;
-    const cardX = splitX;
-    const cardY = cardMargin;
-    const cardW = W - splitX - cardMargin;
-    const cardH = H - cardMargin * 2;
-
-    // White card on the right
-    ctx.fillStyle = activeColors.card;
-    ctx.fillRect(cardX, cardY, cardW, cardH);
-
-    // ── Product mockup image on card ──────────────────────────
-    if (mockupImage) {
-      const imgPad = 30 * scale;
-      const imgMaxW = cardW - imgPad * 2;
-      const imgMaxH = cardH * 0.38;
-      const imgAspect = mockupImage.width / mockupImage.height;
-      let imgW = imgMaxW;
-      let imgH = imgW / imgAspect;
-      if (imgH > imgMaxH) {
-        imgH = imgMaxH;
-        imgW = imgH * imgAspect;
-      }
-      const imgX = cardX + (cardW - imgW) / 2;
-      const imgY = cardY + cardH * 0.08;
-      ctx.drawImage(mockupImage, imgX, imgY, imgW, imgH);
-    }
-
-    // ── Price block on card ───────────────────────────────────
-    const priceBlockY = cardY + cardH * 0.52;
-
-    if (data.price) {
-      // Current price — bold & dominant
-      const priceSize = 56 * scale;
-      ctx.font = `900 ${Math.round(priceSize)}px "Plus Jakarta Sans", sans-serif`;
+    // ── Helper functions ─────────────────────────────────────
+    const drawBg = () => {
       ctx.fillStyle = activeColors.bg;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(data.price, cardX + cardW / 2, priceBlockY);
-
-      // Original price — subtle strikethrough
-      if (data.originalPrice) {
-        const origSize = 22 * scale;
-        ctx.font = `400 ${Math.round(origSize)}px "Plus Jakarta Sans", sans-serif`;
-        ctx.fillStyle = activeColors.bg + "44";
-        const origY = priceBlockY + priceSize * 0.6;
-        const origW = ctx.measureText(data.originalPrice).width;
-        ctx.fillText(data.originalPrice, cardX + cardW / 2, origY);
-        // Thin, subtle strikethrough
-        ctx.strokeStyle = activeColors.bg + "55";
-        ctx.lineWidth = 1.5 * scale;
-        ctx.beginPath();
-        ctx.moveTo(cardX + cardW / 2 - origW / 2 - 4, origY);
-        ctx.lineTo(cardX + cardW / 2 + origW / 2 + 4, origY);
-        ctx.stroke();
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalAlpha = 0.025;
+      for (let i = 0; i < W * H * 0.0015; i++) {
+        ctx.fillStyle = activeColors.text;
+        ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
       }
-    }
+      ctx.globalAlpha = 1;
+    };
 
-    // ── CTA Button on card ────────────────────────────────────
-    if (data.ctaText) {
-      const ctaFontSize = 22 * scale;
-      ctx.font = `800 ${Math.round(ctaFontSize)}px "Plus Jakarta Sans", sans-serif`;
-      const ctaTextW = ctx.measureText(data.ctaText.toUpperCase()).width;
-      const ctaPadX = 50 * scale;
-      const ctaPadY = 20 * scale;
-      const ctaW = ctaTextW + ctaPadX * 2;
-      const ctaH = ctaFontSize + ctaPadY * 2;
-      const ctaX = cardX + (cardW - ctaW) / 2;
-      const ctaY = cardY + cardH * 0.68;
-      const ctaRadius = 4 * scale;
-
-      // Button background
+    const drawAccentBar = () => {
       ctx.fillStyle = activeColors.accent;
-      ctx.beginPath();
-      ctx.roundRect(ctaX, ctaY, ctaW, ctaH, ctaRadius);
-      ctx.fill();
+      ctx.fillRect(0, H - 5 * scale, W, 5 * scale);
+    };
 
-      // Button text
-      ctx.fillStyle = "#ffffff";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(data.ctaText.toUpperCase(), ctaX + ctaW / 2, ctaY + ctaH / 2);
-    }
-
-    // Footer on card
-    if (data.footerText) {
-      const footSize = 15 * scale;
-      ctx.font = `500 ${Math.round(footSize)}px "Plus Jakarta Sans", sans-serif`;
-      ctx.fillStyle = activeColors.bg + "44";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "bottom";
-      ctx.fillText(data.footerText, cardX + cardW / 2, cardY + cardH - 22 * scale);
-    }
-
-    // ── Left Side — Product Mockup Context ────────────────────
-    // Draw a layered software-window mockup with the product mockup inside
-    if (mockupImage) {
-      const frameW = (splitX - 80 * scale) * 0.85;
-      const frameH = frameW * 0.7;
-      const frameX = (splitX - frameW) / 2;
-      const frameY = H - frameH - 60 * scale;
-
-      // Shadow
-      ctx.fillStyle = "rgba(0,0,0,0.18)";
-      ctx.beginPath();
-      ctx.roundRect(frameX + 6 * scale, frameY + 6 * scale, frameW, frameH, 6 * scale);
-      ctx.fill();
-
-      // Window frame
-      ctx.fillStyle = activeColors.text === "#ffffff" ? "#1a1a1a" : "#f0f0f0";
-      ctx.beginPath();
-      ctx.roundRect(frameX, frameY, frameW, frameH, 6 * scale);
-      ctx.fill();
-
-      // Title bar
-      const titleBarH = 28 * scale;
-      ctx.fillStyle = activeColors.accent + "22";
-      ctx.fillRect(frameX, frameY, frameW, titleBarH);
-
-      // Window dots
-      const dotR = 4 * scale;
-      [activeColors.accent, activeColors.text + "33", activeColors.text + "33"].forEach((c, i) => {
-        ctx.fillStyle = c;
-        ctx.beginPath();
-        ctx.arc(frameX + 16 * scale + i * 16 * scale, frameY + titleBarH / 2, dotR, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      // Product image inside the window
-      const innerPad = 8 * scale;
-      const innerY = frameY + titleBarH + innerPad;
-      const innerW = frameW - innerPad * 2;
-      const innerH = frameH - titleBarH - innerPad * 2;
-      const imgAspect = mockupImage.width / mockupImage.height;
-      let drawW = innerW;
-      let drawH = drawW / imgAspect;
-      if (drawH > innerH) { drawH = innerH; drawW = drawH * imgAspect; }
-      const drawX = frameX + innerPad + (innerW - drawW) / 2;
-      const drawY = innerY + (innerH - drawH) / 2;
-      ctx.drawImage(mockupImage, drawX, drawY, drawW, drawH);
-    }
-
-    // ── Left Side Text ──────────────────────────────────────────
-    ctx.textAlign = "left";
-    const padX = 50 * scale;
-    const maxTextW = splitX - padX * 2;
-    let currentY = H * 0.1;
-
-    // Badge — sharp corners, accent color
-    if (data.badge) {
+    const drawBadge = (x: number, y: number) => {
+      if (!data.badge) return y;
       ctx.fillStyle = activeColors.accent;
       const badgeFont = `800 ${Math.round(15 * scale)}px "Plus Jakarta Sans", sans-serif`;
       ctx.font = badgeFont;
       const badgeText = data.badge.toUpperCase();
-      const badgeMetrics = ctx.measureText(badgeText);
-      const bpx = 16 * scale;
-      const bpy = 9 * scale;
-      const bw = badgeMetrics.width + bpx * 2;
-      const bh = 15 * scale + bpy * 2;
-
-      ctx.fillRect(padX, currentY, bw, bh);
-
+      const bm = ctx.measureText(badgeText);
+      const bpx = 16 * scale, bpy = 9 * scale;
+      const bw = bm.width + bpx * 2, bh = 15 * scale + bpy * 2;
+      ctx.fillRect(x, y, bw, bh);
       ctx.fillStyle = "#ffffff";
       ctx.textBaseline = "middle";
-      ctx.fillText(badgeText, padX + bpx, currentY + bh / 2);
-      currentY += bh + 40 * scale;
-    }
+      ctx.textAlign = "left";
+      ctx.fillText(badgeText, x + bpx, y + bh / 2);
+      return y + bh + 40 * scale;
+    };
 
-    // Product Name
-    if (data.productName) {
-      const nameSize = isLandscape ? 56 * scale : 64 * scale;
-      ctx.font = `900 ${Math.round(nameSize)}px "Plus Jakarta Sans", serif`;
+    const drawProductName = (x: number, y: number, maxW: number, size: number, align: CanvasTextAlign = "left") => {
+      if (!data.productName) return y;
+      ctx.font = `900 ${Math.round(size)}px "Plus Jakarta Sans", serif`;
       ctx.fillStyle = activeColors.text;
       ctx.textBaseline = "top";
-
+      ctx.textAlign = align;
       const nameLines = data.productName.split("\n");
       nameLines.forEach((rawLine) => {
-        const wrapped = wrapText(ctx, rawLine, maxTextW);
+        const wrapped = wrapText(ctx, rawLine, maxW);
         wrapped.forEach((line) => {
-          ctx.fillText(line, padX, currentY);
-          currentY += nameSize * 1.1;
+          ctx.fillText(line, x, y);
+          y += size * 1.1;
         });
       });
-      currentY += 20 * scale;
-    }
+      return y + 20 * scale;
+    };
 
-    // Thin accent divider
-    ctx.fillStyle = activeColors.accent;
-    ctx.fillRect(padX, currentY, 60 * scale, 3 * scale);
-    currentY += 32 * scale;
+    const drawDivider = (x: number, y: number, w: number, align: CanvasTextAlign = "left") => {
+      ctx.fillStyle = activeColors.accent;
+      const dx = align === "center" ? x - w / 2 : x;
+      ctx.fillRect(dx, y, w, 3 * scale);
+      return y + 32 * scale;
+    };
 
-    // Tagline
-    if (data.tagline) {
+    const drawTagline = (x: number, y: number, maxW: number, align: CanvasTextAlign = "left") => {
+      if (!data.tagline) return y;
       const tagSize = 19 * scale;
       ctx.font = `400 ${Math.round(tagSize)}px "Plus Jakarta Sans", sans-serif`;
       ctx.fillStyle = activeColors.text + "88";
       ctx.textBaseline = "top";
+      ctx.textAlign = align;
+      const lines = wrapText(ctx, data.tagline, maxW);
+      lines.forEach((line) => { ctx.fillText(line, x, y); y += tagSize * 1.55; });
+      return y + 40 * scale;
+    };
 
-      const lines = wrapText(ctx, data.tagline, maxTextW);
-      lines.forEach((line) => {
-        ctx.fillText(line, padX, currentY);
-        currentY += tagSize * 1.55;
-      });
-      // Increased negative space before features
-      currentY += 40 * scale;
-    }
-
-    // Features — minimal accent dots
-    const activeFeatures = data.features.filter((f) => f.trim());
-    if (activeFeatures.length > 0) {
+    const drawFeatures = (x: number, y: number, align: CanvasTextAlign = "left") => {
+      const activeFeatures = data.features.filter((f) => f.trim());
+      if (activeFeatures.length === 0) return y;
       const featSize = 17 * scale;
-
       activeFeatures.forEach((feat) => {
         ctx.fillStyle = activeColors.accent;
+        const dotX = align === "center" ? x - ctx.measureText(feat).width / 2 - 15 * scale : x + 5 * scale;
         ctx.beginPath();
-        ctx.arc(padX + 5 * scale, currentY + featSize * 0.55, 3.5 * scale, 0, Math.PI * 2);
+        ctx.arc(dotX, y + featSize * 0.55, 3.5 * scale, 0, Math.PI * 2);
         ctx.fill();
-
         ctx.font = `400 ${Math.round(featSize)}px "Plus Jakarta Sans", sans-serif`;
         ctx.fillStyle = activeColors.text + "aa";
         ctx.textBaseline = "top";
-        ctx.fillText(feat, padX + 20 * scale, currentY);
-        currentY += featSize * 2;
+        ctx.textAlign = align === "center" ? "left" : "left";
+        const tx = align === "center" ? dotX + 12 * scale : x + 20 * scale;
+        ctx.fillText(feat, tx, y);
+        y += featSize * 2;
       });
-    }
+      return y;
+    };
 
-    // ── Bottom accent bar ──────────────────────────────────────
-    ctx.fillStyle = activeColors.accent;
-    ctx.fillRect(0, H - 5 * scale, W, 5 * scale);
-  }, [data, template, activeColors, mockupImage]);
+    const drawPrice = (x: number, y: number, align: CanvasTextAlign, fillColor: string) => {
+      if (!data.price) return y;
+      const priceSize = 56 * scale;
+      ctx.font = `900 ${Math.round(priceSize)}px "Plus Jakarta Sans", sans-serif`;
+      ctx.fillStyle = fillColor;
+      ctx.textAlign = align;
+      ctx.textBaseline = "middle";
+      ctx.fillText(data.price, x, y);
+      if (data.originalPrice) {
+        const origSize = 22 * scale;
+        ctx.font = `400 ${Math.round(origSize)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.fillStyle = fillColor + "44";
+        const origY = y + priceSize * 0.6;
+        const origW = ctx.measureText(data.originalPrice).width;
+        ctx.fillText(data.originalPrice, x, origY);
+        ctx.strokeStyle = fillColor + "55";
+        ctx.lineWidth = 1.5 * scale;
+        const origX = align === "center" ? x - origW / 2 - 4 : x - 4;
+        ctx.beginPath();
+        ctx.moveTo(origX, origY);
+        ctx.lineTo(origX + origW + 8, origY);
+        ctx.stroke();
+        return origY + origSize + 30 * scale;
+      }
+      return y + priceSize * 0.8 + 30 * scale;
+    };
+
+    const drawCta = (cx: number, y: number) => {
+      if (!data.ctaText) return y;
+      const ctaFontSize = 22 * scale;
+      ctx.font = `800 ${Math.round(ctaFontSize)}px "Plus Jakarta Sans", sans-serif`;
+      const ctaTextW = ctx.measureText(data.ctaText.toUpperCase()).width;
+      const ctaPadX = 50 * scale, ctaPadY = 20 * scale;
+      const ctaW = ctaTextW + ctaPadX * 2, ctaH = ctaFontSize + ctaPadY * 2;
+      const ctaX = cx - ctaW / 2;
+      ctx.fillStyle = activeColors.accent;
+      ctx.beginPath();
+      ctx.roundRect(ctaX, y, ctaW, ctaH, 4 * scale);
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(data.ctaText.toUpperCase(), cx, y + ctaH / 2);
+      return y + ctaH + 20 * scale;
+    };
+
+    const drawFooter = (cx: number, y: number) => {
+      if (!data.footerText) return;
+      const footSize = 15 * scale;
+      ctx.font = `500 ${Math.round(footSize)}px "Plus Jakarta Sans", sans-serif`;
+      ctx.fillStyle = activeColors.text + "44";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText(data.footerText, cx, y);
+    };
+
+    const drawMockupWindow = (fx: number, fy: number, fw: number, fh: number) => {
+      if (!mockupImage) return;
+      ctx.fillStyle = "rgba(0,0,0,0.18)";
+      ctx.beginPath(); ctx.roundRect(fx + 6 * scale, fy + 6 * scale, fw, fh, 6 * scale); ctx.fill();
+      ctx.fillStyle = activeColors.text === "#ffffff" ? "#1a1a1a" : "#f0f0f0";
+      ctx.beginPath(); ctx.roundRect(fx, fy, fw, fh, 6 * scale); ctx.fill();
+      const titleBarH = 28 * scale;
+      ctx.fillStyle = activeColors.accent + "22";
+      ctx.fillRect(fx, fy, fw, titleBarH);
+      const dotR = 4 * scale;
+      [activeColors.accent, activeColors.text + "33", activeColors.text + "33"].forEach((c, i) => {
+        ctx.fillStyle = c;
+        ctx.beginPath();
+        ctx.arc(fx + 16 * scale + i * 16 * scale, fy + titleBarH / 2, dotR, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      const innerPad = 8 * scale;
+      const innerY = fy + titleBarH + innerPad;
+      const innerW = fw - innerPad * 2, innerH = fh - titleBarH - innerPad * 2;
+      const imgAspect = mockupImage.width / mockupImage.height;
+      let drawW = innerW, drawH = drawW / imgAspect;
+      if (drawH > innerH) { drawH = innerH; drawW = drawH * imgAspect; }
+      const drawX = fx + innerPad + (innerW - drawW) / 2;
+      const drawY = innerY + (innerH - drawH) / 2;
+      ctx.drawImage(mockupImage, drawX, drawY, drawW, drawH);
+    };
+
+    const drawMockupPlain = (cx: number, cy: number, maxW: number, maxH: number) => {
+      if (!mockupImage) return;
+      const imgAspect = mockupImage.width / mockupImage.height;
+      let iw = maxW, ih = iw / imgAspect;
+      if (ih > maxH) { ih = maxH; iw = ih * imgAspect; }
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.25)";
+      ctx.shadowBlur = 30 * scale;
+      ctx.shadowOffsetY = 10 * scale;
+      ctx.drawImage(mockupImage, cx - iw / 2, cy - ih / 2, iw, ih);
+      ctx.restore();
+    };
+
+    // ── Layout Renderers ─────────────────────────────────────
+    if (layout.id === "split") {
+      // Original split layout
+      drawBg();
+      const isLandscape = W > H;
+      const splitX = isLandscape ? W * 0.42 : W * 0.4;
+      const cardMargin = 40 * scale;
+      const cardX = splitX, cardY = cardMargin;
+      const cardW = W - splitX - cardMargin, cardH = H - cardMargin * 2;
+      ctx.fillStyle = activeColors.card;
+      ctx.fillRect(cardX, cardY, cardW, cardH);
+      if (mockupImage) {
+        const imgPad = 30 * scale;
+        const imgMaxW = cardW - imgPad * 2, imgMaxH = cardH * 0.38;
+        const imgAspect = mockupImage.width / mockupImage.height;
+        let imgW = imgMaxW, imgH = imgW / imgAspect;
+        if (imgH > imgMaxH) { imgH = imgMaxH; imgW = imgH * imgAspect; }
+        ctx.drawImage(mockupImage, cardX + (cardW - imgW) / 2, cardY + cardH * 0.08, imgW, imgH);
+      }
+      drawPrice(cardX + cardW / 2, cardY + cardH * 0.52, "center", activeColors.bg);
+      drawCta(cardX + cardW / 2, cardY + cardH * 0.68);
+      if (data.footerText) {
+        const footSize = 15 * scale;
+        ctx.font = `500 ${Math.round(footSize)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.fillStyle = activeColors.bg + "44"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+        ctx.fillText(data.footerText, cardX + cardW / 2, cardY + cardH - 22 * scale);
+      }
+      if (mockupImage) {
+        const frameW = (splitX - 80 * scale) * 0.85, frameH = frameW * 0.7;
+        drawMockupWindow((splitX - frameW) / 2, H - frameH - 60 * scale, frameW, frameH);
+      }
+      const padX = 50 * scale;
+      const maxTextW = splitX - padX * 2;
+      let cy = H * 0.1;
+      cy = drawBadge(padX, cy);
+      cy = drawProductName(padX, cy, maxTextW, (isLandscape ? 56 : 64) * scale);
+      cy = drawDivider(padX, cy, 60 * scale);
+      cy = drawTagline(padX, cy, maxTextW);
+      drawFeatures(padX, cy);
+      drawAccentBar();
+
+    } else if (layout.id === "centered") {
+      // Centered hero layout
+      drawBg();
+      const cx = W / 2;
+      let cy = H * 0.06;
+      cy = drawBadge(cx - 50 * scale, cy);
+      cy = drawProductName(cx, cy, W * 0.7, 60 * scale, "center");
+      cy = drawDivider(cx, cy, 80 * scale, "center");
+      cy = drawTagline(cx, cy, W * 0.6, "center");
+      if (mockupImage) {
+        const imgMaxW = W * 0.45, imgMaxH = H * 0.3;
+        drawMockupPlain(cx, cy + imgMaxH / 2, imgMaxW, imgMaxH);
+        cy += imgMaxH + 30 * scale;
+      }
+      cy = drawPrice(cx, cy + 10 * scale, "center", activeColors.text);
+      cy = drawCta(cx, cy);
+      drawFeatures(cx, cy, "center");
+      drawFooter(cx, H - 40 * scale);
+      drawAccentBar();
+
+    } else if (layout.id === "bold-stack") {
+      // Bold stacked full-width layout
+      drawBg();
+      // Large accent strip at top
+      ctx.fillStyle = activeColors.accent;
+      ctx.fillRect(0, 0, W, 8 * scale);
+      const padX = 60 * scale;
+      let cy = 50 * scale;
+      cy = drawBadge(padX, cy);
+      cy = drawProductName(padX, cy, W - padX * 2, 72 * scale);
+      // Full-width divider
+      ctx.fillStyle = activeColors.accent + "33";
+      ctx.fillRect(padX, cy, W - padX * 2, 2 * scale);
+      cy += 30 * scale;
+      // Two-column: features left, image right
+      const colW = (W - padX * 3) / 2;
+      const leftX = padX;
+      let leftY = cy;
+      leftY = drawTagline(leftX, leftY, colW);
+      drawFeatures(leftX, leftY);
+      // Image on right
+      if (mockupImage) {
+        const imgX = padX * 2 + colW;
+        drawMockupPlain(imgX + colW / 2, cy + colW * 0.35, colW * 0.9, colW * 0.7);
+      }
+      // Bottom bar with price + CTA
+      const barH = 160 * scale;
+      const barY = H - barH;
+      ctx.fillStyle = activeColors.accent + "11";
+      ctx.fillRect(0, barY, W, barH);
+      ctx.fillStyle = activeColors.accent;
+      ctx.fillRect(0, barY, W, 2 * scale);
+      // Price on left of bar
+      drawPrice(padX + 80 * scale, barY + barH / 2 - 10 * scale, "left", activeColors.text);
+      // CTA on right of bar
+      drawCta(W - padX - 120 * scale, barY + barH / 2 - 32 * scale);
+      drawFooter(W / 2, barY + barH - 25 * scale);
+      drawAccentBar();
+
+    } else if (layout.id === "minimal") {
+      // Minimal centered card on gradient
+      // Gradient background
+      const grad = ctx.createLinearGradient(0, 0, W, H);
+      grad.addColorStop(0, activeColors.bg);
+      grad.addColorStop(1, activeColors.accent + "33");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+      // Center card
+      const cardW = W * 0.7, cardH = H * 0.8;
+      const cardX = (W - cardW) / 2, cardY = (H - cardH) / 2;
+      ctx.fillStyle = activeColors.card;
+      ctx.shadowColor = "rgba(0,0,0,0.15)";
+      ctx.shadowBlur = 40 * scale;
+      ctx.shadowOffsetY = 10 * scale;
+      ctx.beginPath(); ctx.roundRect(cardX, cardY, cardW, cardH, 16 * scale); ctx.fill();
+      ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+      const cx = cardX + cardW / 2;
+      let cy = cardY + 40 * scale;
+      // Badge
+      if (data.badge) {
+        ctx.fillStyle = activeColors.accent;
+        ctx.font = `800 ${Math.round(13 * scale)}px "Plus Jakarta Sans", sans-serif`;
+        const bt = data.badge.toUpperCase();
+        const bm = ctx.measureText(bt);
+        const bpx = 14 * scale, bpy = 7 * scale;
+        ctx.beginPath(); ctx.roundRect(cx - bm.width / 2 - bpx, cy, bm.width + bpx * 2, 13 * scale + bpy * 2, 99); ctx.fill();
+        ctx.fillStyle = "#ffffff"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(bt, cx, cy + (13 * scale + bpy * 2) / 2);
+        cy += 13 * scale + bpy * 2 + 30 * scale;
+      }
+      // Image
+      if (mockupImage) {
+        const imgMaxW = cardW * 0.6, imgMaxH = cardH * 0.28;
+        drawMockupPlain(cx, cy + imgMaxH / 2, imgMaxW, imgMaxH);
+        cy += imgMaxH + 20 * scale;
+      }
+      // Product name
+      cy = drawProductName(cx, cy, cardW * 0.8, 44 * scale, "center");
+      // Tagline
+      const tagSize = 16 * scale;
+      if (data.tagline) {
+        ctx.font = `400 ${Math.round(tagSize)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.fillStyle = activeColors.bg + "66"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+        const lines = wrapText(ctx, data.tagline, cardW * 0.75);
+        lines.forEach((line) => { ctx.fillText(line, cx, cy); cy += tagSize * 1.5; });
+        cy += 20 * scale;
+      }
+      // Price
+      cy = drawPrice(cx, cy, "center", activeColors.bg);
+      // CTA
+      drawCta(cx, cy);
+      // Footer
+      if (data.footerText) {
+        const fs = 13 * scale;
+        ctx.font = `500 ${Math.round(fs)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.fillStyle = activeColors.bg + "33"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+        ctx.fillText(data.footerText, cx, cardY + cardH - 20 * scale);
+      }
+
+    } else if (layout.id === "diagonal") {
+      // Diagonal cut layout
+      drawBg();
+      // Diagonal accent shape
+      ctx.fillStyle = activeColors.accent + "15";
+      ctx.beginPath();
+      ctx.moveTo(W * 0.55, 0);
+      ctx.lineTo(W, 0);
+      ctx.lineTo(W, H);
+      ctx.lineTo(W * 0.35, H);
+      ctx.closePath();
+      ctx.fill();
+      // Accent line along diagonal
+      ctx.strokeStyle = activeColors.accent + "44";
+      ctx.lineWidth = 2 * scale;
+      ctx.beginPath();
+      ctx.moveTo(W * 0.55, 0);
+      ctx.lineTo(W * 0.35, H);
+      ctx.stroke();
+      // Left content
+      const padX = 60 * scale;
+      const maxTextW = W * 0.4;
+      let cy = H * 0.1;
+      cy = drawBadge(padX, cy);
+      cy = drawProductName(padX, cy, maxTextW, 58 * scale);
+      cy = drawDivider(padX, cy, 60 * scale);
+      cy = drawTagline(padX, cy, maxTextW);
+      drawFeatures(padX, cy);
+      // Right side: image + price + CTA
+      const rightCx = W * 0.75;
+      let ry = H * 0.08;
+      if (mockupImage) {
+        const imgMaxW = W * 0.35, imgMaxH = H * 0.35;
+        drawMockupPlain(rightCx, ry + imgMaxH / 2, imgMaxW, imgMaxH);
+        ry += imgMaxH + 20 * scale;
+      }
+      ry = drawPrice(rightCx, ry + 10 * scale, "center", activeColors.text);
+      drawCta(rightCx, ry);
+      drawFooter(rightCx, H - 50 * scale);
+      drawAccentBar();
+    }
+  }, [data, template, activeColors, mockupImage, layout]);
 
   useEffect(() => {
     drawCanvas();
@@ -604,6 +758,26 @@ export default function AdminPostGenerator() {
                     }`}
                   >
                     {t.label}
+                  </button>
+                ))}
+              </div>
+            </BentoSection>
+
+            {/* Layout */}
+            <BentoSection title="LAYOUT" id="layout" active={activeSection} onToggle={toggleSection}>
+              <div className="grid grid-cols-2 gap-1.5">
+                {LAYOUTS.map((l) => (
+                  <button
+                    key={l.id}
+                    onClick={() => setLayout(l)}
+                    className={`text-[11px] font-medium px-3 py-2.5 rounded-xl border transition-all flex items-center gap-2 ${
+                      layout.id === l.id
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border/60 text-muted-foreground hover:border-foreground/20"
+                    }`}
+                  >
+                    <span className="text-base leading-none">{l.icon}</span>
+                    {l.label}
                   </button>
                 ))}
               </div>
