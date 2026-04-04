@@ -240,13 +240,13 @@ export default function AdminSettings() {
         updated_at: new Date().toISOString(),
       }));
 
-      for (const item of upserts) {
-        const { error } = await supabase
-          .from("site_settings")
-          .update({ value: item.value, updated_at: item.updated_at })
-          .eq("key", item.key);
-        if (error) throw error;
-      }
+      if (upserts.length === 0) return;
+
+      const { error } = await supabase
+        .from("site_settings")
+        .upsert(upserts, { onConflict: "key" });
+
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["site-settings-admin"] });
