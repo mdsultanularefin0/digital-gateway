@@ -499,7 +499,7 @@ function TextImageSection({ content }: { content: SectionContent }) {
                   <CarouselNext className="-right-4 md:-right-12" />
                 </Carousel>
               ) : (
-                <img src={singleImage} alt="" className="rounded-2xl shadow-lg w-full" />
+                <RatioImage src={singleImage!} className="rounded-2xl shadow-lg w-full" ratio={content.imageRatio} />
               )}
             </motion.div>
           )}
