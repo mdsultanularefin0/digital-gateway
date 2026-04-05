@@ -29,7 +29,7 @@ const paymentColors: Record<string, string> = {
   refunded: "bg-yellow-500/10 text-yellow-600",
 };
 
-type Tab = "orders" | "downloads" | "address";
+type Tab = "orders" | "downloads" | "address" | "settings";
 
 export default function AccountPage() {
   const { user, loading, signOut } = useAuth();
