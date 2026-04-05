@@ -60,6 +60,7 @@ export async function uploadToStorage(file: File, folder: string = "assets"): Pr
 
   const headers: Record<string, string> = {};
   if (config.apiKey) {
+    headers["X-API-Key"] = config.apiKey;
     headers["Authorization"] = config.apiKey;
   }
 
