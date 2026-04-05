@@ -3,7 +3,8 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Globe, ArrowRight, CheckCircle, Star, HelpCircle, BarChart3, Shield, Gift, Zap, Package, Clock, Loader2, ShoppingBag } from "lucide-react";
+import { Globe, ArrowRight, CheckCircle, Star, HelpCircle, BarChart3, Shield, Gift, Clock, Loader2 } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { Layout } from "@/components/Layout";
 import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
@@ -127,17 +128,36 @@ function HeroSection({ content }: { content: SectionContent }) {
 }
 
 function ProductShowcaseSection({ content }: { content: SectionContent }) {
-  if (!content.heading && !content.imageUrl) return null;
+  const galleryImages = (content.images || []).filter(Boolean);
+  if (!content.heading && !content.imageUrl && !galleryImages.length) return null;
   return (
     <section className="py-16">
       <div className="container max-w-5xl mx-auto px-4 text-center">
         {content.heading && <h2 className="text-3xl font-display font-bold mb-3">{content.heading}</h2>}
         {content.subheading && <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">{content.subheading}</p>}
-        {content.imageUrl && (
+        {galleryImages.length > 1 ? (
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <Carousel opts={{ loop: true }} className="mx-auto max-w-3xl">
+              <CarouselContent>
+                {galleryImages.map((img, i) => (
+                  <CarouselItem key={i}>
+                    <img src={img} alt={`Slide ${i + 1}`} className="rounded-2xl shadow-2xl mx-auto border border-border max-w-full" />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="-left-4 md:-left-12" />
+              <CarouselNext className="-right-4 md:-right-12" />
+            </Carousel>
+          </motion.div>
+        ) : content.imageUrl ? (
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <img src={content.imageUrl} alt="" className="rounded-2xl shadow-2xl mx-auto border border-border max-w-full" />
           </motion.div>
-        )}
+        ) : galleryImages.length === 1 ? (
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <img src={galleryImages[0]} alt="" className="rounded-2xl shadow-2xl mx-auto border border-border max-w-full" />
+          </motion.div>
+        ) : null}
         {content.body && <p className="text-muted-foreground mt-6 max-w-2xl mx-auto">{content.body}</p>}
       </div>
     </section>
@@ -441,13 +461,30 @@ function CountdownSection({ content }: { content: SectionContent }) {
 
 function TextImageSection({ content }: { content: SectionContent }) {
   if (!content.heading) return null;
+  const galleryImages = (content.images || []).filter(Boolean);
+  const hasCarousel = galleryImages.length > 1;
+  const singleImage = galleryImages.length === 1 ? galleryImages[0] : content.imageUrl;
   return (
     <section className="py-16">
       <div className="container max-w-6xl mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center gap-12">
-          {content.imageUrl && (
+          {(hasCarousel || singleImage) && (
             <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="flex-1">
-              <img src={content.imageUrl} alt="" className="rounded-2xl shadow-lg w-full" />
+              {hasCarousel ? (
+                <Carousel opts={{ loop: true }}>
+                  <CarouselContent>
+                    {galleryImages.map((img, i) => (
+                      <CarouselItem key={i}>
+                        <img src={img} alt={`Slide ${i + 1}`} className="rounded-2xl shadow-lg w-full" />
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="-left-4 md:-left-12" />
+                  <CarouselNext className="-right-4 md:-right-12" />
+                </Carousel>
+              ) : (
+                <img src={singleImage} alt="" className="rounded-2xl shadow-lg w-full" />
+              )}
             </motion.div>
           )}
           <div className="flex-1 space-y-4">
