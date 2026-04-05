@@ -34,6 +34,7 @@ export interface SectionContent {
   buttonText?: string;
   buttonUrl?: string;
   imageUrl?: string;
+  images?: string[];
   items?: { title: string; description: string; icon?: string }[];
   price?: string;
   originalPrice?: string;
