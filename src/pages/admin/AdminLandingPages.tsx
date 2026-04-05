@@ -48,7 +48,19 @@ export default function AdminLandingPages() {
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as LandingPage[];
+      return data as unknown as LandingPage[];
+    },
+  });
+
+  const { data: products } = useQuery({
+    queryKey: ["admin-products-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name, slug")
+        .order("name");
+      if (error) throw error;
+      return data as { id: string; name: string; slug: string }[];
     },
   });
 
