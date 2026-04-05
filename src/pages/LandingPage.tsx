@@ -490,7 +490,7 @@ const emptyCheckoutForm: CheckoutForm = {
   name: "", email: "", phone: "", address: "", couponCode: "", notes: "", paymentMethod: "",
 };
 
-function LandingCheckoutSection({ content, allSections, pageTitle }: { content: SectionContent; allSections: SectionsData; pageTitle: string }) {
+function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct }: { content: SectionContent; allSections: SectionsData; pageTitle: string; linkedProduct?: { id: string; name: string; price: number; image: string; slug: string } | null }) {
   const { data: settings } = useSiteSettings();
   const sym = settings?.currency_symbol || "$";
 
