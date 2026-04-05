@@ -10,7 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Navigate } from "react-router-dom";
 import {
-  Package, MapPin, User, ChevronRight, Save, LogOut, Download,
+  Package, MapPin, User, Settings, Save, LogOut, Download, Lock,
 } from "lucide-react";
 import { DownloadLinks } from "@/components/DownloadLinks";
 
