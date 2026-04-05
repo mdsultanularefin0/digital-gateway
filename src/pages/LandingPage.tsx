@@ -731,7 +731,7 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
                 <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Order Number</p>
                 <p className="text-lg font-mono font-bold text-primary">{orderPlaced}</p>
               </div>
-              {linkedProductId && <DownloadLinks orderId={orderPlaced} />}
+              {placedOrderId && linkedProductId && <DownloadLinks orderId={placedOrderId} />}
               <p className="text-xs text-muted-foreground mt-6">A confirmation email has been sent to your inbox.</p>
             </div>
           </motion.div>
