@@ -374,6 +374,71 @@ export default function AccountPage() {
             </div>
           )}
 
+          {/* Account Settings */}
+          {tab === "settings" && (
+            <div className="max-w-lg space-y-8">
+              {/* Change Password */}
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Lock className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-display font-bold">Change Password</h3>
+                </div>
+                <form onSubmit={handlePasswordChange} className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">New Password</label>
+                    <input
+                      type="password"
+                      value={passwordForm.newPass}
+                      onChange={(e) => setPasswordForm((f) => ({ ...f, newPass: e.target.value }))}
+                      className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                      placeholder="Min 6 characters"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Confirm New Password</label>
+                    <input
+                      type="password"
+                      value={passwordForm.confirm}
+                      onChange={(e) => setPasswordForm((f) => ({ ...f, confirm: e.target.value }))}
+                      className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                      placeholder="Re-enter new password"
+                      required
+                    />
+                  </div>
+                  <Button type="submit" disabled={changingPassword}>
+                    <Lock className="h-4 w-4 mr-1" />
+                    {changingPassword ? "Updating..." : "Update Password"}
+                  </Button>
+                </form>
+              </div>
+
+              {/* Account Info */}
+              <div className="rounded-lg border border-border p-4">
+                <h3 className="text-sm font-semibold mb-3 uppercase tracking-wider text-muted-foreground">Account Info</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Email</span>
+                    <span className="font-medium">{user.email}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Member Since</span>
+                    <span className="font-medium">{user.created_at ? format(new Date(user.created_at), "PP") : "—"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Danger Zone */}
+              <div className="rounded-lg border border-destructive/20 p-4">
+                <h3 className="text-sm font-semibold mb-3 uppercase tracking-wider text-destructive">Danger Zone</h3>
+                <p className="text-sm text-muted-foreground mb-3">Sign out of your account on this device.</p>
+                <Button variant="destructive" size="sm" onClick={signOut}>
+                  <LogOut className="h-4 w-4 mr-1" /> Sign Out
+                </Button>
+              </div>
+            </div>
+          )}
+
         </div>
       </section>
     </Layout>
