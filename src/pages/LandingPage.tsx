@@ -877,10 +877,25 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
                   {paymentMethods.map((m) => (
                     <label key={m.value} className={`flex items-center gap-3 rounded-xl border p-3 cursor-pointer transition-colors ${form.paymentMethod === m.value ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"}`}>
                       <input type="radio" name="lp-payment" value={m.value} checked={form.paymentMethod === m.value} onChange={(e) => update("paymentMethod", e.target.value)} className="h-4 w-4 accent-primary" />
+                      <img src={m.logo} alt={m.label} className="h-7 w-7 object-contain rounded" loading="lazy" width={28} height={28} />
                       <span className="text-sm font-medium">{m.label}</span>
                     </label>
                   ))}
                 </div>
+
+                {/* Send Money Instructions Panel */}
+                {(form.paymentMethod === "bkash_send" || form.paymentMethod === "nagad_send") && (
+                  <LandingSendMoneyPanel
+                    provider={form.paymentMethod}
+                    amount={Math.max(total, 0)}
+                    currencySymbol={sym}
+                    senderNumber={form.senderNumber}
+                    trxId={form.trxId}
+                    onSenderChange={(v) => update("senderNumber", v)}
+                    onTrxIdChange={(v) => update("trxId", v)}
+                    settings={settings}
+                  />
+                )}
               </div>
 
               <div>
