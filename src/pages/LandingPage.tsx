@@ -935,6 +935,7 @@ export default function LandingPage() {
               content={checkoutContent}
               allSections={sections}
               pageTitle={page.title}
+              linkedProduct={linkedProduct}
             />
           );
         }
