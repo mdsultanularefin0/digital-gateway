@@ -739,7 +739,7 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
       fetch(`https://${projectId}.supabase.co/functions/v1/send-order-confirmation`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order_id: order.id }),
+        body: JSON.stringify({ order_id: order.id, type: "order_confirmation", origin: window.location.origin }),
       }).catch(() => {});
 
       if (form.paymentMethod === "bkash") {
