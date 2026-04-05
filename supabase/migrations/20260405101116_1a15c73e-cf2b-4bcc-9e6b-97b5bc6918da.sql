@@ -1,0 +1,2 @@
+ALTER TABLE public.landing_pages ADD COLUMN product_id uuid REFERENCES public.products(id) ON DELETE SET NULL DEFAULT NULL;
+ALTER TABLE public.landing_pages ADD COLUMN language_mode text NOT NULL DEFAULT 'both';

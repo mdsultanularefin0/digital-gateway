@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, X, Eye, Globe } from "lucide-react";
 import { SectionEditor } from "@/components/admin/SectionEditor";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import {
   landingTemplates,
   getDefaultSections,
@@ -20,11 +23,15 @@ interface LandingPage {
   sections_en: SectionsData;
   sections_bn: SectionsData;
   published: boolean;
+  product_id: string | null;
+  language_mode: "en" | "bn" | "both";
   created_at: string;
   updated_at: string;
 }
 
 type LandingPageInsert = Omit<LandingPage, "id" | "created_at" | "updated_at"> & { id?: string };
+
+type ProductOption = { id: string; name: string; slug: string };
 
 export default function AdminLandingPages() {
   const queryClient = useQueryClient();
@@ -41,7 +48,19 @@ export default function AdminLandingPages() {
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as LandingPage[];
+      return data as unknown as LandingPage[];
+    },
+  });
+
+  const { data: products } = useQuery({
+    queryKey: ["admin-products-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name, slug")
+        .order("name");
+      if (error) throw error;
+      return data as { id: string; name: string; slug: string }[];
     },
   });
 
@@ -55,6 +74,8 @@ export default function AdminLandingPages() {
           sections_en: page.sections_en as any,
           sections_bn: page.sections_bn as any,
           published: page.published,
+          product_id: page.product_id,
+          language_mode: page.language_mode,
         }).eq("id", page.id);
         if (error) throw error;
       } else {
@@ -108,12 +129,14 @@ export default function AdminLandingPages() {
       sections_en: defaults,
       sections_bn: defaults,
       published: false,
+      product_id: null,
+      language_mode: "both",
     });
     setStep("editor");
   };
 
   const openEdit = (page: LandingPage) => {
-    setEditing(page);
+    setEditing({ ...page, language_mode: page.language_mode || "both" });
     setIsNew(false);
     setStep("editor");
   };
@@ -199,6 +222,49 @@ export default function AdminLandingPages() {
                 className="h-10 w-full rounded-lg border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
+          </div>
+
+          {/* Product selector */}
+          <div>
+            <label className="text-sm font-medium mb-1 block">Linked Product (optional)</label>
+            <Select
+              value={editing.product_id || "none"}
+              onValueChange={(v) => setEditing({ ...editing, product_id: v === "none" ? null : v })}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="No product linked" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No product linked</SelectItem>
+                {products?.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">Link a product to auto-fill checkout with its name, price & image. Orders will be tied to this product.</p>
+          </div>
+
+          {/* Language mode */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">Language Display</label>
+            <RadioGroup
+              value={editing.language_mode}
+              onValueChange={(v) => setEditing({ ...editing, language_mode: v as "en" | "bn" | "both" })}
+              className="flex flex-wrap gap-4"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="en" id="lang-en" />
+                <Label htmlFor="lang-en">🇺🇸 English only</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="bn" id="lang-bn" />
+                <Label htmlFor="lang-bn">🇧🇩 বাংলা only</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="both" id="lang-both" />
+                <Label htmlFor="lang-both">Both (show language selector)</Label>
+              </div>
+            </RadioGroup>
           </div>
 
           <div className="flex items-center gap-4">

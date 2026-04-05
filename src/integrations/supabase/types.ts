@@ -276,6 +276,8 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          language_mode: string
+          product_id: string | null
           published: boolean
           sections_bn: Json
           sections_en: Json
@@ -287,6 +289,8 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          language_mode?: string
+          product_id?: string | null
           published?: boolean
           sections_bn?: Json
           sections_en?: Json
@@ -298,6 +302,8 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          language_mode?: string
+          product_id?: string | null
           published?: boolean
           sections_bn?: Json
           sections_en?: Json
@@ -306,7 +312,15 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "landing_pages_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mail_config: {
         Row: {
