@@ -224,6 +224,49 @@ export default function AdminLandingPages() {
             </div>
           </div>
 
+          {/* Product selector */}
+          <div>
+            <label className="text-sm font-medium mb-1 block">Linked Product (optional)</label>
+            <Select
+              value={editing.product_id || "none"}
+              onValueChange={(v) => setEditing({ ...editing, product_id: v === "none" ? null : v })}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="No product linked" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No product linked</SelectItem>
+                {products?.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">Link a product to auto-fill checkout with its name, price & image. Orders will be tied to this product.</p>
+          </div>
+
+          {/* Language mode */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">Language Display</label>
+            <RadioGroup
+              value={editing.language_mode}
+              onValueChange={(v) => setEditing({ ...editing, language_mode: v as "en" | "bn" | "both" })}
+              className="flex flex-wrap gap-4"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="en" id="lang-en" />
+                <Label htmlFor="lang-en">🇺🇸 English only</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="bn" id="lang-bn" />
+                <Label htmlFor="lang-bn">🇧🇩 বাংলা only</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="both" id="lang-both" />
+                <Label htmlFor="lang-both">Both (show language selector)</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
           <div className="flex items-center gap-4">
             <span className="text-sm font-medium">Template:</span>
             <span className="text-sm text-muted-foreground">{tmpl?.preview} {tmpl?.name}</span>
