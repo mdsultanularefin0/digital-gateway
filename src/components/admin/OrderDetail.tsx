@@ -51,7 +51,7 @@ export default function OrderDetail({ order: o, currencySymbol, onBack, onDelete
               onChange={(e) => onUpdateStatus(o.id, e.target.value)}
               className="h-9 w-full rounded-xl border border-border bg-background px-3 text-sm"
             >
-              {["pending", "processing", "shipped", "delivered", "cancelled"].map((s) => (
+              {["pending", "confirmed", "processing", "completed", "cancelled", "refunded"].map((s) => (
                 <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
               ))}
             </select>

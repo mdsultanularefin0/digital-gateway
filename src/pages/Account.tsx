@@ -16,10 +16,11 @@ import { DownloadLinks } from "@/components/DownloadLinks";
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/10 text-yellow-600",
+  confirmed: "bg-sky-500/10 text-sky-600",
   processing: "bg-blue-500/10 text-blue-600",
-  shipped: "bg-purple-500/10 text-purple-600",
-  delivered: "bg-green-500/10 text-green-600",
+  completed: "bg-green-500/10 text-green-600",
   cancelled: "bg-destructive/10 text-destructive",
+  refunded: "bg-orange-500/10 text-orange-600",
 };
 
 const paymentColors: Record<string, string> = {
