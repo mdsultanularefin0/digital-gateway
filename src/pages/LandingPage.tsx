@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { landingTemplates, type SectionsData, type SectionContent } from "@/data/landing-templates";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { toast } from "@/hooks/use-toast";
+import { DownloadLinks } from "@/components/DownloadLinks";
 
 type Lang = "en" | "bn";
 
