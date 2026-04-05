@@ -553,6 +553,7 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
   const [couponLoading, setCouponLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState<string | null>(null);
+  const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
 
   // Use linked product data if available, otherwise fall back to pricing section
   const pricingSection = allSections?.pricing;
