@@ -168,7 +168,7 @@ function ProductShowcaseSection({ content }: { content: SectionContent }) {
           </motion.div>
         ) : content.imageUrl ? (
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <img src={content.imageUrl} alt="" className="rounded-2xl shadow-2xl mx-auto border border-border max-w-full" />
+            <RatioImage src={content.imageUrl} className="rounded-2xl shadow-2xl mx-auto border border-border max-w-full" ratio={content.imageRatio} />
           </motion.div>
         ) : galleryImages.length === 1 ? (
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
