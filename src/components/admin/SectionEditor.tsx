@@ -1,6 +1,10 @@
+import { useState } from "react";
 import { SectionContent, LandingSection } from "@/data/landing-templates";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash2, Upload, Loader2 } from "lucide-react";
+import { uploadToStorage } from "@/lib/storage";
+import { toast } from "@/hooks/use-toast";
 
 interface Props {
   section: LandingSection;
@@ -29,7 +33,6 @@ const SECTION_TYPE_LABELS: Record<string, string> = {
   checkout: "Checkout Form",
 };
 
-// Which section types show which fields
 const showBody = ["hero", "text-image", "testimonial", "guarantee", "pricing", "product-showcase"];
 const showImage = ["hero", "text-image", "product-showcase"];
 const showGallery = ["product-showcase", "text-image", "testimonial"];
@@ -38,13 +41,57 @@ const showPrice = ["hero", "pricing", "cta", "countdown"];
 const showBadge = ["hero", "pricing", "countdown"];
 const showItems = ["features", "faq", "stats", "how-it-works", "bonus", "pricing", "testimonial"];
 const showCountdown = ["countdown"];
+const showRatio = ["hero", "text-image", "product-showcase"];
+
+const IMAGE_RATIOS = [
+  { value: "auto", label: "Auto (original)" },
+  { value: "1:1", label: "1:1 Square" },
+  { value: "4:3", label: "4:3 Landscape" },
+  { value: "16:9", label: "16:9 Wide" },
+  { value: "3:4", label: "3:4 Portrait" },
+  { value: "9:16", label: "9:16 Tall" },
+];
+
+function ImageUploadField({ value, onChange, placeholder }: { value: string; onChange: (url: string) => void; placeholder?: string }) {
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const result = await uploadToStorage(file, "landing");
+      onChange(result.url);
+      toast({ title: "Image uploaded" });
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  return (
+    <div className="flex gap-2 items-center">
+      <input value={value} onChange={(e) => onChange(e.target.value)} className={inputCls} placeholder={placeholder || "https://..."} />
+      <label className="shrink-0 cursor-pointer">
+        <input type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={uploading} />
+        <span className={`inline-flex items-center justify-center h-10 w-10 rounded-lg border border-border bg-background hover:bg-muted transition-colors ${uploading ? "opacity-50" : ""}`}>
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+        </span>
+      </label>
+      {value && (
+        <img src={value} alt="" className="h-10 w-10 rounded border border-border object-cover shrink-0" />
+      )}
+    </div>
+  );
+}
 
 export function SectionEditor({ section, content, onChange, lang }: Props) {
   const update = (key: keyof SectionContent, value: any) => onChange({ ...content, [key]: value });
   const langHint = lang === "bn" ? " (বাংলা)" : " (English)";
 
   const hasItems = showItems.includes(section.type);
-  // Initialize items if this section type needs them but doesn't have any
   if (hasItems && !content.items) {
     content = { ...content, items: [{ title: "", description: "" }, { title: "", description: "" }, { title: "", description: "" }] };
   }
@@ -94,8 +141,24 @@ export function SectionEditor({ section, content, onChange, lang }: Props) {
 
       {showImage.includes(section.type) && (
         <div>
-          <label className="text-xs font-medium text-muted-foreground mb-1 block">Image URL</label>
-          <input value={content.imageUrl ?? ""} onChange={(e) => update("imageUrl", e.target.value)} className={inputCls} placeholder="https://..." />
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Image</label>
+          <ImageUploadField value={content.imageUrl ?? ""} onChange={(url) => update("imageUrl", url)} placeholder="Paste URL or upload" />
+        </div>
+      )}
+
+      {showRatio.includes(section.type) && (
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Image Aspect Ratio</label>
+          <Select value={content.imageRatio || "auto"} onValueChange={(v) => update("imageRatio", v)}>
+            <SelectTrigger className="w-full max-w-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {IMAGE_RATIOS.map((r) => (
+                <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
 
@@ -106,19 +169,15 @@ export function SectionEditor({ section, content, onChange, lang }: Props) {
           </label>
           {(content.images || []).map((url, i) => (
             <div key={i} className="flex gap-2 items-center">
-              <input
+              <ImageUploadField
                 value={url}
-                onChange={(e) => {
+                onChange={(newUrl) => {
                   const imgs = [...(content.images || [])];
-                  imgs[i] = e.target.value;
+                  imgs[i] = newUrl;
                   update("images", imgs);
                 }}
-                className={inputCls}
-                placeholder={`Image URL #${i + 1}`}
+                placeholder={`Image #${i + 1}`}
               />
-              {url && (
-                <img src={url} alt="" className="h-10 w-10 rounded border border-border object-cover shrink-0" />
-              )}
               <Button
                 type="button"
                 variant="ghost"
