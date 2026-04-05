@@ -95,7 +95,7 @@ export default function AdminSales() {
   const topProducts = Object.values(productRevenue).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
 
   // Order status breakdown
-  const statusBreakdown = ["pending", "processing", "shipped", "delivered", "cancelled"].map((s) => ({
+  const statusBreakdown = ["pending", "confirmed", "processing", "completed", "cancelled", "refunded"].map((s) => ({
     name: s.charAt(0).toUpperCase() + s.slice(1),
     value: orders.filter((o: any) => o.status === s).length,
   })).filter((s) => s.value > 0);

@@ -11,15 +11,16 @@ import OrderDetail from "@/components/admin/OrderDetail";
 import { exportToCSV, logActivity } from "@/lib/admin-utils";
 import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components/admin/DateRangeFilter";
 
-const statuses = ["pending", "processing", "shipped", "delivered", "cancelled"];
+const statuses = ["pending", "confirmed", "processing", "completed", "cancelled", "refunded"];
 const paymentStatuses = ["unpaid", "paid", "refunded"];
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
+  confirmed: "bg-sky-500/10 text-sky-600 border-sky-500/20",
   processing: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  shipped: "bg-purple-500/10 text-purple-600 border-purple-500/20",
-  delivered: "bg-green-500/10 text-green-600 border-green-500/20",
+  completed: "bg-green-500/10 text-green-600 border-green-500/20",
   cancelled: "bg-destructive/10 text-destructive border-destructive/20",
+  refunded: "bg-orange-500/10 text-orange-600 border-orange-500/20",
 };
 
 const paymentColors: Record<string, string> = {
@@ -60,12 +61,32 @@ export default function AdminOrders() {
     }).catch(() => {});
   };
 
+  const triggerEmail = async (orderId: string, type: string) => {
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+    try {
+      await fetch(`https://${projectId}.supabase.co/functions/v1/send-order-confirmation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: orderId, type, origin: window.location.origin }),
+      });
+    } catch (e) {
+      console.error("Email trigger failed:", e);
+    }
+  };
+
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase.from("orders").update({ status }).eq("id", id);
       if (error) throw error;
       fireWebhook(id, "order.status_changed");
       logActivity("Updated order status", "order", id, `Status changed to ${status}`);
+
+      // Auto-trigger emails based on status
+      if (status === "confirmed") {
+        triggerEmail(id, "order_confirmation");
+      } else if (status === "completed") {
+        triggerEmail(id, "post_purchase");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
@@ -78,9 +99,10 @@ export default function AdminOrders() {
       const { error } = await supabase.from("orders").update({ payment_status }).eq("id", id);
       if (error) throw error;
       fireWebhook(id, "order.payment_changed");
-      // Auto-generate download tokens when payment is marked as paid
+      // Auto-generate download tokens & trigger email when payment is marked as paid
       if (payment_status === "paid") {
         await supabase.rpc("generate_download_tokens", { _order_id: id } as any);
+        triggerEmail(id, "payment_verified");
       }
     },
     onSuccess: () => {
