@@ -916,13 +916,15 @@ export default function LandingPage() {
     <Layout>
       <SEOHead title={page.title} description={sections?.hero?.subheading || ""} />
 
-      <button
-        onClick={() => setLang(lang === "en" ? "bn" : "en")}
-        className="fixed bottom-6 right-6 z-40 h-12 w-12 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-muted transition-colors"
-        title="Switch language"
-      >
-        <span className="text-lg">{lang === "en" ? "🇧🇩" : "🇺🇸"}</span>
-      </button>
+      {languageMode === "both" && (
+        <button
+          onClick={() => setLang(lang === "en" ? "bn" : "en")}
+          className="fixed bottom-6 right-6 z-40 h-12 w-12 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-muted transition-colors"
+          title="Switch language"
+        >
+          <span className="text-lg">{lang === "en" ? "🇧🇩" : "🇺🇸"}</span>
+        </button>
+      )}
 
       {tmpl?.sections.map((sec) => {
         if (sec.type === "checkout") {
