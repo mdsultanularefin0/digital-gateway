@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Globe, ArrowRight, CheckCircle, Star, HelpCircle, BarChart3, Shield, Gift, Clock, Loader2 } from "lucide-react";
+import { Globe, ArrowRight, CheckCircle, Star, HelpCircle, BarChart3, Shield, Gift, Clock, Loader2, Copy, Check } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { Layout } from "@/components/Layout";
 import { SEOHead } from "@/components/SEOHead";
@@ -12,6 +12,11 @@ import { landingTemplates, type SectionsData, type SectionContent } from "@/data
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { toast } from "@/hooks/use-toast";
 import { DownloadLinks } from "@/components/DownloadLinks";
+import paymentBkash from "@/assets/payment-bkash.png";
+import paymentNagad from "@/assets/payment-nagad.png";
+import paymentCod from "@/assets/payment-cod.png";
+import paymentBank from "@/assets/payment-bank.png";
+import paymentStripe from "@/assets/payment-stripe.png";
 
 type Lang = "en" | "bn";
 
