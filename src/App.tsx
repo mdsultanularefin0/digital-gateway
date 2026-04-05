@@ -76,47 +76,47 @@ const App = () => (
                 <CartDrawer />
                 <MetaPixelProvider />
                 <ChunkErrorBoundary>
-                <Suspense fallback={<PageLoader />}>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/products" element={<Products />} />
-                    <Route path="/products/:slug" element={<ProductDetail />} />
-                    <Route path="/checkout" element={<Checkout />} />
-                    <Route path="/bkash/callback" element={<BkashCallback />} />
-                    <Route path="/about" element={<About />} />
-                    <Route path="/contact" element={<Contact />} />
-                    <Route path="/faq" element={<FAQ />} />
-                    <Route path="/privacy" element={<Privacy />} />
-                    <Route path="/terms" element={<Terms />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
-                    
-                    <Route path="/account" element={<Account />} />
-                    <Route path="/blog" element={<Blog />} />
-                    <Route path="/blog/:slug" element={<BlogPostPage />} />
-                    <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
-                    <Route path="/admin/products" element={<AdminGuard><AdminProducts /></AdminGuard>} />
-                    <Route path="/admin/orders" element={<AdminGuard><AdminOrders /></AdminGuard>} />
-                    <Route path="/admin/customers" element={<AdminGuard><AdminCustomers /></AdminGuard>} />
-                    <Route path="/admin/sales" element={<AdminGuard><AdminSales /></AdminGuard>} />
-                    <Route path="/admin/coupons" element={<AdminGuard><AdminCoupons /></AdminGuard>} />
-                    <Route path="/admin/reviews" element={<AdminGuard><AdminReviews /></AdminGuard>} />
-                    <Route path="/admin/settings" element={<AdminGuard><AdminSettings /></AdminGuard>} />
-                    <Route path="/admin/integrations" element={<AdminGuard><AdminIntegrations /></AdminGuard>} />
-                    <Route path="/admin/post-generator" element={<AdminGuard><AdminPostGenerator /></AdminGuard>} />
-                    <Route path="/admin/mail-settings" element={<AdminGuard><AdminMailSettings /></AdminGuard>} />
-                    <Route path="/admin/support-inbox" element={<AdminGuard><AdminSupportInbox /></AdminGuard>} />
-                    <Route path="/admin/activity" element={<AdminGuard><AdminActivityLog /></AdminGuard>} />
-                    <Route path="/admin/newsletter" element={<AdminGuard><AdminNewsletter /></AdminGuard>} />
-                    <Route path="/admin/blog" element={<AdminGuard><AdminBlog /></AdminGuard>} />
-                    <Route path="/admin/landing-pages" element={<AdminGuard><AdminLandingPages /></AdminGuard>} />
-                    <Route path="/admin/bkash-transactions" element={<AdminGuard><AdminBkashTransactions /></AdminGuard>} />
-                    <Route path="/admin/payment-settings" element={<AdminGuard><AdminPaymentSettings /></AdminGuard>} />
-                    <Route path="/admin/page-editor" element={<AdminGuard><AdminPageEditor /></AdminGuard>} />
-                    <Route path="/admin/email-templates" element={<AdminGuard><AdminEmailTemplates /></AdminGuard>} />
-                    <Route path="/p/:slug" element={<LandingPage />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
+                  <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/products" element={<Products />} />
+                      <Route path="/products/:slug" element={<ProductDetail />} />
+                      <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/bkash/callback" element={<BkashCallback />} />
+                      <Route path="/about" element={<About />} />
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="/faq" element={<FAQ />} />
+                      <Route path="/privacy" element={<Privacy />} />
+                      <Route path="/terms" element={<Terms />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
+                      <Route path="/account" element={<Account />} />
+                      <Route path="/blog" element={<Blog />} />
+                      <Route path="/blog/:slug" element={<BlogPostPage />} />
+                      <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
+                      <Route path="/admin/products" element={<AdminGuard><AdminProducts /></AdminGuard>} />
+                      <Route path="/admin/orders" element={<AdminGuard><AdminOrders /></AdminGuard>} />
+                      <Route path="/admin/customers" element={<AdminGuard><AdminCustomers /></AdminGuard>} />
+                      <Route path="/admin/sales" element={<AdminGuard><AdminSales /></AdminGuard>} />
+                      <Route path="/admin/coupons" element={<AdminGuard><AdminCoupons /></AdminGuard>} />
+                      <Route path="/admin/reviews" element={<AdminGuard><AdminReviews /></AdminGuard>} />
+                      <Route path="/admin/settings" element={<AdminGuard><AdminSettings /></AdminGuard>} />
+                      <Route path="/admin/integrations" element={<AdminGuard><AdminIntegrations /></AdminGuard>} />
+                      <Route path="/admin/post-generator" element={<AdminGuard><AdminPostGenerator /></AdminGuard>} />
+                      <Route path="/admin/mail-settings" element={<AdminGuard><AdminMailSettings /></AdminGuard>} />
+                      <Route path="/admin/support-inbox" element={<AdminGuard><AdminSupportInbox /></AdminGuard>} />
+                      <Route path="/admin/activity" element={<AdminGuard><AdminActivityLog /></AdminGuard>} />
+                      <Route path="/admin/newsletter" element={<AdminGuard><AdminNewsletter /></AdminGuard>} />
+                      <Route path="/admin/blog" element={<AdminGuard><AdminBlog /></AdminGuard>} />
+                      <Route path="/admin/landing-pages" element={<AdminGuard><AdminLandingPages /></AdminGuard>} />
+                      <Route path="/admin/bkash-transactions" element={<AdminGuard><AdminBkashTransactions /></AdminGuard>} />
+                      <Route path="/admin/payment-settings" element={<AdminGuard><AdminPaymentSettings /></AdminGuard>} />
+                      <Route path="/admin/page-editor" element={<AdminGuard><AdminPageEditor /></AdminGuard>} />
+                      <Route path="/admin/email-templates" element={<AdminGuard><AdminEmailTemplates /></AdminGuard>} />
+                      <Route path="/p/:slug" element={<LandingPage />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
                 </ChunkErrorBoundary>
               </BrowserRouter>
             
