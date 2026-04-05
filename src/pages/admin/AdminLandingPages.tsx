@@ -144,6 +144,10 @@ export default function AdminLandingPages() {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editing) return;
+    if (!editing.product_id) {
+      toast({ title: "Product required", description: "Please select a product for this landing page.", variant: "destructive" });
+      return;
+    }
     saveMutation.mutate(editing);
   };
 

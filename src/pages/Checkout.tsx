@@ -394,17 +394,44 @@ export default function CheckoutPage() {
     return (
       <Layout>
         <section className="py-20 md:py-32">
-          <div className="container max-w-lg text-center">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6" />
-            <h1 className="text-3xl font-display font-bold mb-3">Order Placed!</h1>
-            <p className="text-muted-foreground mb-2">Thank you for your order.</p>
-            <p className="text-sm font-mono bg-muted rounded-xl inline-block px-4 py-2 mb-4">{orderPlaced}</p>
-            {placedOrderId && <DownloadLinks orderId={placedOrderId} />}
-            <div className="flex gap-3 justify-center mt-6">
-              <Button variant="gradient" asChild>
-                <Link to="/products">Continue Shopping</Link>
-              </Button>
-            </div>
+          <div className="container max-w-lg mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl border border-border bg-card p-8 md:p-12 text-center shadow-xl relative overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 pointer-events-none" />
+              <div className="relative">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                  className="h-20 w-20 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-6"
+                >
+                  <CheckCircle className="h-10 w-10 text-green-500" />
+                </motion.div>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+                  <h1 className="text-3xl font-display font-bold mb-2">Order Confirmed!</h1>
+                  <p className="text-muted-foreground mb-5">Thank you for your purchase. Your order has been received.</p>
+                </motion.div>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="rounded-xl bg-muted/50 border border-border p-4 mb-6">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Order Number</p>
+                  <p className="text-lg font-mono font-bold text-primary">{orderPlaced}</p>
+                </motion.div>
+                {placedOrderId && <DownloadLinks orderId={placedOrderId} />}
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+                  <Button variant="gradient" asChild>
+                    <Link to="/products">Continue Shopping</Link>
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <Link to="/account">View My Orders</Link>
+                  </Button>
+                </motion.div>
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="text-xs text-muted-foreground mt-6">
+                  A confirmation email has been sent to your inbox.
+                </motion.p>
+              </div>
+            </motion.div>
           </div>
         </section>
       </Layout>
