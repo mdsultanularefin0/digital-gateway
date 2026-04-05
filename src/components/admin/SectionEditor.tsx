@@ -99,6 +99,52 @@ export function SectionEditor({ section, content, onChange, lang }: Props) {
         </div>
       )}
 
+      {showGallery.includes(section.type) && (
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground block">
+            Image Gallery / Carousel (optional)
+          </label>
+          {(content.images || []).map((url, i) => (
+            <div key={i} className="flex gap-2 items-center">
+              <input
+                value={url}
+                onChange={(e) => {
+                  const imgs = [...(content.images || [])];
+                  imgs[i] = e.target.value;
+                  update("images", imgs);
+                }}
+                className={inputCls}
+                placeholder={`Image URL #${i + 1}`}
+              />
+              {url && (
+                <img src={url} alt="" className="h-10 w-10 rounded border border-border object-cover shrink-0" />
+              )}
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={() => {
+                  const imgs = (content.images || []).filter((_, idx) => idx !== i);
+                  update("images", imgs);
+                }}
+              >
+                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+              </Button>
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => update("images", [...(content.images || []), ""])}
+          >
+            <Plus className="h-3.5 w-3.5 mr-1" /> Add Image
+          </Button>
+          <p className="text-xs text-muted-foreground">Add multiple images to show as a carousel on the landing page.</p>
+        </div>
+      )}
+
       {showPrice.includes(section.type) && (
         <div className="grid gap-3 md:grid-cols-2">
           <div>
