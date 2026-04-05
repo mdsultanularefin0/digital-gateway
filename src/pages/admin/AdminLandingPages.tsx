@@ -20,6 +20,8 @@ interface LandingPage {
   sections_en: SectionsData;
   sections_bn: SectionsData;
   published: boolean;
+  product_id: string | null;
+  language_mode: "en" | "bn" | "both";
   created_at: string;
   updated_at: string;
 }
