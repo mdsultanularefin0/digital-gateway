@@ -74,6 +74,8 @@ export default function AdminLandingPages() {
           sections_en: page.sections_en as any,
           sections_bn: page.sections_bn as any,
           published: page.published,
+          product_id: page.product_id,
+          language_mode: page.language_mode,
         }).eq("id", page.id);
         if (error) throw error;
       } else {
