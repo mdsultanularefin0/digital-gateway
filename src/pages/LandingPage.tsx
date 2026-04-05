@@ -134,7 +134,8 @@ function HeroSection({ content }: { content: SectionContent }) {
           </div>
           {content.imageUrl && (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="flex-1">
-              <img src={content.imageUrl} alt="" className="rounded-2xl shadow-xl w-full" />
+              <RatioImage src={content.imageUrl} className="rounded-2xl shadow-xl w-full" ratio={content.imageRatio} />
+            </motion.div>
             </motion.div>
           )}
         </div>
