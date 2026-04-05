@@ -15,6 +15,21 @@ import { DownloadLinks } from "@/components/DownloadLinks";
 
 type Lang = "en" | "bn";
 
+const RATIO_CLASSES: Record<string, string> = {
+  "1:1": "aspect-square",
+  "4:3": "aspect-[4/3]",
+  "16:9": "aspect-video",
+  "3:4": "aspect-[3/4]",
+  "9:16": "aspect-[9/16]",
+};
+
+function RatioImage({ src, alt, className, ratio }: { src: string; alt?: string; className?: string; ratio?: string }) {
+  const ratioClass = ratio && ratio !== "auto" ? RATIO_CLASSES[ratio] || "" : "";
+  return (
+    <img src={src} alt={alt || ""} className={`${ratioClass} ${ratioClass ? "object-cover" : ""} ${className || ""}`} />
+  );
+}
+
 const scrollToCheckout = () => {
   document.getElementById("checkout")?.scrollIntoView({ behavior: "smooth" });
 };
