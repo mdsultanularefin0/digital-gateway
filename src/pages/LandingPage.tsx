@@ -679,6 +679,12 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
       toast({ title: "Please fill in your name, email, and phone", variant: "destructive" });
       return;
     }
+    if (form.paymentMethod === "bkash_send" || form.paymentMethod === "nagad_send") {
+      if (!form.senderNumber.trim() || !form.trxId.trim()) {
+        toast({ title: "Please enter your sender number and Transaction ID", variant: "destructive" });
+        return;
+      }
+    }
     setSubmitting(true);
     try {
       const { data: customerId, error: custErr } = await supabase.rpc("upsert_checkout_customer", {
@@ -752,6 +758,30 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
         } else {
           throw new Error(bkashData.error || "Failed to initiate bKash payment");
         }
+      }
+
+      // Handle Send Money (bkash_send / nagad_send)
+      if (form.paymentMethod === "bkash_send" || form.paymentMethod === "nagad_send") {
+        const res = await fetch(
+          `https://${projectId}.supabase.co/functions/v1/verify-send-money`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              orderId: order.id,
+              senderNumber: form.senderNumber.trim(),
+              trxId: form.trxId.trim(),
+              provider: form.paymentMethod,
+            }),
+          }
+        );
+        const sendResult = await res.json();
+        setPlacedOrderId(order.id);
+        setOrderPlaced(order.order_number);
+        if (!sendResult.verified) {
+          toast({ title: "Payment submitted", description: "Your payment is pending verification. You'll receive confirmation once verified." });
+        }
+        return;
       }
 
       setPlacedOrderId(order.id);
