@@ -491,7 +491,7 @@ function TextImageSection({ content }: { content: SectionContent }) {
                   <CarouselContent>
                     {galleryImages.map((img, i) => (
                       <CarouselItem key={i}>
-                        <img src={img} alt={`Slide ${i + 1}`} className="rounded-2xl shadow-lg w-full" />
+                        <RatioImage src={img} alt={`Slide ${i + 1}`} className="rounded-2xl shadow-lg w-full" ratio={content.imageRatio} />
                       </CarouselItem>
                     ))}
                   </CarouselContent>
