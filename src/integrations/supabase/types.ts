@@ -532,6 +532,7 @@ export type Database = {
         Row: {
           active: boolean
           body_html: string
+          category: string
           created_at: string
           id: string
           is_global: boolean
@@ -543,6 +544,7 @@ export type Database = {
         Insert: {
           active?: boolean
           body_html?: string
+          category?: string
           created_at?: string
           id?: string
           is_global?: boolean
@@ -554,6 +556,7 @@ export type Database = {
         Update: {
           active?: boolean
           body_html?: string
+          category?: string
           created_at?: string
           id?: string
           is_global?: boolean

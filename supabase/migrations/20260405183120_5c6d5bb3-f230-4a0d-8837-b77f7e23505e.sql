@@ -1,0 +1,1 @@
+ALTER TABLE public.product_email_templates ADD COLUMN category text NOT NULL DEFAULT 'post_purchase';
