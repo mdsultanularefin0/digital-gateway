@@ -128,17 +128,36 @@ function HeroSection({ content }: { content: SectionContent }) {
 }
 
 function ProductShowcaseSection({ content }: { content: SectionContent }) {
-  if (!content.heading && !content.imageUrl) return null;
+  const galleryImages = (content.images || []).filter(Boolean);
+  if (!content.heading && !content.imageUrl && !galleryImages.length) return null;
   return (
     <section className="py-16">
       <div className="container max-w-5xl mx-auto px-4 text-center">
         {content.heading && <h2 className="text-3xl font-display font-bold mb-3">{content.heading}</h2>}
         {content.subheading && <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">{content.subheading}</p>}
-        {content.imageUrl && (
+        {galleryImages.length > 1 ? (
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <Carousel opts={{ loop: true }} className="mx-auto max-w-3xl">
+              <CarouselContent>
+                {galleryImages.map((img, i) => (
+                  <CarouselItem key={i}>
+                    <img src={img} alt={`Slide ${i + 1}`} className="rounded-2xl shadow-2xl mx-auto border border-border max-w-full" />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="-left-4 md:-left-12" />
+              <CarouselNext className="-right-4 md:-right-12" />
+            </Carousel>
+          </motion.div>
+        ) : content.imageUrl ? (
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <img src={content.imageUrl} alt="" className="rounded-2xl shadow-2xl mx-auto border border-border max-w-full" />
           </motion.div>
-        )}
+        ) : galleryImages.length === 1 ? (
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <img src={galleryImages[0]} alt="" className="rounded-2xl shadow-2xl mx-auto border border-border max-w-full" />
+          </motion.div>
+        ) : null}
         {content.body && <p className="text-muted-foreground mt-6 max-w-2xl mx-auto">{content.body}</p>}
       </div>
     </section>
