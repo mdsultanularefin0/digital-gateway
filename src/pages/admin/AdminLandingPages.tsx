@@ -115,12 +115,14 @@ export default function AdminLandingPages() {
       sections_en: defaults,
       sections_bn: defaults,
       published: false,
+      product_id: null,
+      language_mode: "both",
     });
     setStep("editor");
   };
 
   const openEdit = (page: LandingPage) => {
-    setEditing(page);
+    setEditing({ ...page, language_mode: page.language_mode || "both" });
     setIsNew(false);
     setStep("editor");
   };
