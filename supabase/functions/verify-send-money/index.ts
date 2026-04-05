@@ -116,6 +116,14 @@ Deno.serve(async (req) => {
           // Generate download tokens for digital products
           await supabase.rpc("generate_download_tokens", { _order_id: orderId });
 
+          // Send payment verified email (non-blocking)
+          const supabaseUrl2 = Deno.env.get("SUPABASE_URL")!;
+          fetch(`${supabaseUrl2}/functions/v1/send-order-confirmation`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseKey}` },
+            body: JSON.stringify({ order_id: orderId, type: "payment_verified" }),
+          }).catch(() => {});
+
           return json({ success: true, verified: true, message: "Payment verified automatically" });
         }
       } catch (webhookErr) {

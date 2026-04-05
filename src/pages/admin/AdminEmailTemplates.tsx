@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Save, X, Mail, Globe, Package } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, X, Mail, Globe, Package, ShoppingBag, CreditCard, UserPlus, Truck, FileText } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 
 interface EmailTemplate {
@@ -18,6 +18,7 @@ interface EmailTemplate {
   body_html: string;
   is_global: boolean;
   active: boolean;
+  category: string;
   created_at: string;
 }
 
@@ -27,6 +28,47 @@ interface Product {
   slug: string;
 }
 
+const CATEGORIES = [
+  { value: "post_purchase", label: "Post-Purchase / Delivery", icon: Package, description: "Sent after purchase — download links, access instructions" },
+  { value: "order_confirmation", label: "Order Confirmation", icon: ShoppingBag, description: "Sent immediately when an order is placed" },
+  { value: "payment_verified", label: "Payment Verified", icon: CreditCard, description: "Sent when payment is confirmed/verified" },
+  { value: "account_created", label: "Account Created", icon: UserPlus, description: "Sent when a customer account is auto-created with login credentials" },
+  { value: "shipping_update", label: "Shipping Update", icon: Truck, description: "Sent when order ships or delivery status changes" },
+];
+
+const CATEGORY_VARIABLES: Record<string, { key: string; desc: string }[]> = {
+  post_purchase: [
+    { key: "customer_name", desc: "Customer's full name" },
+    { key: "order_number", desc: "Order number" },
+    { key: "product_name", desc: "Product name" },
+  ],
+  order_confirmation: [
+    { key: "customer_name", desc: "Customer's full name" },
+    { key: "order_number", desc: "Order number" },
+    { key: "product_name", desc: "Product names" },
+    { key: "order_total", desc: "Order total amount" },
+    { key: "payment_method", desc: "Payment method used" },
+  ],
+  payment_verified: [
+    { key: "customer_name", desc: "Customer's full name" },
+    { key: "order_number", desc: "Order number" },
+    { key: "order_total", desc: "Order total amount" },
+    { key: "transaction_id", desc: "Payment transaction ID" },
+  ],
+  account_created: [
+    { key: "customer_name", desc: "Customer's full name" },
+    { key: "customer_email", desc: "Login email address" },
+    { key: "password", desc: "Auto-generated password" },
+    { key: "login_url", desc: "Login page URL" },
+  ],
+  shipping_update: [
+    { key: "customer_name", desc: "Customer's full name" },
+    { key: "order_number", desc: "Order number" },
+    { key: "tracking_number", desc: "Tracking number" },
+    { key: "shipping_carrier", desc: "Shipping carrier name" },
+  ],
+};
+
 const emptyTemplate: Omit<EmailTemplate, "id" | "created_at"> = {
   product_id: null,
   name: "",
@@ -34,12 +76,14 @@ const emptyTemplate: Omit<EmailTemplate, "id" | "created_at"> = {
   body_html: "",
   is_global: false,
   active: true,
+  category: "post_purchase",
 };
 
 export default function AdminEmailTemplates() {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<EmailTemplate | null>(null);
   const [form, setForm] = useState(emptyTemplate);
+  const [activeCategory, setActiveCategory] = useState<string>("all");
 
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ["admin-email-templates"],
@@ -74,6 +118,7 @@ export default function AdminEmailTemplates() {
         body_html: data.body_html,
         is_global: data.is_global,
         active: data.active,
+        category: data.category,
       };
 
       if (data.id) {
@@ -124,6 +169,7 @@ export default function AdminEmailTemplates() {
         body_html: template.body_html,
         is_global: template.is_global,
         active: template.active,
+        category: template.category || "post_purchase",
       });
     } else {
       setEditing({} as EmailTemplate);
@@ -144,6 +190,12 @@ export default function AdminEmailTemplates() {
     return products.find((p) => p.id === productId)?.name || "Unknown";
   };
 
+  const getCategoryInfo = (cat: string) => CATEGORIES.find((c) => c.value === cat) || CATEGORIES[0];
+
+  const filteredTemplates = activeCategory === "all"
+    ? templates
+    : templates.filter((t) => (t.category || "post_purchase") === activeCategory);
+
   if (isLoading) {
     return (
       <AdminLayout>
@@ -154,6 +206,7 @@ export default function AdminEmailTemplates() {
 
   // Editor view
   if (editing) {
+    const currentVars = CATEGORY_VARIABLES[form.category] || CATEGORY_VARIABLES.post_purchase;
     return (
       <AdminLayout>
         <div className="max-w-3xl space-y-6">
@@ -167,6 +220,40 @@ export default function AdminEmailTemplates() {
           </div>
 
           <div className="rounded-xl border border-border p-5 space-y-5">
+            {/* Category selector */}
+            <div className="space-y-2">
+              <Label>Template Category *</Label>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {CATEGORIES.map((cat) => {
+                  const Icon = cat.icon;
+                  return (
+                    <label
+                      key={cat.value}
+                      className={`flex items-start gap-3 rounded-xl border p-3 cursor-pointer transition-colors ${
+                        form.category === cat.value
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-foreground/20"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="template-category"
+                        value={cat.value}
+                        checked={form.category === cat.value}
+                        onChange={(e) => setForm({ ...form, category: e.target.value })}
+                        className="sr-only"
+                      />
+                      <Icon className={`h-5 w-5 shrink-0 mt-0.5 ${form.category === cat.value ? "text-primary" : "text-muted-foreground"}`} />
+                      <div>
+                        <p className="text-sm font-medium">{cat.label}</p>
+                        <p className="text-xs text-muted-foreground">{cat.description}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Template Name *</Label>
@@ -221,12 +308,17 @@ export default function AdminEmailTemplates() {
 
             <div className="space-y-2">
               <Label>Email Body</Label>
-              <p className="text-xs text-muted-foreground mb-2">
-                Use the editor to add text, links, buttons, images, etc. 
-                Variables: <code className="bg-muted px-1 rounded">{"{{customer_name}}"}</code>, 
-                <code className="bg-muted px-1 rounded">{"{{order_number}}"}</code>, 
-                <code className="bg-muted px-1 rounded">{"{{product_name}}"}</code>
-              </p>
+              <div className="rounded-lg bg-muted/50 p-3 mb-2">
+                <p className="text-xs font-medium text-muted-foreground mb-1.5">Available variables for this category:</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {currentVars.map((v) => (
+                    <span key={v.key} className="inline-flex items-center gap-1 text-xs bg-background border border-border px-2 py-1 rounded-md" title={v.desc}>
+                      <code className="font-mono text-primary">{`{{${v.key}}}`}</code>
+                      <span className="text-muted-foreground">— {v.desc}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
               <RichTextEditor
                 value={form.body_html}
                 onChange={(v) => setForm({ ...form, body_html: v })}
@@ -256,7 +348,7 @@ export default function AdminEmailTemplates() {
           <div>
             <h2 className="text-xl font-display font-bold">Email Templates</h2>
             <p className="text-sm text-muted-foreground">
-              Create post-purchase email templates with custom content, links, and instructions
+              Create email templates for order confirmations, payment notifications, account setup, and more
             </p>
           </div>
           <Button onClick={() => openEditor()} className="gap-2">
@@ -264,66 +356,103 @@ export default function AdminEmailTemplates() {
           </Button>
         </div>
 
-        {templates.length === 0 ? (
+        {/* Category filter tabs */}
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setActiveCategory("all")}
+            className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
+              activeCategory === "all" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            All ({templates.length})
+          </button>
+          {CATEGORIES.map((cat) => {
+            const count = templates.filter((t) => (t.category || "post_purchase") === cat.value).length;
+            const Icon = cat.icon;
+            return (
+              <button
+                key={cat.value}
+                onClick={() => setActiveCategory(cat.value)}
+                className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
+                  activeCategory === cat.value ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Icon className="h-3 w-3" />
+                {cat.label} ({count})
+              </button>
+            );
+          })}
+        </div>
+
+        {filteredTemplates.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border p-12 text-center">
             <Mail className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-1">No email templates yet</h3>
+            <h3 className="text-lg font-semibold mb-1">
+              {activeCategory === "all" ? "No email templates yet" : `No ${getCategoryInfo(activeCategory).label} templates`}
+            </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Create templates to send custom post-purchase emails with download links, access instructions, or any content.
+              Create templates to send automated emails for orders, payments, and account creation.
             </p>
             <Button onClick={() => openEditor()} className="gap-2">
-              <Plus className="h-4 w-4" /> Create First Template
+              <Plus className="h-4 w-4" /> Create Template
             </Button>
           </div>
         ) : (
           <div className="space-y-3">
-            {templates.map((t) => (
-              <div
-                key={t.id}
-                className={`rounded-xl border p-4 flex items-center justify-between gap-4 transition-colors ${
-                  t.active ? "border-border" : "border-border/50 opacity-60"
-                }`}
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    {t.is_global ? (
-                      <span className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                        <Globe className="h-3 w-3" /> Global
+            {filteredTemplates.map((t) => {
+              const catInfo = getCategoryInfo(t.category || "post_purchase");
+              const CatIcon = catInfo.icon;
+              return (
+                <div
+                  key={t.id}
+                  className={`rounded-xl border p-4 flex items-center justify-between gap-4 transition-colors ${
+                    t.active ? "border-border" : "border-border/50 opacity-60"
+                  }`}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className="inline-flex items-center gap-1 text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full">
+                        <CatIcon className="h-3 w-3" /> {catInfo.label}
                       </span>
-                    ) : t.product_id ? (
-                      <span className="inline-flex items-center gap-1 text-xs bg-accent text-accent-foreground px-2 py-0.5 rounded-full">
-                        <Package className="h-3 w-3" /> {getProductName(t.product_id)}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-                        Unassigned
-                      </span>
-                    )}
-                    {!t.active && (
-                      <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded-full">
-                        Inactive
-                      </span>
-                    )}
+                      {t.is_global ? (
+                        <span className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                          <Globe className="h-3 w-3" /> Global
+                        </span>
+                      ) : t.product_id ? (
+                        <span className="inline-flex items-center gap-1 text-xs bg-accent text-accent-foreground px-2 py-0.5 rounded-full">
+                          <Package className="h-3 w-3" /> {getProductName(t.product_id)}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                          Unassigned
+                        </span>
+                      )}
+                      {!t.active && (
+                        <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded-full">
+                          Inactive
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-semibold truncate">{t.name}</h3>
+                    <p className="text-sm text-muted-foreground truncate">Subject: {t.subject}</p>
                   </div>
-                  <h3 className="font-semibold truncate">{t.name}</h3>
-                  <p className="text-sm text-muted-foreground truncate">Subject: {t.subject}</p>
+                  <div className="flex gap-1 shrink-0">
+                    <Button variant="ghost" size="icon" onClick={() => openEditor(t)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        if (confirm("Delete this template?")) deleteMutation.mutate(t.id);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-1 shrink-0">
-                  <Button variant="ghost" size="icon" onClick={() => openEditor(t)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      if (confirm("Delete this template?")) deleteMutation.mutate(t.id);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
