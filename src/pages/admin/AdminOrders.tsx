@@ -99,9 +99,10 @@ export default function AdminOrders() {
       const { error } = await supabase.from("orders").update({ payment_status }).eq("id", id);
       if (error) throw error;
       fireWebhook(id, "order.payment_changed");
-      // Auto-generate download tokens when payment is marked as paid
+      // Auto-generate download tokens & trigger email when payment is marked as paid
       if (payment_status === "paid") {
         await supabase.rpc("generate_download_tokens", { _order_id: id } as any);
+        triggerEmail(id, "payment_verified");
       }
     },
     onSuccess: () => {
