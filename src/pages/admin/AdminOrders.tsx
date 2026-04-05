@@ -61,12 +61,32 @@ export default function AdminOrders() {
     }).catch(() => {});
   };
 
+  const triggerEmail = async (orderId: string, type: string) => {
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+    try {
+      await fetch(`https://${projectId}.supabase.co/functions/v1/send-order-confirmation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: orderId, type, origin: window.location.origin }),
+      });
+    } catch (e) {
+      console.error("Email trigger failed:", e);
+    }
+  };
+
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase.from("orders").update({ status }).eq("id", id);
       if (error) throw error;
       fireWebhook(id, "order.status_changed");
       logActivity("Updated order status", "order", id, `Status changed to ${status}`);
+
+      // Auto-trigger emails based on status
+      if (status === "confirmed") {
+        triggerEmail(id, "order_confirmation");
+      } else if (status === "completed") {
+        triggerEmail(id, "post_purchase");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
