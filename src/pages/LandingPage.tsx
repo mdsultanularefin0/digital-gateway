@@ -157,9 +157,9 @@ function ProductShowcaseSection({ content }: { content: SectionContent }) {
             <Carousel opts={{ loop: true }} className="mx-auto max-w-3xl">
               <CarouselContent>
                 {galleryImages.map((img, i) => (
-                  <CarouselItem key={i}>
-                    <img src={img} alt={`Slide ${i + 1}`} className="rounded-2xl shadow-2xl mx-auto border border-border max-w-full" />
-                  </CarouselItem>
+                    <CarouselItem key={i}>
+                      <RatioImage src={img} alt={`Slide ${i + 1}`} className="rounded-2xl shadow-2xl mx-auto border border-border max-w-full" ratio={content.imageRatio} />
+                    </CarouselItem>
                 ))}
               </CarouselContent>
               <CarouselPrevious className="-left-4 md:-left-12" />
