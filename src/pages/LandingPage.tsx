@@ -607,6 +607,7 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
 
       const { error: itemsErr } = await supabase.from("order_items").insert({
         order_id: order.id,
+        product_id: linkedProductId,
         product_name: productName,
         tier_label: "Landing Page",
         quantity: 1,
