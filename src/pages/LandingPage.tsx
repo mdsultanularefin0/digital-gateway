@@ -501,12 +501,12 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
   const [submitting, setSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState<string | null>(null);
 
-  // Extract product info from pricing section
+  // Use linked product data if available, otherwise fall back to pricing section
   const pricingSection = allSections?.pricing;
-  const productName = pricingSection?.heading || content?.productName || pageTitle;
-  const priceStr = pricingSection?.price || content?.price || "0";
-  const unitPrice = parseFloat(priceStr.replace(/[^0-9.]/g, "")) || 0;
-  const productImage = pricingSection?.imageUrl || allSections?.hero?.imageUrl || allSections?.["product-showcase"]?.imageUrl || "";
+  const productName = linkedProduct?.name || pricingSection?.heading || content?.productName || pageTitle;
+  const unitPrice = linkedProduct?.price ?? (parseFloat((pricingSection?.price || content?.price || "0").replace(/[^0-9.]/g, "")) || 0);
+  const productImage = linkedProduct?.image || pricingSection?.imageUrl || allSections?.hero?.imageUrl || allSections?.["product-showcase"]?.imageUrl || "";
+  const linkedProductId = linkedProduct?.id || null;
 
   const total = unitPrice - discount;
 
