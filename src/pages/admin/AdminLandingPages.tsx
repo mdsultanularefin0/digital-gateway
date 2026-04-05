@@ -28,6 +28,8 @@ interface LandingPage {
 
 type LandingPageInsert = Omit<LandingPage, "id" | "created_at" | "updated_at"> & { id?: string };
 
+type ProductOption = { id: string; name: string; slug: string };
+
 export default function AdminLandingPages() {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<LandingPageInsert | null>(null);
