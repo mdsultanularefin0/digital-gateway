@@ -167,6 +167,7 @@ export default function AccountPage() {
     { key: "orders", label: "Order History", icon: Package },
     { key: "downloads", label: "My Downloads", icon: Download },
     { key: "address", label: "Saved Address", icon: MapPin },
+    { key: "settings", label: "Settings", icon: Settings },
   ];
 
   return (
