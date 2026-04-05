@@ -696,13 +696,26 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
   if (orderPlaced) {
     return (
       <section id="checkout" className="py-20">
-        <div className="container max-w-lg mx-auto px-4 text-center">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6" />
-            <h2 className="text-3xl font-display font-bold mb-3">Order Placed!</h2>
-            <p className="text-muted-foreground mb-2">Thank you for your purchase.</p>
-            <p className="text-sm font-mono bg-muted rounded-xl inline-block px-4 py-2 mb-4">{orderPlaced}</p>
-            <p className="text-sm text-muted-foreground">We'll send a confirmation to your email shortly.</p>
+        <div className="container max-w-lg mx-auto px-4">
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl border border-border bg-card p-8 md:p-12 text-center shadow-xl relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 pointer-events-none" />
+            <div className="relative">
+              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                className="h-20 w-20 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-6"
+              >
+                <CheckCircle className="h-10 w-10 text-green-500" />
+              </motion.div>
+              <h2 className="text-3xl font-display font-bold mb-2">Order Confirmed!</h2>
+              <p className="text-muted-foreground mb-5">Thank you for your purchase. Your order has been received.</p>
+              <div className="rounded-xl bg-muted/50 border border-border p-4 mb-6">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Order Number</p>
+                <p className="text-lg font-mono font-bold text-primary">{orderPlaced}</p>
+              </div>
+              {linkedProductId && <DownloadLinks orderId={orderPlaced} />}
+              <p className="text-xs text-muted-foreground mt-6">A confirmation email has been sent to your inbox.</p>
+            </div>
           </motion.div>
         </div>
       </section>
