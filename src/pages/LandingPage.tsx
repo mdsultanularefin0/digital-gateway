@@ -750,7 +750,7 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="font-medium truncate">{productName}</p>
-                      <p className="text-lg font-bold text-primary mt-1">{priceStr}</p>
+                      <p className="text-lg font-bold text-primary mt-1">{sym}{unitPrice.toFixed(2)}</p>
                     </div>
                   </div>
                 </div>
