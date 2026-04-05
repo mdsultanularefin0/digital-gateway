@@ -35,6 +35,7 @@ export interface SectionContent {
   buttonUrl?: string;
   imageUrl?: string;
   images?: string[];
+  imageRatio?: "auto" | "1:1" | "4:3" | "16:9" | "3:4" | "9:16";
   items?: { title: string; description: string; icon?: string }[];
   price?: string;
   originalPrice?: string;

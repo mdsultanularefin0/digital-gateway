@@ -144,6 +144,10 @@ export default function AdminLandingPages() {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editing) return;
+    if (!editing.product_id) {
+      toast({ title: "Product required", description: "Please select a product for this landing page.", variant: "destructive" });
+      return;
+    }
     saveMutation.mutate(editing);
   };
 
@@ -226,22 +230,21 @@ export default function AdminLandingPages() {
 
           {/* Product selector */}
           <div>
-            <label className="text-sm font-medium mb-1 block">Linked Product (optional)</label>
+            <label className="text-sm font-medium mb-1 block">Linked Product *</label>
             <Select
-              value={editing.product_id || "none"}
-              onValueChange={(v) => setEditing({ ...editing, product_id: v === "none" ? null : v })}
+              value={editing.product_id || ""}
+              onValueChange={(v) => setEditing({ ...editing, product_id: v })}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="No product linked" />
+                <SelectValue placeholder="Select a product" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">No product linked</SelectItem>
                 {products?.map((p) => (
                   <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground mt-1">Link a product to auto-fill checkout with its name, price & image. Orders will be tied to this product.</p>
+            <p className="text-xs text-muted-foreground mt-1">Select the product to sell. Pricing, downloads, and subscriptions will be based on this product.</p>
           </div>
 
           {/* Language mode */}

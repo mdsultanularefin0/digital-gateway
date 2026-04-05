@@ -11,8 +11,24 @@ import { Button } from "@/components/ui/button";
 import { landingTemplates, type SectionsData, type SectionContent } from "@/data/landing-templates";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { toast } from "@/hooks/use-toast";
+import { DownloadLinks } from "@/components/DownloadLinks";
 
 type Lang = "en" | "bn";
+
+const RATIO_CLASSES: Record<string, string> = {
+  "1:1": "aspect-square",
+  "4:3": "aspect-[4/3]",
+  "16:9": "aspect-video",
+  "3:4": "aspect-[3/4]",
+  "9:16": "aspect-[9/16]",
+};
+
+function RatioImage({ src, alt, className, ratio }: { src: string; alt?: string; className?: string; ratio?: string }) {
+  const ratioClass = ratio && ratio !== "auto" ? RATIO_CLASSES[ratio] || "" : "";
+  return (
+    <img src={src} alt={alt || ""} className={`${ratioClass} ${ratioClass ? "object-cover" : ""} ${className || ""}`} />
+  );
+}
 
 const scrollToCheckout = () => {
   document.getElementById("checkout")?.scrollIntoView({ behavior: "smooth" });
@@ -118,7 +134,7 @@ function HeroSection({ content }: { content: SectionContent }) {
           </div>
           {content.imageUrl && (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="flex-1">
-              <img src={content.imageUrl} alt="" className="rounded-2xl shadow-xl w-full" />
+              <RatioImage src={content.imageUrl} className="rounded-2xl shadow-xl w-full" ratio={content.imageRatio} />
             </motion.div>
           )}
         </div>
@@ -140,9 +156,9 @@ function ProductShowcaseSection({ content }: { content: SectionContent }) {
             <Carousel opts={{ loop: true }} className="mx-auto max-w-3xl">
               <CarouselContent>
                 {galleryImages.map((img, i) => (
-                  <CarouselItem key={i}>
-                    <img src={img} alt={`Slide ${i + 1}`} className="rounded-2xl shadow-2xl mx-auto border border-border max-w-full" />
-                  </CarouselItem>
+                    <CarouselItem key={i}>
+                      <RatioImage src={img} alt={`Slide ${i + 1}`} className="rounded-2xl shadow-2xl mx-auto border border-border max-w-full" ratio={content.imageRatio} />
+                    </CarouselItem>
                 ))}
               </CarouselContent>
               <CarouselPrevious className="-left-4 md:-left-12" />
@@ -151,11 +167,11 @@ function ProductShowcaseSection({ content }: { content: SectionContent }) {
           </motion.div>
         ) : content.imageUrl ? (
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <img src={content.imageUrl} alt="" className="rounded-2xl shadow-2xl mx-auto border border-border max-w-full" />
+            <RatioImage src={content.imageUrl} className="rounded-2xl shadow-2xl mx-auto border border-border max-w-full" ratio={content.imageRatio} />
           </motion.div>
         ) : galleryImages.length === 1 ? (
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <img src={galleryImages[0]} alt="" className="rounded-2xl shadow-2xl mx-auto border border-border max-w-full" />
+            <RatioImage src={galleryImages[0]} className="rounded-2xl shadow-2xl mx-auto border border-border max-w-full" ratio={content.imageRatio} />
           </motion.div>
         ) : null}
         {content.body && <p className="text-muted-foreground mt-6 max-w-2xl mx-auto">{content.body}</p>}
@@ -475,7 +491,7 @@ function TextImageSection({ content }: { content: SectionContent }) {
                   <CarouselContent>
                     {galleryImages.map((img, i) => (
                       <CarouselItem key={i}>
-                        <img src={img} alt={`Slide ${i + 1}`} className="rounded-2xl shadow-lg w-full" />
+                        <RatioImage src={img} alt={`Slide ${i + 1}`} className="rounded-2xl shadow-lg w-full" ratio={content.imageRatio} />
                       </CarouselItem>
                     ))}
                   </CarouselContent>
@@ -483,7 +499,7 @@ function TextImageSection({ content }: { content: SectionContent }) {
                   <CarouselNext className="-right-4 md:-right-12" />
                 </Carousel>
               ) : (
-                <img src={singleImage} alt="" className="rounded-2xl shadow-lg w-full" />
+                <RatioImage src={singleImage!} className="rounded-2xl shadow-lg w-full" ratio={content.imageRatio} />
               )}
             </motion.div>
           )}
@@ -537,6 +553,7 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
   const [couponLoading, setCouponLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState<string | null>(null);
+  const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
 
   // Use linked product data if available, otherwise fall back to pricing section
   const pricingSection = allSections?.pricing;
@@ -683,6 +700,7 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
         }
       }
 
+      setPlacedOrderId(order.id);
       setOrderPlaced(order.order_number);
     } catch (err: any) {
       toast({ title: "Failed to place order", description: err.message, variant: "destructive" });
@@ -696,13 +714,26 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
   if (orderPlaced) {
     return (
       <section id="checkout" className="py-20">
-        <div className="container max-w-lg mx-auto px-4 text-center">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6" />
-            <h2 className="text-3xl font-display font-bold mb-3">Order Placed!</h2>
-            <p className="text-muted-foreground mb-2">Thank you for your purchase.</p>
-            <p className="text-sm font-mono bg-muted rounded-xl inline-block px-4 py-2 mb-4">{orderPlaced}</p>
-            <p className="text-sm text-muted-foreground">We'll send a confirmation to your email shortly.</p>
+        <div className="container max-w-lg mx-auto px-4">
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl border border-border bg-card p-8 md:p-12 text-center shadow-xl relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 pointer-events-none" />
+            <div className="relative">
+              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                className="h-20 w-20 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-6"
+              >
+                <CheckCircle className="h-10 w-10 text-green-500" />
+              </motion.div>
+              <h2 className="text-3xl font-display font-bold mb-2">Order Confirmed!</h2>
+              <p className="text-muted-foreground mb-5">Thank you for your purchase. Your order has been received.</p>
+              <div className="rounded-xl bg-muted/50 border border-border p-4 mb-6">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Order Number</p>
+                <p className="text-lg font-mono font-bold text-primary">{orderPlaced}</p>
+              </div>
+              {placedOrderId && linkedProductId && <DownloadLinks orderId={placedOrderId} />}
+              <p className="text-xs text-muted-foreground mt-6">A confirmation email has been sent to your inbox.</p>
+            </div>
           </motion.div>
         </div>
       </section>
