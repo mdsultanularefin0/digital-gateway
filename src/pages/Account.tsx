@@ -127,6 +127,29 @@ export default function AccountPage() {
     },
   });
 
+  const [passwordForm, setPasswordForm] = useState({ current: "", newPass: "", confirm: "" });
+  const [changingPassword, setChangingPassword] = useState(false);
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordForm.newPass !== passwordForm.confirm) {
+      toast({ title: "Passwords do not match", variant: "destructive" });
+      return;
+    }
+    if (passwordForm.newPass.length < 6) {
+      toast({ title: "Password must be at least 6 characters", variant: "destructive" });
+      return;
+    }
+    setChangingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: passwordForm.newPass });
+    setChangingPassword(false);
+    if (error) {
+      toast({ title: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Password updated successfully" });
+      setPasswordForm({ current: "", newPass: "", confirm: "" });
+    }
+  };
 
   if (loading) {
     return (
