@@ -830,10 +830,49 @@ export default function LandingPage() {
     enabled: !!slug,
   });
 
+  // Fetch linked product data if product_id exists
+  const productId = page?.product_id as string | null;
+  const { data: linkedProduct } = useQuery({
+    queryKey: ["landing-product", productId],
+    queryFn: async () => {
+      const { data: prod } = await supabase
+        .from("products")
+        .select("id, name, price, image_url, slug")
+        .eq("id", productId!)
+        .maybeSingle();
+      if (!prod) return null;
+      const { data: tiers } = await supabase
+        .from("product_tiers")
+        .select("*")
+        .eq("product_id", productId!)
+        .order("sort_order");
+      const { data: images } = await supabase
+        .from("product_images")
+        .select("image_url")
+        .eq("product_id", productId!)
+        .order("sort_order")
+        .limit(1);
+      const defaultTier = tiers?.find((t) => t.is_default) || tiers?.[0];
+      return {
+        id: prod.id,
+        name: prod.name,
+        price: defaultTier?.price ?? prod.price,
+        image: images?.[0]?.image_url || prod.image_url || "",
+        slug: prod.slug,
+      };
+    },
+    enabled: !!productId,
+  });
+
+  const languageMode = (page?.language_mode as string) || "both";
+
   useEffect(() => {
+    if (!page) return;
+    if (languageMode === "en") { setLang("en"); return; }
+    if (languageMode === "bn") { setLang("bn"); return; }
     const saved = sessionStorage.getItem(`lp-lang-${slug}`);
     if (saved === "en" || saved === "bn") setLang(saved);
-  }, [slug]);
+  }, [slug, page, languageMode]);
 
   const handleLangSelect = (l: Lang) => {
     setLang(l);
@@ -863,9 +902,11 @@ export default function LandingPage() {
     );
   }
 
-  if (!lang) {
+  if (!lang && languageMode === "both") {
     return <LanguagePopup onSelect={handleLangSelect} />;
   }
+
+  if (!lang) return null;
 
   const tmpl = landingTemplates.find((t) => t.id === page.template);
   const sections: SectionsData = lang === "bn" ? page.sections_bn : page.sections_en;
