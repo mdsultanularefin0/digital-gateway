@@ -11,15 +11,16 @@ import OrderDetail from "@/components/admin/OrderDetail";
 import { exportToCSV, logActivity } from "@/lib/admin-utils";
 import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components/admin/DateRangeFilter";
 
-const statuses = ["pending", "processing", "shipped", "delivered", "cancelled"];
+const statuses = ["pending", "confirmed", "processing", "completed", "cancelled", "refunded"];
 const paymentStatuses = ["unpaid", "paid", "refunded"];
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
+  confirmed: "bg-sky-500/10 text-sky-600 border-sky-500/20",
   processing: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  shipped: "bg-purple-500/10 text-purple-600 border-purple-500/20",
-  delivered: "bg-green-500/10 text-green-600 border-green-500/20",
+  completed: "bg-green-500/10 text-green-600 border-green-500/20",
   cancelled: "bg-destructive/10 text-destructive border-destructive/20",
+  refunded: "bg-orange-500/10 text-orange-600 border-orange-500/20",
 };
 
 const paymentColors: Record<string, string> = {
