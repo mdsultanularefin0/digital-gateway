@@ -461,13 +461,30 @@ function CountdownSection({ content }: { content: SectionContent }) {
 
 function TextImageSection({ content }: { content: SectionContent }) {
   if (!content.heading) return null;
+  const galleryImages = (content.images || []).filter(Boolean);
+  const hasCarousel = galleryImages.length > 1;
+  const singleImage = galleryImages.length === 1 ? galleryImages[0] : content.imageUrl;
   return (
     <section className="py-16">
       <div className="container max-w-6xl mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center gap-12">
-          {content.imageUrl && (
+          {(hasCarousel || singleImage) && (
             <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="flex-1">
-              <img src={content.imageUrl} alt="" className="rounded-2xl shadow-lg w-full" />
+              {hasCarousel ? (
+                <Carousel opts={{ loop: true }}>
+                  <CarouselContent>
+                    {galleryImages.map((img, i) => (
+                      <CarouselItem key={i}>
+                        <img src={img} alt={`Slide ${i + 1}`} className="rounded-2xl shadow-lg w-full" />
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="-left-4 md:-left-12" />
+                  <CarouselNext className="-right-4 md:-right-12" />
+                </Carousel>
+              ) : (
+                <img src={singleImage} alt="" className="rounded-2xl shadow-lg w-full" />
+              )}
             </motion.div>
           )}
           <div className="flex-1 space-y-4">
