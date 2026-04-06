@@ -31,7 +31,6 @@ export function ProductCard({ product }: { product: Product }) {
   const { data: defaultTier } = useQuery({
     queryKey: ["product-default-tier", product.id],
     queryFn: async () => {
-      // First try to find a tier marked as default
       const { data: allTiers } = await supabase
         .from("product_tiers")
         .select("price, label, sort_order")
@@ -45,7 +44,6 @@ export function ProductCard({ product }: { product: Product }) {
   });
 
   const displayPrice = defaultTier ? Number(defaultTier.price) : product.price;
-
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -66,11 +64,12 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <Link
       to={`/products/${product.slug || product.id}`}
-      className="group relative flex flex-col overflow-hidden rounded-2xl glass-card transition-all duration-300 hover:shadow-card-hover hover:border-primary/30"
+      className="group relative flex flex-col overflow-hidden rounded-2xl glass-card transition-all duration-300 hover:shadow-card-hover hover:border-primary/30 h-full"
     >
-      <div className="aspect-video w-full overflow-hidden bg-secondary relative">
+      {/* Fixed aspect ratio image */}
+      <div className="aspect-[4/3] w-full overflow-hidden bg-secondary relative shrink-0">
         {firstImage ? (
-          <img src={firstImage} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img src={firstImage} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
         ) : (
           <div className="flex h-full items-center justify-center gradient-bg opacity-10 group-hover:opacity-20 transition-opacity duration-500">
             <span className="text-4xl font-display font-bold text-foreground/20">{product.name[0]}</span>
@@ -83,44 +82,44 @@ export function ProductCard({ product }: { product: Product }) {
         )}
       </div>
 
-      <div className="flex flex-1 flex-col p-6">
-        <div className="flex items-center gap-2 mb-3">
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
           {product.tags.slice(0, 2).map((tag) => (
             <span
               key={tag}
-              className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium tracking-wider uppercase text-primary"
+              className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] sm:text-xs font-medium tracking-wider uppercase text-primary"
             >
               {tag}
             </span>
           ))}
           {inStock && (
-            <span className="rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">
+            <span className="rounded-full bg-success/10 px-2 py-0.5 text-[10px] sm:text-xs font-medium text-success">
               In Stock
             </span>
           )}
         </div>
 
-        <h3 className="text-lg font-display font-semibold text-foreground group-hover:text-primary transition-colors">
+        <h3 className="text-base sm:text-lg font-display font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
           {product.name}
         </h3>
-        <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{product.tagline}</p>
+        <p className="mt-1 text-xs sm:text-sm text-muted-foreground line-clamp-2">{product.tagline}</p>
 
-        <div className="mt-auto flex items-center justify-between pt-4 border-t border-border mt-4">
-          <span className="text-lg font-bold text-foreground">
+        <div className="mt-auto flex items-center justify-between pt-3 border-t border-border mt-3">
+          <span className="text-base sm:text-lg font-bold text-foreground">
             {currencySymbol}{displayPrice}
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {inStock && (
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-xl"
+                className="rounded-xl h-8 text-xs px-2.5"
                 onClick={handleAddToCart}
               >
-                <ShoppingCart className="h-3.5 w-3.5 mr-1" /> Add
+                <ShoppingCart className="h-3 w-3 mr-1" /> Add
               </Button>
             )}
-            <span className="flex items-center gap-1 text-sm text-primary font-medium group-hover:gap-2 transition-all">
+            <span className="hidden sm:flex items-center gap-1 text-sm text-primary font-medium group-hover:gap-2 transition-all">
               Details <ArrowRight className="h-4 w-4" />
             </span>
           </div>
