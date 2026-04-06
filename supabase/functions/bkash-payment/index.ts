@@ -245,6 +245,7 @@ Deno.serve(async (req) => {
         .from("orders")
         .update({
           payment_status: paymentStatus,
+          status: isPaid ? "completed" : undefined,
           bkash_response: mergedResponse,
           notes: isPaid
             ? `bkash_trxID:${result.trxID} | bkash_paymentID:${paymentID}`

@@ -143,10 +143,11 @@ export default function AdminOrders() {
 
   const bulkUpdatePaymentMutation = useMutation({
     mutationFn: async ({ ids, payment_status }: { ids: string[]; payment_status: string }) => {
-      const { error } = await supabase.from("orders").update({ payment_status }).in("id", ids);
+      const updateData: Record<string, string> = { payment_status };
+      if (payment_status === "paid") updateData.status = "completed";
+      const { error } = await supabase.from("orders").update(updateData).in("id", ids);
       if (error) throw error;
       ids.forEach((id) => fireWebhook(id, "order.payment_changed"));
-      // Auto-generate download tokens when bulk payment marked as paid
       if (payment_status === "paid") {
         for (const id of ids) {
           await supabase.rpc("generate_download_tokens", { _order_id: id } as any);
