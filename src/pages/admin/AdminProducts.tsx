@@ -513,6 +513,7 @@ export default function AdminProducts() {
                 const pImages = (allImages || []).filter((img) => img.product_id === p.id);
                 return {
                   name: p.name,
+                  slug: p.slug,
                   tagline: p.tagline,
                   description: p.description,
                   category: p.category,
