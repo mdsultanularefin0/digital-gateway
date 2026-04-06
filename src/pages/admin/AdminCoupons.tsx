@@ -15,7 +15,7 @@ const emptyCoupon = {
 export default function AdminCoupons() {
   const queryClient = useQueryClient();
   const { data: settings } = useSiteSettings();
-  const currencySymbol = settings?.currency_symbol || "$";
+  const currencySymbol = settings?.currency_symbol || "৳";
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState(emptyCoupon);
 

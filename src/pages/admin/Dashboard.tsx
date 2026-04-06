@@ -70,7 +70,7 @@ export default function AdminDashboard() {
   const activeCoupons = filteredCoupons.filter((c) => c.active).length;
 
   const stats = [
-    { label: "Revenue", value: `${currencySymbol}${revenue.toFixed(2)}`, icon: DollarSign },
+    { label: "Revenue", value: `${currencySymbol}${revenue.toFixed(2)}`, icon: Wallet },
     { label: "Orders", value: filteredOrders.length, icon: ShoppingCart },
     { label: "Customers", value: filteredCustomers.length, icon: Users },
     { label: "Products", value: filteredProducts.length, icon: Package },

@@ -30,7 +30,7 @@ const emptyProduct: ProductInsert = {
   category: "General",
   tags: [],
   price: 0,
-  price_label: "$0",
+  price_label: "৳0",
   billing_cycle: "monthly",
   features: [],
   external_url: "#",

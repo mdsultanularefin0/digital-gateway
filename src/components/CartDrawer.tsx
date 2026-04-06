@@ -8,7 +8,7 @@ import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 export function CartDrawer() {
   const { items, removeItem, updateQuantity, itemCount, subtotal, isOpen, setIsOpen } = useCart();
   const { data: settings } = useSiteSettings();
-  const sym = settings?.currency_symbol || "$";
+  const sym = settings?.currency_symbol || "৳";
 
   const handleNavigate = (path: string) => {
     setIsOpen(false);

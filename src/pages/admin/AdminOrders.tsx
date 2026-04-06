@@ -32,7 +32,7 @@ const paymentColors: Record<string, string> = {
 export default function AdminOrders() {
   const queryClient = useQueryClient();
   const { data: settings } = useSiteSettings();
-  const currencySymbol = settings?.currency_symbol || "$";
+  const currencySymbol = settings?.currency_symbol || "৳";
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);

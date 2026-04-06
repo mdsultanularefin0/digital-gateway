@@ -17,7 +17,7 @@ const emptyCustomer = {
 export default function AdminCustomers() {
   const queryClient = useQueryClient();
   const { data: settings } = useSiteSettings();
-  const currencySymbol = settings?.currency_symbol || "$";
+  const currencySymbol = settings?.currency_symbol || "৳";
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState(emptyCustomer);

@@ -147,7 +147,7 @@ export default function AdminSales() {
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 mb-8">
         {[
-          { label: "Total Revenue", value: `${currencySymbol}${totalRevenue.toFixed(2)}`, icon: DollarSign, sub: `${paidOrders.length} paid orders` },
+          { label: "Total Revenue", value: `${currencySymbol}${totalRevenue.toFixed(2)}`, icon: Wallet, sub: `${paidOrders.length} paid orders` },
           { label: "Today", value: `${currencySymbol}${todayRevenue.toFixed(2)}`, icon: TrendingUp, sub: `${todayOrders} orders today` },
           { label: "Avg Order", value: `${currencySymbol}${avgOrderValue.toFixed(2)}`, icon: ShoppingCart, sub: `${totalOrders} total orders` },
           { label: "Customers", value: customerCount, icon: Users, sub: "Total registered" },
