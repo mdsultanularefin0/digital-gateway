@@ -175,17 +175,17 @@ export default function AccountPage() {
       <section className="py-12 md:py-20">
         <div className="container px-5 md:px-8 max-w-5xl">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="h-6 w-6 text-primary" />
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <User className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
-              <div>
-                <h1 className="text-2xl font-display font-bold">My Account</h1>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-2xl font-display font-bold">My Account</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">{user.email}</p>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={signOut}>
+            <Button variant="outline" size="sm" onClick={signOut} className="self-start sm:self-auto">
               <LogOut className="h-4 w-4 mr-1" /> Sign Out
             </Button>
           </div>
