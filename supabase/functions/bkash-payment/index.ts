@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
       // Server-authoritative: recalculate total from order_items (never trust client-set total)
       const { data: order, error: orderErr } = await supabase
         .from("orders")
-        .select("id, shipping_cost, discount")
+        .select("id, order_number, shipping_cost, discount, customer_name, customer_email, customer_phone")
         .eq("id", orderId)
         .single();
 
@@ -178,6 +178,22 @@ Deno.serve(async (req) => {
         })
         .eq("id", orderId);
 
+      // Insert transaction record (initiated)
+      await supabase.from("transactions").insert({
+        order_id: orderId,
+        order_number: order.order_number,
+        payment_method: "bkash",
+        provider: "bKash PGW",
+        payment_id: result.paymentID,
+        amount: calculatedTotal,
+        currency: "BDT",
+        status: "initiated",
+        customer_name: order.customer_name,
+        customer_email: order.customer_email,
+        customer_phone: order.customer_phone,
+        raw_response: { create: result },
+      });
+
       return json({ bkashURL: result.bkashURL, paymentID: result.paymentID });
     }
 
@@ -192,7 +208,7 @@ Deno.serve(async (req) => {
       // Verify that the paymentID matches what was stored during create
       const { data: existingOrder, error: fetchErr } = await supabase
         .from("orders")
-        .select("notes, bkash_response")
+        .select("notes, bkash_response, order_number, customer_name, customer_email, customer_phone")
         .eq("id", orderId)
         .single();
 
@@ -234,6 +250,12 @@ Deno.serve(async (req) => {
           const expectedTotal = Math.max(0, expectedSubtotal - Number(verifyOrder.discount || 0) + Number(verifyOrder.shipping_cost || 0));
           if (Math.abs(Number(result.amount) - expectedTotal) > 0.01) {
             console.error(`Amount mismatch: paid=${result.amount}, expected=${expectedTotal}`);
+            // Update transaction as failed
+            await supabase
+              .from("transactions")
+              .update({ status: "failed", raw_response: mergedResponse })
+              .eq("order_id", orderId)
+              .eq("payment_id", paymentID);
             return json({ success: false, message: "Payment amount does not match order total" }, 400);
           }
         }
@@ -252,6 +274,18 @@ Deno.serve(async (req) => {
             : `bkash_failed | bkash_paymentID:${paymentID} | ${result.statusMessage || result.errorMessage || ""}`,
         })
         .eq("id", orderId);
+
+      // Update transaction record
+      await supabase
+        .from("transactions")
+        .update({
+          status: isPaid ? "completed" : "failed",
+          trx_id: result.trxID || "",
+          verified_at: isPaid ? new Date().toISOString() : null,
+          raw_response: mergedResponse,
+        })
+        .eq("order_id", orderId)
+        .eq("payment_id", paymentID);
 
       if (isPaid) {
         return json({ success: true, trxID: result.trxID });
