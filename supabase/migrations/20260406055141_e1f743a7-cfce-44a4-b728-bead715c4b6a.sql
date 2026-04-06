@@ -1,0 +1,1 @@
+CREATE POLICY "Anyone can resubscribe" ON public.newsletter_subscribers FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (active = true);
