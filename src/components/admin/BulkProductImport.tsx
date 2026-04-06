@@ -18,6 +18,7 @@ interface ParsedImage {
 
 interface ParsedProduct {
   name: string;
+  slug: string;
   tagline: string;
   description: string;
   category: string;
