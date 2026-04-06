@@ -30,7 +30,7 @@ const emptyProduct: ProductInsert = {
   category: "General",
   tags: [],
   price: 0,
-  price_label: "$0",
+  price_label: "৳0",
   billing_cycle: "monthly",
   features: [],
   external_url: "#",
@@ -513,6 +513,7 @@ export default function AdminProducts() {
                 const pImages = (allImages || []).filter((img) => img.product_id === p.id);
                 return {
                   name: p.name,
+                  slug: p.slug,
                   tagline: p.tagline,
                   description: p.description,
                   category: p.category,

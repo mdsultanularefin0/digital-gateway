@@ -11,6 +11,7 @@ declare global {
 
 let pixelId: string | null = null;
 let scriptLoaded = false;
+let scriptReady = false;
 
 /** Generate a unique event_id for deduplication between Pixel and CAPI */
 export function generateEventId(): string {
@@ -38,8 +39,11 @@ export function initMetaPixel(id: string) {
       const s = b.createElement("script");
       s.async = true;
       s.src = "https://connect.facebook.net/en_US/fbevents.js";
+      s.onload = () => { scriptReady = true; };
       const firstScript = b.getElementsByTagName("script")[0];
       firstScript?.parentNode?.insertBefore(s, firstScript);
+    } else {
+      scriptReady = true;
     }
   }
 
@@ -55,28 +59,33 @@ function isFbqReady(): boolean {
 
 // ── Server-side CAPI helper ──────────────────────────────────────────
 
+let capiQueue: Promise<void> = Promise.resolve();
+
 async function sendCAPIEvent(
   eventName: string,
   eventId: string,
   customData?: Record<string, unknown>,
   userData?: Record<string, unknown>
 ) {
-  try {
-    await supabase.functions.invoke("capi-event", {
-      body: {
-        event_name: eventName,
-        event_id: eventId,
-        event_source_url: window.location.href,
-        user_data: {
-          client_user_agent: navigator.userAgent,
-          ...(userData || {}),
+  // Queue CAPI calls to avoid overwhelming the edge function
+  capiQueue = capiQueue.then(async () => {
+    try {
+      await supabase.functions.invoke("capi-event", {
+        body: {
+          event_name: eventName,
+          event_id: eventId,
+          event_source_url: window.location.href,
+          user_data: {
+            client_user_agent: navigator.userAgent,
+            ...(userData || {}),
+          },
+          custom_data: customData || undefined,
         },
-        custom_data: customData || undefined,
-      },
-    });
-  } catch {
-    // Silently fail — CAPI is best-effort
-  }
+      });
+    } catch {
+      // Silently fail — CAPI is best-effort
+    }
+  });
 }
 
 // ── Client + Server event helpers ────────────────────────────────────

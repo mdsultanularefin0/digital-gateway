@@ -2,13 +2,13 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Package, ShoppingCart, Users, DollarSign, Tag, MessageSquare } from "lucide-react";
+import { Package, ShoppingCart, Users, Wallet, Tag, MessageSquare } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components/admin/DateRangeFilter";
 
 export default function AdminDashboard() {
   const { data: settings } = useSiteSettings();
-  const currencySymbol = settings?.currency_symbol || "$";
+  const currencySymbol = settings?.currency_symbol || "৳";
   const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
 
   const { data: products } = useQuery({
@@ -70,7 +70,7 @@ export default function AdminDashboard() {
   const activeCoupons = filteredCoupons.filter((c) => c.active).length;
 
   const stats = [
-    { label: "Revenue", value: `${currencySymbol}${revenue.toFixed(2)}`, icon: DollarSign },
+    { label: "Revenue", value: `${currencySymbol}${revenue.toFixed(2)}`, icon: Wallet },
     { label: "Orders", value: filteredOrders.length, icon: ShoppingCart },
     { label: "Customers", value: filteredCustomers.length, icon: Users },
     { label: "Products", value: filteredProducts.length, icon: Package },

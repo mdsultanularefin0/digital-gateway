@@ -18,6 +18,7 @@ interface ParsedImage {
 
 interface ParsedProduct {
   name: string;
+  slug: string;
   tagline: string;
   description: string;
   category: string;
@@ -42,10 +43,10 @@ interface ImportResult {
   errors: string[];
 }
 
-const DEMO_CSV = `name,tagline,description,category,tags,price,price_label,billing_cycle,features,external_url,image_url,featured,published,tiers,gallery_images
-"Canva Pro","Design made easy","Professional design tool with thousands of templates and AI features.","Design","Design;AI;Templates",12.99,"$12.99/mo","monthly","Unlimited templates;AI image generator;Brand kit;Background remover","https://canva.com","",true,true,"Basic:0:;Pro:12.99:Popular;Enterprise:49.99:","https://example.com/img1.jpg|Main image; https://example.com/img2.jpg|Side view"
-"Grammarly Premium","Write with confidence","AI-powered writing assistant for grammar, tone, and clarity.","Productivity","Writing;AI;Grammar",12,"$12/mo","monthly","Grammar & spelling;Tone detection;Plagiarism checker;Style suggestions","https://grammarly.com","",false,true,"",""
-"DataCamp Pro","Learn data skills","Interactive courses on Python, R, SQL, and machine learning.","Education","Data Science;Python;SQL",25,"$25/mo","monthly","400+ courses;Hands-on projects;Skill assessments;Certificates","https://datacamp.com","",true,true,"Monthly:25:;Annual:16.58:Best Value",""`;
+const DEMO_CSV = `name,slug,tagline,description,category,tags,price,price_label,billing_cycle,features,external_url,image_url,featured,published,tiers,gallery_images
+"Canva Pro","canva-pro","Design made easy","Professional design tool with thousands of templates and AI features.","Design","Design;AI;Templates",12.99,"৳12.99/mo","monthly","Unlimited templates;AI image generator;Brand kit;Background remover","https://canva.com","",true,true,"Basic:0:;Pro:12.99:Popular;Enterprise:49.99:","https://example.com/img1.jpg|Main image; https://example.com/img2.jpg|Side view"
+"Grammarly Premium","grammarly-premium","Write with confidence","AI-powered writing assistant for grammar, tone, and clarity.","Productivity","Writing;AI;Grammar",12,"৳12/mo","monthly","Grammar & spelling;Tone detection;Plagiarism checker;Style suggestions","https://grammarly.com","",false,true,"",""
+"DataCamp Pro","datacamp-pro","Learn data skills","Interactive courses on Python, R, SQL, and machine learning.","Education","Data Science;Python;SQL",25,"৳25/mo","monthly","400+ courses;Hands-on projects;Skill assessments;Certificates","https://datacamp.com","",true,true,"Monthly:25:;Annual:16.58:Best Value",""`;
 
 function parseCSV(text: string): string[][] {
   const rows: string[][] = [];
@@ -107,12 +108,13 @@ function mapRow(headers: string[], values: string[]): ParsedProduct | null {
 
   return {
     name,
+    slug: get("slug") || name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-'),
     tagline: get("tagline"),
     description: get("description"),
     category: get("category") || "General",
     tags: get("tags").split(";").map((t) => t.trim()).filter(Boolean),
     price: parseFloat(get("price")) || 0,
-    price_label: get("price_label") || "$0",
+    price_label: get("price_label") || "৳0",
     billing_cycle: get("billing_cycle") || "monthly",
     features: get("features").split(";").map((f) => f.trim()).filter(Boolean),
     external_url: get("external_url") || "#",
@@ -180,6 +182,7 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
       const p = preview[i];
       const { data: inserted, error } = await supabase.from("products").insert({
         name: p.name,
+        slug: p.slug,
         tagline: p.tagline,
         description: p.description,
         category: p.category,

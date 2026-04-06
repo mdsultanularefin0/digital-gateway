@@ -4,8 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Search, Edit2, Trash2, Users, X, Save, Download } from "lucide-react";
-import { exportToCSV, logActivity } from "@/lib/admin-utils";
+import { Plus, Search, Edit2, Trash2, Users, X, Save, Download, CheckSquare, Square, MinusSquare } from "lucide-react";
+import { exportToCSV } from "@/lib/admin-utils";
 import { format } from "date-fns";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { countries } from "@/data/countries-currencies";
@@ -17,11 +17,12 @@ const emptyCustomer = {
 export default function AdminCustomers() {
   const queryClient = useQueryClient();
   const { data: settings } = useSiteSettings();
-  const currencySymbol = settings?.currency_symbol || "$";
+  const currencySymbol = settings?.currency_symbol || "৳";
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState(emptyCustomer);
   const [tagInput, setTagInput] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const { data: customers = [], isLoading } = useQuery({
     queryKey: ["admin-customers"],
@@ -66,6 +67,30 @@ export default function AdminCustomers() {
     },
   });
 
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("customers").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-customers"] });
+      setSelectedIds(new Set());
+      toast({ title: `Deleted ${selectedIds.size} customers` });
+    },
+  });
+
+  const bulkStatusMutation = useMutation({
+    mutationFn: async ({ ids, status }: { ids: string[]; status: string }) => {
+      const { error } = await supabase.from("customers").update({ status }).in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-customers"] });
+      setSelectedIds(new Set());
+      toast({ title: "Customers updated" });
+    },
+  });
+
   const openEdit = (c?: any) => {
     if (c) {
       setForm({ name: c.name, email: c.email, phone: c.phone, whatsapp: c.whatsapp, address: c.address, city: c.city, state: c.state, country: c.country, zip_code: c.zip_code, notes: c.notes, tags: c.tags || [], status: c.status });
@@ -88,6 +113,46 @@ export default function AdminCustomers() {
     c.email.toLowerCase().includes(search.toLowerCase()) ||
     c.phone.includes(search)
   );
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(filtered.map((c: any) => c.id)));
+  };
+
+  const allSelected = filtered.length > 0 && selectedIds.size === filtered.length;
+  const someSelected = selectedIds.size > 0 && selectedIds.size < filtered.length;
+
+  const handleExport = () => {
+    exportToCSV(
+      customers.map((c: any) => ({
+        name: c.name,
+        email: c.email,
+        phone: c.phone,
+        whatsapp: c.whatsapp,
+        address: c.address,
+        city: c.city,
+        state: c.state,
+        country: c.country,
+        zip_code: c.zip_code,
+        orders: c.total_orders,
+        lifetime_value: c.lifetime_value,
+        status: c.status,
+        tags: (c.tags || []).join("; "),
+        notes: c.notes,
+        created_at: c.created_at ? format(new Date(c.created_at), "yyyy-MM-dd") : "",
+      })),
+      `customers-${format(new Date(), "yyyy-MM-dd")}`
+    );
+  };
 
   if (editing) {
     const inputClass = "h-10 w-full rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
@@ -187,32 +252,39 @@ export default function AdminCustomers() {
           <h2 className="text-xl font-display font-bold">Customers</h2>
           <p className="text-sm text-muted-foreground mt-1">{customers.length} total customers</p>
         </div>
-        <Button variant="gradient" onClick={() => openEdit()}>
-          <Plus className="h-4 w-4 mr-1" /> Add Customer
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => {
-          exportToCSV(
-            customers.map((c: any) => ({
-              name: c.name,
-              email: c.email,
-              phone: c.phone,
-              city: c.city,
-              country: c.country,
-              orders: c.total_orders,
-              lifetime_value: c.lifetime_value,
-              status: c.status,
-            })),
-            `customers-${format(new Date(), "yyyy-MM-dd")}`
-          );
-        }}>
-          <Download className="h-4 w-4 mr-1" /> Export
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleExport}>
+            <Download className="h-4 w-4 mr-1" /> Export
+          </Button>
+          <Button variant="gradient" onClick={() => openEdit()}>
+            <Plus className="h-4 w-4 mr-1" /> Add Customer
+          </Button>
+        </div>
       </div>
 
-      <div className="relative mb-6">
+      <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search customers..." className="h-10 w-full rounded-xl border border-border bg-background pl-10 pr-4 text-sm md:max-w-sm" />
       </div>
+
+      {/* Bulk Actions */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5">
+          <span className="text-sm font-medium">{selectedIds.size} selected</span>
+          <Button size="sm" variant="outline" onClick={() => bulkStatusMutation.mutate({ ids: Array.from(selectedIds), status: "active" })}>
+            Set Active
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => bulkStatusMutation.mutate({ ids: Array.from(selectedIds), status: "inactive" })}>
+            Set Inactive
+          </Button>
+          <Button size="sm" variant="destructive" onClick={() => {
+            if (confirm(`Delete ${selectedIds.size} customers?`)) bulkDeleteMutation.mutate(Array.from(selectedIds));
+          }}>
+            Delete
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>Clear</Button>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="text-muted-foreground">Loading...</div>
@@ -226,6 +298,11 @@ export default function AdminCustomers() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
+                <th className="p-3 w-10">
+                  <button onClick={toggleSelectAll} className="text-muted-foreground hover:text-foreground">
+                    {allSelected ? <CheckSquare className="h-4 w-4" /> : someSelected ? <MinusSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+                  </button>
+                </th>
                 <th className="text-left p-3 font-medium">Name</th>
                 <th className="text-left p-3 font-medium">Email</th>
                 <th className="text-left p-3 font-medium">Phone</th>
@@ -237,20 +314,25 @@ export default function AdminCustomers() {
             </thead>
             <tbody className="divide-y divide-border">
               {filtered.map((c: any) => (
-                <tr key={c.id} className="hover:bg-muted/30 transition-colors">
+                <tr key={c.id} className={`transition-colors ${selectedIds.has(c.id) ? "bg-primary/5" : "hover:bg-muted/30"}`}>
+                  <td className="p-3">
+                    <button onClick={() => toggleSelect(c.id)} className="text-muted-foreground hover:text-foreground">
+                      {selectedIds.has(c.id) ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+                    </button>
+                  </td>
                   <td className="p-3 font-medium">{c.name || "—"}</td>
                   <td className="p-3 text-muted-foreground">{c.email}</td>
                   <td className="p-3 text-muted-foreground">{c.phone || "—"}</td>
                   <td className="p-3">{c.total_orders}</td>
                   <td className="p-3 font-medium">{currencySymbol}{Number(c.lifetime_value).toFixed(2)}</td>
                   <td className="p-3">
-                    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${c.status === "active" ? "bg-green-500/10 text-green-500" : "bg-muted text-muted-foreground"}`}>
+                    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${c.status === "active" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
                       {c.status}
                     </span>
                   </td>
                   <td className="p-3 text-right">
                     <Button variant="ghost" size="sm" onClick={() => openEdit(c)}><Edit2 className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="sm" onClick={() => deleteMutation.mutate(c.id)} className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="sm" onClick={() => { if (confirm("Delete?")) deleteMutation.mutate(c.id); }} className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
                   </td>
                 </tr>
               ))}

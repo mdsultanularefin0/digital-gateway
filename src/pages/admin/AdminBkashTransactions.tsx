@@ -16,6 +16,7 @@ import { Download, Search, CreditCard, CheckCircle2, XCircle, Clock, AlertCircle
 import { exportToCSV } from "@/lib/admin-utils";
 import { format } from "date-fns";
 import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components/admin/DateRangeFilter";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 interface BkashTransaction {
   orderId: string;
@@ -90,6 +91,8 @@ export default function AdminBkashTransactions() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
+  const { data: settings } = useSiteSettings();
+  const sym = settings?.currency_symbol || "৳";
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ["admin-bkash-orders"],
@@ -184,7 +187,7 @@ export default function AdminBkashTransactions() {
           </div>
           <div className="rounded-xl border border-border bg-card p-4 space-y-1">
             <p className="text-xs text-muted-foreground font-medium">Total Received</p>
-            <p className="text-2xl font-display font-bold">৳{totalAmount.toLocaleString()}</p>
+            <p className="text-2xl font-display font-bold">{sym}{totalAmount.toLocaleString()}</p>
           </div>
         </div>
 
@@ -266,7 +269,7 @@ export default function AdminBkashTransactions() {
                           </div>
                         </td>
                         <td className="px-4 py-3 text-right font-medium">
-                          <span className="font-mono">৳{parseFloat(t.amount).toLocaleString()}</span>
+                          <span className="font-mono">{sym}{parseFloat(t.amount).toLocaleString()}</span>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1.5">

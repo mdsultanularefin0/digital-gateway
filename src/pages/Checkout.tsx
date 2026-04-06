@@ -134,7 +134,7 @@ function SendMoneyPanel({
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
   const { data: settings } = useSiteSettings();
-  const sym = settings?.currency_symbol || "$";
+  const sym = settings?.currency_symbol || "৳";
   const navigate = useNavigate();
 
   const [form, setForm] = useState<CheckoutForm>(emptyForm);

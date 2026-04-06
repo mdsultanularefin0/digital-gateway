@@ -599,7 +599,7 @@ function LandingSendMoneyPanel({
 
 function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct }: { content: SectionContent; allSections: SectionsData; pageTitle: string; linkedProduct?: { id: string; name: string; price: number; image: string; slug: string } | null }) {
   const { data: settings } = useSiteSettings();
-  const sym = settings?.currency_symbol || "$";
+  const sym = settings?.currency_symbol || "৳";
 
   const [form, setForm] = useState<CheckoutForm>(emptyCheckoutForm);
   const [discount, setDiscount] = useState(0);
