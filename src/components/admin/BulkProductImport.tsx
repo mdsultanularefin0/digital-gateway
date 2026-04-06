@@ -107,12 +107,13 @@ function mapRow(headers: string[], values: string[]): ParsedProduct | null {
 
   return {
     name,
+    slug: get("slug") || name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-'),
     tagline: get("tagline"),
     description: get("description"),
     category: get("category") || "General",
     tags: get("tags").split(";").map((t) => t.trim()).filter(Boolean),
     price: parseFloat(get("price")) || 0,
-    price_label: get("price_label") || "$0",
+    price_label: get("price_label") || "৳0",
     billing_cycle: get("billing_cycle") || "monthly",
     features: get("features").split(";").map((f) => f.trim()).filter(Boolean),
     external_url: get("external_url") || "#",
