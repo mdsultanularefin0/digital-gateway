@@ -20,7 +20,7 @@ const PIE_COLORS = [
 
 export default function AdminSales() {
   const { data: settings } = useSiteSettings();
-  const currencySymbol = settings?.currency_symbol || "$";
+  const currencySymbol = settings?.currency_symbol || "৳";
   const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
 
   const { data: allOrders = [] } = useQuery({
