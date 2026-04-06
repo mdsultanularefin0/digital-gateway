@@ -35,7 +35,7 @@ export default function AccountPage() {
   const { user, loading, signOut } = useAuth();
   const queryClient = useQueryClient();
   const { data: settings } = useSiteSettings();
-  const currencySymbol = settings?.currency_symbol || "$";
+  const currencySymbol = settings?.currency_symbol || "৳";
   const [tab, setTab] = useState<Tab>("orders");
 
   const { data: orders = [], isLoading: ordersLoading } = useQuery({

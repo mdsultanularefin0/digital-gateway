@@ -11,7 +11,7 @@ import { toast } from "@/hooks/use-toast";
 
 export function ProductCard({ product }: { product: Product }) {
   const { data: settings } = useSiteSettings();
-  const currencySymbol = settings?.currency_symbol || "$";
+  const currencySymbol = settings?.currency_symbol || "৳";
   const { addItem } = useCart();
 
   const { data: firstImage } = useQuery({
