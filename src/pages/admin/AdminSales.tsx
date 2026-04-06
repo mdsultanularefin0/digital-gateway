@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { useSiteSettings } from "@/hooks/use-site-settings";
-import { TrendingUp, ShoppingCart, Users, DollarSign, Download } from "lucide-react";
+import { TrendingUp, ShoppingCart, Users, Wallet, Download } from "lucide-react";
 import { format, subDays, startOfDay } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { exportToCSV } from "@/lib/admin-utils";
