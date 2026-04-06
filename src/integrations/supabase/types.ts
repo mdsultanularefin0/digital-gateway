@@ -853,6 +853,69 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          id: string
+          order_id: string
+          order_number: string
+          payment_id: string
+          payment_method: string
+          provider: string
+          raw_response: Json | null
+          sender_number: string
+          status: string
+          trx_id: string
+          updated_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string
+          id?: string
+          order_id: string
+          order_number?: string
+          payment_id?: string
+          payment_method?: string
+          provider?: string
+          raw_response?: Json | null
+          sender_number?: string
+          status?: string
+          trx_id?: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string
+          id?: string
+          order_id?: string
+          order_number?: string
+          payment_id?: string
+          payment_method?: string
+          provider?: string
+          raw_response?: Json | null
+          sender_number?: string
+          status?: string
+          trx_id?: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
