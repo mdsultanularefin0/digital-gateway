@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
     // Fetch order
     const { data: order, error: orderErr } = await supabase
       .from("orders")
-      .select("id, order_number, total, payment_method, payment_status, customer_email")
+      .select("id, order_number, total, payment_method, payment_status, customer_name, customer_email, customer_phone")
       .eq("id", orderId)
       .single();
 
@@ -71,6 +71,23 @@ Deno.serve(async (req) => {
         bkash_response: sendMoneyData,
       })
       .eq("id", orderId);
+
+    // Insert transaction record
+    await supabase.from("transactions").insert({
+      order_id: orderId,
+      order_number: order.order_number,
+      payment_method: provider,
+      provider: provider === "bkash_send" ? "bKash" : "Nagad",
+      sender_number: senderNumber,
+      trx_id: trxId,
+      amount: order.total,
+      currency: "BDT",
+      status: "pending",
+      customer_name: order.customer_name,
+      customer_email: order.customer_email,
+      customer_phone: order.customer_phone,
+      raw_response: sendMoneyData,
+    });
 
     // Check if a verification webhook URL is configured
     const webhookKey = provider === "bkash_send" ? "bkash_send_webhook" : "nagad_send_webhook";
@@ -113,6 +130,17 @@ Deno.serve(async (req) => {
               bkash_response: { ...sendMoneyData, verified: true, verified_at: new Date().toISOString() },
             })
             .eq("id", orderId);
+
+          // Update transaction status
+          await supabase
+            .from("transactions")
+            .update({
+              status: "completed",
+              verified_at: new Date().toISOString(),
+              raw_response: { ...sendMoneyData, verified: true, webhook_response: result },
+            })
+            .eq("order_id", orderId)
+            .eq("trx_id", trxId);
 
           // Generate download tokens for digital products
           await supabase.rpc("generate_download_tokens", { _order_id: orderId });

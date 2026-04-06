@@ -44,7 +44,8 @@ const navStructure: NavEntry[] = [
     icon: CreditCard,
     items: [
       { label: "Payment Settings", to: "/admin/payment-settings", icon: CreditCard },
-      { label: "bKash Transactions", to: "/admin/bkash-transactions", icon: CreditCard },
+      { label: "Transactions", to: "/admin/transactions", icon: CreditCard },
+      { label: "bKash PGW", to: "/admin/bkash-transactions", icon: CreditCard },
     ],
   },
   {

@@ -110,6 +110,7 @@ const App = () => (
                       <Route path="/admin/newsletter" element={<AdminGuard><AdminNewsletter /></AdminGuard>} />
                       <Route path="/admin/blog" element={<AdminGuard><AdminBlog /></AdminGuard>} />
                       <Route path="/admin/landing-pages" element={<AdminGuard><AdminLandingPages /></AdminGuard>} />
+                      <Route path="/admin/transactions" element={<AdminGuard><AdminTransactions /></AdminGuard>} />
                       <Route path="/admin/bkash-transactions" element={<AdminGuard><AdminBkashTransactions /></AdminGuard>} />
                       <Route path="/admin/payment-settings" element={<AdminGuard><AdminPaymentSettings /></AdminGuard>} />
                       <Route path="/admin/page-editor" element={<AdminGuard><AdminPageEditor /></AdminGuard>} />
