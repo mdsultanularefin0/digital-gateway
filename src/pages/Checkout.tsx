@@ -459,11 +459,11 @@ export default function CheckoutPage() {
 
   return (
     <Layout>
-      <section className="py-16 md:py-24">
-        <div className="container px-5 md:px-8 max-w-5xl">
-          <h1 className="text-3xl font-display font-bold mb-8">Checkout</h1>
+      <section className="py-10 sm:py-16 md:py-24">
+        <div className="container px-4 sm:px-5 md:px-8 max-w-5xl">
+          <h1 className="text-2xl sm:text-3xl font-display font-bold mb-6 sm:mb-8">Checkout</h1>
 
-          <div className="grid gap-8 lg:grid-cols-5">
+          <div className="grid gap-6 sm:gap-8 lg:grid-cols-5">
             {/* Form */}
             <div className="lg:col-span-3 space-y-6">
               <div className="rounded-xl border border-border">
