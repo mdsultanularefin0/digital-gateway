@@ -187,7 +187,7 @@ export default function AdminBkashTransactions() {
           </div>
           <div className="rounded-xl border border-border bg-card p-4 space-y-1">
             <p className="text-xs text-muted-foreground font-medium">Total Received</p>
-            <p className="text-2xl font-display font-bold">৳{totalAmount.toLocaleString()}</p>
+            <p className="text-2xl font-display font-bold">{sym}{totalAmount.toLocaleString()}</p>
           </div>
         </div>
 
