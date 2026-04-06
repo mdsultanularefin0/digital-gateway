@@ -182,6 +182,7 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
       const p = preview[i];
       const { data: inserted, error } = await supabase.from("products").insert({
         name: p.name,
+        slug: p.slug,
         tagline: p.tagline,
         description: p.description,
         category: p.category,
