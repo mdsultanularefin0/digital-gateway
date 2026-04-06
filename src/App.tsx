@@ -48,6 +48,7 @@ const AdminBlog = lazyRetry(() => import("./pages/admin/AdminBlog"));
 const AdminLandingPages = lazyRetry(() => import("./pages/admin/AdminLandingPages"));
 const LandingPage = lazyRetry(() => import("./pages/LandingPage"));
 const AdminBkashTransactions = lazyRetry(() => import("./pages/admin/AdminBkashTransactions"));
+const AdminTransactions = lazyRetry(() => import("./pages/admin/AdminTransactions"));
 const AdminPaymentSettings = lazyRetry(() => import("./pages/admin/AdminPaymentSettings"));
 const AdminPageEditor = lazyRetry(() => import("./pages/admin/AdminPageEditor"));
 const AdminEmailTemplates = lazyRetry(() => import("./pages/admin/AdminEmailTemplates"));
