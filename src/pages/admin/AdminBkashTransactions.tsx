@@ -269,7 +269,7 @@ export default function AdminBkashTransactions() {
                           </div>
                         </td>
                         <td className="px-4 py-3 text-right font-medium">
-                          <span className="font-mono">৳{parseFloat(t.amount).toLocaleString()}</span>
+                          <span className="font-mono">{sym}{parseFloat(t.amount).toLocaleString()}</span>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1.5">
