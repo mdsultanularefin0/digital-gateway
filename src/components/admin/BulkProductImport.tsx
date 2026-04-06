@@ -42,10 +42,10 @@ interface ImportResult {
   errors: string[];
 }
 
-const DEMO_CSV = `name,tagline,description,category,tags,price,price_label,billing_cycle,features,external_url,image_url,featured,published,tiers,gallery_images
-"Canva Pro","Design made easy","Professional design tool with thousands of templates and AI features.","Design","Design;AI;Templates",12.99,"$12.99/mo","monthly","Unlimited templates;AI image generator;Brand kit;Background remover","https://canva.com","",true,true,"Basic:0:;Pro:12.99:Popular;Enterprise:49.99:","https://example.com/img1.jpg|Main image; https://example.com/img2.jpg|Side view"
-"Grammarly Premium","Write with confidence","AI-powered writing assistant for grammar, tone, and clarity.","Productivity","Writing;AI;Grammar",12,"$12/mo","monthly","Grammar & spelling;Tone detection;Plagiarism checker;Style suggestions","https://grammarly.com","",false,true,"",""
-"DataCamp Pro","Learn data skills","Interactive courses on Python, R, SQL, and machine learning.","Education","Data Science;Python;SQL",25,"$25/mo","monthly","400+ courses;Hands-on projects;Skill assessments;Certificates","https://datacamp.com","",true,true,"Monthly:25:;Annual:16.58:Best Value",""`;
+const DEMO_CSV = `name,slug,tagline,description,category,tags,price,price_label,billing_cycle,features,external_url,image_url,featured,published,tiers,gallery_images
+"Canva Pro","canva-pro","Design made easy","Professional design tool with thousands of templates and AI features.","Design","Design;AI;Templates",12.99,"৳12.99/mo","monthly","Unlimited templates;AI image generator;Brand kit;Background remover","https://canva.com","",true,true,"Basic:0:;Pro:12.99:Popular;Enterprise:49.99:","https://example.com/img1.jpg|Main image; https://example.com/img2.jpg|Side view"
+"Grammarly Premium","grammarly-premium","Write with confidence","AI-powered writing assistant for grammar, tone, and clarity.","Productivity","Writing;AI;Grammar",12,"৳12/mo","monthly","Grammar & spelling;Tone detection;Plagiarism checker;Style suggestions","https://grammarly.com","",false,true,"",""
+"DataCamp Pro","datacamp-pro","Learn data skills","Interactive courses on Python, R, SQL, and machine learning.","Education","Data Science;Python;SQL",25,"৳25/mo","monthly","400+ courses;Hands-on projects;Skill assessments;Certificates","https://datacamp.com","",true,true,"Monthly:25:;Annual:16.58:Best Value",""`;
 
 function parseCSV(text: string): string[][] {
   const rows: string[][] = [];
