@@ -8,7 +8,7 @@ import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components
 
 export default function AdminDashboard() {
   const { data: settings } = useSiteSettings();
-  const currencySymbol = settings?.currency_symbol || "$";
+  const currencySymbol = settings?.currency_symbol || "৳";
   const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
 
   const { data: products } = useQuery({
