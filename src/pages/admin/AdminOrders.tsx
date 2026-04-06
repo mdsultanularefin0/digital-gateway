@@ -234,7 +234,8 @@ export default function AdminOrders() {
           }}
           onUpdatePayment={(id, payment_status) => {
             updatePaymentMutation.mutate({ id, payment_status });
-            setSelectedOrder({ ...selectedOrder, payment_status });
+            const newStatus = payment_status === "paid" ? "completed" : selectedOrder.status;
+            setSelectedOrder({ ...selectedOrder, payment_status, status: newStatus });
           }}
         />
       </AdminLayout>
