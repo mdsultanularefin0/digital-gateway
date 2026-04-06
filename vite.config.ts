@@ -6,10 +6,15 @@ import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
-    port: 8080,
-    hmr: {
-      overlay: false,
+    host: true,
+    port: 5175,
+	allowedHosts: [
+      "www.giftcardvibe.xyz",
+      "giftcardvibe.xyz",
+    ],
+    // -----------------
+    watch: {
+      usePolling: true, // This is essential for Docker to detect your 'git pull' changes
     },
   },
   plugins: [

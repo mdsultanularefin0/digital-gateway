@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/Layout";
 import { toast } from "@/hooks/use-toast";
@@ -20,6 +19,16 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { data: settings } = useSiteSettings();
   const siteName = settings?.site_name || "Our Store";
+
+  // Handle OAuth callback (Google redirects back here with tokens)
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") {
+        navigate("/account");
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,11 +179,14 @@ export default function LoginPage() {
               type="button"
               onClick={async () => {
                 setLoading(true);
-                const { error } = await lovable.auth.signInWithOAuth("google", {
-                  redirect_uri: window.location.origin,
+                const { error } = await supabase.auth.signInWithOAuth({
+                  provider: "google",
+                  options: {
+                    redirectTo: `${window.location.origin}/login`,
+                  },
                 });
                 if (error) {
-                  toast({ title: "Error", description: String(error), variant: "destructive" });
+                  toast({ title: "Error", description: error.message, variant: "destructive" });
                   setLoading(false);
                 }
               }}
