@@ -199,15 +199,15 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b glass px-6">
+        <header className="sticky top-0 z-30 flex h-14 sm:h-16 items-center gap-3 border-b glass px-4 sm:px-6">
           <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-muted-foreground hover:text-foreground">
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="font-display font-semibold text-lg">
+          <h1 className="font-display font-semibold text-base sm:text-lg truncate">
             {allLinks.find((l) => isLinkActive(l.to, location.pathname))?.label ?? "Admin"}
           </h1>
         </header>
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-x-hidden">{children}</main>
       </div>
     </div>
   );

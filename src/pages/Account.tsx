@@ -175,35 +175,36 @@ export default function AccountPage() {
       <section className="py-12 md:py-20">
         <div className="container px-5 md:px-8 max-w-5xl">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="h-6 w-6 text-primary" />
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <User className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
-              <div>
-                <h1 className="text-2xl font-display font-bold">My Account</h1>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-2xl font-display font-bold">My Account</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">{user.email}</p>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={signOut}>
+            <Button variant="outline" size="sm" onClick={signOut} className="self-start sm:self-auto">
               <LogOut className="h-4 w-4 mr-1" /> Sign Out
             </Button>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 mb-8 border-b border-border">
+          <div className="flex gap-1 mb-8 border-b border-border overflow-x-auto scrollbar-none -mx-5 px-5 md:mx-0 md:px-0">
             {tabs.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
                   tab === t.key
                     ? "border-primary text-primary"
                     : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <t.icon className="h-4 w-4" />
-                {t.label}
+                <span className="hidden sm:inline">{t.label}</span>
+                <span className="sm:hidden">{t.label.split(" ")[0]}</span>
               </button>
             ))}
           </div>
@@ -224,9 +225,9 @@ export default function AccountPage() {
               ) : (
                 <div className="space-y-4">
                   {orders.map((o: any) => (
-                    <div key={o.id} className="rounded-lg border border-border p-4 hover:border-primary/20 transition-colors">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
+                    <div key={o.id} className="rounded-lg border border-border p-3 sm:p-4 hover:border-primary/20 transition-colors">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="font-mono text-xs text-muted-foreground">{o.order_number}</span>
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[o.status] || "bg-muted"}`}>
                             {o.status?.charAt(0).toUpperCase() + o.status?.slice(1)}
@@ -235,27 +236,27 @@ export default function AccountPage() {
                             {o.payment_status?.charAt(0).toUpperCase() + o.payment_status?.slice(1)}
                           </span>
                         </div>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-xs sm:text-sm text-muted-foreground">
                           {format(new Date(o.created_at), "PP")}
                         </span>
                       </div>
                       <div className="space-y-1">
                         {o.order_items?.map((item: any) => (
-                          <div key={item.id} className="flex items-center justify-between text-sm">
-                            <span>
-                              {item.product_name}
-                              {item.tier_label && <span className="text-muted-foreground"> — {item.tier_label}</span>}
-                              {item.quantity > 1 && <span className="text-muted-foreground"> ×{item.quantity}</span>}
+                          <div key={item.id} className="flex items-start justify-between gap-2 text-sm">
+                            <span className="min-w-0">
+                              <span className="block truncate">{item.product_name}</span>
+                              {item.tier_label && <span className="text-xs text-muted-foreground">{item.tier_label}</span>}
+                              {item.quantity > 1 && <span className="text-xs text-muted-foreground"> ×{item.quantity}</span>}
                             </span>
-                            <span className="font-medium">{currencySymbol}{Number(item.total).toFixed(2)}</span>
+                            <span className="font-medium shrink-0">{currencySymbol}{Number(item.total).toFixed(2)}</span>
                           </div>
                         ))}
                       </div>
                       <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-                        <span className="text-sm text-muted-foreground">
-                          {o.payment_method && `Paid via ${o.payment_method}`}
+                        <span className="text-xs sm:text-sm text-muted-foreground truncate mr-2">
+                          {o.payment_method && `Via ${o.payment_method}`}
                         </span>
-                        <span className="font-display font-bold">
+                        <span className="font-display font-bold shrink-0">
                           {currencySymbol}{Number(o.total).toFixed(2)}
                         </span>
                       </div>
