@@ -103,11 +103,12 @@ Deno.serve(async (req) => {
         const result = await res.json();
 
         if (result.verified === true) {
-          // Auto-confirm payment
+          // Auto-confirm payment and complete order
           await supabase
             .from("orders")
             .update({
               payment_status: "paid",
+              status: "completed",
               notes: `${provider}_trxID:${trxId} | sender:${senderNumber} | verified:auto`,
               bkash_response: { ...sendMoneyData, verified: true, verified_at: new Date().toISOString() },
             })
