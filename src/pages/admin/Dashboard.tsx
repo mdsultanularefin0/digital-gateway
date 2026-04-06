@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Package, ShoppingCart, Users, DollarSign, Tag, MessageSquare } from "lucide-react";
+import { Package, ShoppingCart, Users, Wallet, Tag, MessageSquare } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components/admin/DateRangeFilter";
 
