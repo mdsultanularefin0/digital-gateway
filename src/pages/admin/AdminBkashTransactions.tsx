@@ -91,6 +91,8 @@ export default function AdminBkashTransactions() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
+  const { data: settings } = useSiteSettings();
+  const sym = settings?.currency_symbol || "৳";
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ["admin-bkash-orders"],
