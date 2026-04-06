@@ -96,13 +96,16 @@ export default function AdminOrders() {
 
   const updatePaymentMutation = useMutation({
     mutationFn: async ({ id, payment_status }: { id: string; payment_status: string }) => {
-      const { error } = await supabase.from("orders").update({ payment_status }).eq("id", id);
+      const updateData: Record<string, string> = { payment_status };
+      // Auto-complete order when payment is marked as paid
+      if (payment_status === "paid") updateData.status = "completed";
+      const { error } = await supabase.from("orders").update(updateData).eq("id", id);
       if (error) throw error;
       fireWebhook(id, "order.payment_changed");
-      // Auto-generate download tokens & trigger email when payment is marked as paid
       if (payment_status === "paid") {
         await supabase.rpc("generate_download_tokens", { _order_id: id } as any);
         triggerEmail(id, "payment_verified");
+        triggerEmail(id, "post_purchase");
       }
     },
     onSuccess: () => {
