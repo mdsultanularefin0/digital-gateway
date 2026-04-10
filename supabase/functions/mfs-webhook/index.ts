@@ -41,7 +41,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    const body = await req.json();
+    const raw = await req.json();
+    // Support both flat payload and wrapped { event, data } format
+    const body = raw.data && raw.event ? raw.data : raw;
     const { trx_id, sender_number, amount, provider, ...extra } = body;
 
     if (!trx_id || !provider) {
