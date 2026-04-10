@@ -89,83 +89,11 @@ Deno.serve(async (req) => {
       raw_response: sendMoneyData,
     });
 
-    // Check if a verification webhook URL is configured
-    const webhookKey = provider === "bkash_send" ? "bkash_send_webhook" : "nagad_send_webhook";
-    const { data: webhookSetting } = await supabase
-      .from("site_settings")
-      .select("value")
-      .eq("key", webhookKey)
-      .maybeSingle();
-
-    const webhookUrl = webhookSetting?.value;
-
-    if (webhookUrl) {
-      try {
-        const webhookPayload = {
-          order_id: orderId,
-          order_number: order.order_number,
-          amount: order.total,
-          sender_number: senderNumber,
-          trx_id: trxId,
-          provider,
-          customer_email: order.customer_email,
-        };
-
-        const res = await fetch(webhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(webhookPayload),
-        });
-
-        const result = await res.json();
-
-        if (result.verified === true) {
-          // Auto-confirm payment and complete order
-          await supabase
-            .from("orders")
-            .update({
-              payment_status: "paid",
-              status: "completed",
-              notes: `${provider}_trxID:${trxId} | sender:${senderNumber} | verified:auto`,
-              bkash_response: { ...sendMoneyData, verified: true, verified_at: new Date().toISOString() },
-            })
-            .eq("id", orderId);
-
-          // Update transaction status
-          await supabase
-            .from("transactions")
-            .update({
-              status: "completed",
-              verified_at: new Date().toISOString(),
-              raw_response: { ...sendMoneyData, verified: true, webhook_response: result },
-            })
-            .eq("order_id", orderId)
-            .eq("trx_id", trxId);
-
-          // Generate download tokens for digital products
-          await supabase.rpc("generate_download_tokens", { _order_id: orderId });
-
-          // Send payment verified email (non-blocking)
-          const supabaseUrl2 = Deno.env.get("SUPABASE_URL")!;
-          fetch(`${supabaseUrl2}/functions/v1/send-order-confirmation`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseKey}` },
-            body: JSON.stringify({ order_id: orderId, type: "payment_verified" }),
-          }).catch(() => {});
-
-          return json({ success: true, verified: true, message: "Payment verified automatically" });
-        }
-      } catch (webhookErr) {
-        console.error("Webhook verification failed:", webhookErr);
-        // Fall through to pending state
-      }
-    }
-
-    // No webhook or verification failed — order stays pending
+    // No webhook verification — n8n will push verification via mfs-webhook
     return json({
       success: true,
       verified: false,
-      message: "Payment details submitted. Awaiting manual verification.",
+      message: "Payment details submitted. Awaiting verification.",
     });
   } catch (err: unknown) {
     console.error("verify-send-money error:", err);
