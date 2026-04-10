@@ -1096,7 +1096,7 @@ function CaptionGenerator({ data }: { data: PostData }) {
   );
 }
 
-
+function BentoSection({
   title,
   id,
   active,
