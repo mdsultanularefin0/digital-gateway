@@ -1,7 +1,9 @@
-import { HardDrive, Info } from "lucide-react";
+import { useState } from "react";
+import { HardDrive, Info, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 
 interface StorageTabProps {
   settings: Record<string, string>;
@@ -17,6 +19,44 @@ const FIELDS = [
 
 export function StorageTab({ settings, update }: StorageTabProps) {
   const enabled = settings["storage_enabled"] === "true";
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
+
+  const handleTest = async () => {
+    const baseUrl = (settings["storage_base_url"] || "").replace(/\/+$/, "");
+    const filesPath = settings["storage_files_path"] || "/files";
+    const apiKey = settings["storage_api_key"] || "";
+
+    if (!baseUrl) {
+      setTestResult({ ok: false, message: "Base URL is required" });
+      return;
+    }
+
+    setTesting(true);
+    setTestResult(null);
+
+    try {
+      const url = `${baseUrl}${filesPath}`;
+      const headers: Record<string, string> = {};
+      if (apiKey) {
+        headers["Authorization"] = apiKey;
+        headers["X-API-Key"] = apiKey;
+      }
+
+      const res = await fetch(url, { method: "GET", headers });
+
+      if (res.ok) {
+        setTestResult({ ok: true, message: `Connected! Status ${res.status}` });
+      } else {
+        setTestResult({ ok: false, message: `Server responded with ${res.status} ${res.statusText}` });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Network error";
+      setTestResult({ ok: false, message: msg });
+    } finally {
+      setTesting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -57,6 +97,28 @@ export function StorageTab({ settings, update }: StorageTabProps) {
               <p className="text-[11px] text-muted-foreground">{f.hint}</p>
             </div>
           ))}
+
+          {/* Test Connection Button */}
+          <div className="pt-2 flex items-center gap-3">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={!enabled || testing || !settings["storage_base_url"]}
+              onClick={handleTest}
+            >
+              {testing ? (
+                <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> Testing...</>
+              ) : (
+                "Test Connection"
+              )}
+            </Button>
+            {testResult && (
+              <span className={`flex items-center gap-1.5 text-xs font-medium ${testResult.ok ? "text-green-600" : "text-destructive"}`}>
+                {testResult.ok ? <CheckCircle className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+                {testResult.message}
+              </span>
+            )}
+          </div>
         </div>
       </section>
 
