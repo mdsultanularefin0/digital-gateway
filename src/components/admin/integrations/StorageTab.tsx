@@ -1,7 +1,9 @@
-import { HardDrive, Info } from "lucide-react";
+import { useState } from "react";
+import { HardDrive, Info, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 
 interface StorageTabProps {
   settings: Record<string, string>;
