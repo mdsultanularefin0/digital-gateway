@@ -204,20 +204,6 @@ export default function AdminPaymentSettings() {
                   placeholder="1. Open bKash app&#10;2. Tap Send Money&#10;3. Enter the number shown&#10;4. Enter the exact amount&#10;5. Submit your sender number and TrxID below"
                 />
               </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                  Verification Webhook URL (optional)
-                </label>
-                <input
-                  value={settings.bkash_send_webhook || ""}
-                  onChange={(e) => update("bkash_send_webhook", e.target.value)}
-                  className={inputClass}
-                  placeholder="https://your-server.com/api/verify-bkash"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  We'll POST sender number, trxID, amount, and order ID to this URL. Respond with {`{"verified": true}`} to auto-confirm.
-                </p>
-              </div>
             </div>
           </section>
         )}
@@ -256,20 +242,6 @@ export default function AdminPaymentSettings() {
                   className="w-full rounded-xl border border-border bg-background p-3 text-sm min-h-[80px] focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="1. Open Nagad app&#10;2. Tap Send Money&#10;3. Enter the number shown&#10;4. Enter the exact amount&#10;5. Submit your sender number and TrxID below"
                 />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                  Verification Webhook URL (optional)
-                </label>
-                <input
-                  value={settings.nagad_send_webhook || ""}
-                  onChange={(e) => update("nagad_send_webhook", e.target.value)}
-                  className={inputClass}
-                  placeholder="https://your-server.com/api/verify-nagad"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  We'll POST sender number, trxID, amount, and order ID to this URL. Respond with {`{"verified": true}`} to auto-confirm.
-                </p>
               </div>
             </div>
           </section>
