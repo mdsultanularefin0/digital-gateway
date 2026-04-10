@@ -4,8 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Search, Check, X, Star, Trash2, MessageSquare, Sparkles, Loader2, Copy, Globe } from "lucide-react";
+import { Search, Check, X, Star, Trash2, MessageSquare, Sparkles, Loader2, Copy, Globe, Plus, Edit2 } from "lucide-react";
 import { format } from "date-fns";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function AdminReviews() {
   const queryClient = useQueryClient();
