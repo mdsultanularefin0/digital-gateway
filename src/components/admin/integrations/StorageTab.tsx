@@ -24,7 +24,6 @@ export function StorageTab({ settings, update }: StorageTabProps) {
 
   const handleTest = async () => {
     const baseUrl = (settings["storage_base_url"] || "").replace(/\/+$/, "");
-    const filesPath = settings["storage_files_path"] || "/files";
     const apiKey = settings["storage_api_key"] || "";
 
     if (!baseUrl) {
@@ -36,17 +35,24 @@ export function StorageTab({ settings, update }: StorageTabProps) {
     setTestResult(null);
 
     try {
-      const url = `${baseUrl}${filesPath}`;
+      // Try /health first (common), fall back to base URL
       const headers: Record<string, string> = {};
       if (apiKey) {
         headers["Authorization"] = apiKey;
         headers["X-API-Key"] = apiKey;
       }
 
-      const res = await fetch(url, { method: "GET", headers });
+      let res = await fetch(`${baseUrl}/health`, { method: "GET", headers });
+      
+      if (!res.ok) {
+        // Fallback: try base URL
+        res = await fetch(baseUrl, { method: "GET", headers });
+      }
 
       if (res.ok) {
-        setTestResult({ ok: true, message: `Connected! Status ${res.status}` });
+        const data = await res.json().catch(() => null);
+        const extra = data?.status === "ok" ? " (server healthy)" : "";
+        setTestResult({ ok: true, message: `Connected! Status ${res.status}${extra}` });
       } else {
         setTestResult({ ok: false, message: `Server responded with ${res.status} ${res.statusText}` });
       }
