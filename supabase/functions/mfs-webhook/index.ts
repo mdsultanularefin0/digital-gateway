@@ -85,13 +85,7 @@ Deno.serve(async (req) => {
       return json({ error: "Failed to store verification" }, 500);
     }
 
-    // Look up matching pending transaction by trx_id
-    const { data: txn, error: txnErr } = await supabase
-      .from("transactions")
-      .select("id, order_id, order_number, trx_id, status")
-      .eq("trx_id", trx_id)
-      .eq("status", "pending")
-      .maybeSingle();
+    // txn already looked up above
 
     if (txnErr) {
       console.error("Transaction lookup error:", txnErr);
