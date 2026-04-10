@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Search, Check, X, Star, Trash2, MessageSquare, Sparkles, Loader2, Copy, Globe, Plus, Edit2 } from "lucide-react";
+import { Search, Check, Star, Trash2, MessageSquare, Sparkles, Loader2, Copy, Globe, Plus, Edit2 } from "lucide-react";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -12,10 +12,35 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+interface ReviewFormData {
+  customer_name: string;
+  customer_email: string;
+  title: string;
+  content: string;
+  rating: number;
+  product_id: string | null;
+  approved: boolean;
+  featured: boolean;
+}
+
+const emptyForm: ReviewFormData = {
+  customer_name: "",
+  customer_email: "",
+  title: "",
+  content: "",
+  rating: 5,
+  product_id: null,
+  approved: true,
+  featured: false,
+};
+
 export default function AdminReviews() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<ReviewFormData>(emptyForm);
 
   const { data: reviews = [], isLoading } = useQuery({
     queryKey: ["admin-reviews"],
@@ -24,6 +49,15 @@ export default function AdminReviews() {
         .from("reviews")
         .select("*, products(name)")
         .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: products = [] } = useQuery({
+    queryKey: ["admin-products-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("products").select("id, name").order("name");
       if (error) throw error;
       return data;
     },
@@ -59,6 +93,65 @@ export default function AdminReviews() {
     },
   });
 
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (editingId) {
+        const { error } = await supabase.from("reviews").update({
+          customer_name: form.customer_name,
+          customer_email: form.customer_email,
+          title: form.title,
+          content: form.content,
+          rating: form.rating,
+          product_id: form.product_id || null,
+          approved: form.approved,
+          featured: form.featured,
+        }).eq("id", editingId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("reviews").insert({
+          customer_name: form.customer_name,
+          customer_email: form.customer_email,
+          title: form.title,
+          content: form.content,
+          rating: form.rating,
+          product_id: form.product_id || null,
+          approved: form.approved,
+          featured: form.featured,
+        });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-reviews"] });
+      toast({ title: editingId ? "Review updated" : "Review created" });
+      setDialogOpen(false);
+      setEditingId(null);
+      setForm(emptyForm);
+    },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+
+  const openCreate = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (r: any) => {
+    setEditingId(r.id);
+    setForm({
+      customer_name: r.customer_name,
+      customer_email: r.customer_email,
+      title: r.title,
+      content: r.content,
+      rating: r.rating,
+      product_id: r.product_id,
+      approved: r.approved,
+      featured: r.featured,
+    });
+    setDialogOpen(true);
+  };
+
   const filtered = reviews.filter((r: any) => {
     const matchSearch =
       r.customer_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -80,6 +173,9 @@ export default function AdminReviews() {
             {pendingCount > 0 ? `${pendingCount} pending approval` : "All reviews approved"}
           </p>
         </div>
+        <Button onClick={openCreate} size="sm" className="gap-1.5">
+          <Plus className="h-4 w-4" /> Add Review
+        </Button>
       </div>
 
       <div className="flex flex-col gap-3 mb-6 md:flex-row md:items-center">
@@ -126,13 +222,16 @@ export default function AdminReviews() {
                   <ReviewResponseGenerator review={r} />
                 </div>
                 <div className="flex gap-1 shrink-0">
+                  <Button variant="ghost" size="sm" onClick={() => openEdit(r)} title="Edit">
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
                   <Button
                     variant="ghost" size="sm"
                     onClick={() => toggleApprove.mutate({ id: r.id, approved: !r.approved })}
                     className={r.approved ? "text-green-500" : "text-yellow-500"}
                     title={r.approved ? "Unapprove" : "Approve"}
                   >
-                    {r.approved ? <Check className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+                    <Check className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost" size="sm"
@@ -150,6 +249,90 @@ export default function AdminReviews() {
           ))}
         </div>
       )}
+
+      {/* Add/Edit Review Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editingId ? "Edit Review" : "Add Review"}</DialogTitle>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!form.customer_name.trim() || !form.content.trim()) {
+                toast({ title: "Name and content are required", variant: "destructive" });
+                return;
+              }
+              saveMutation.mutate();
+            }}
+            className="space-y-4"
+          >
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Customer Name *</Label>
+                <Input value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} placeholder="John Doe" />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input value={form.customer_email} onChange={(e) => setForm({ ...form, customer_email: e.target.value })} placeholder="john@example.com" />
+              </div>
+            </div>
+
+            <div>
+              <Label>Product</Label>
+              <Select value={form.product_id || "none"} onValueChange={(v) => setForm({ ...form, product_id: v === "none" ? null : v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No product</SelectItem>
+                  {products.map((p: any) => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Rating</Label>
+              <div className="flex gap-1 mt-1">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <button key={s} type="button" onClick={() => setForm({ ...form, rating: s })}>
+                    <Star className={`h-6 w-6 cursor-pointer transition-colors ${s <= form.rating ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground/30"}`} />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label>Title</Label>
+              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Great product!" />
+            </div>
+
+            <div>
+              <Label>Review Content *</Label>
+              <Textarea value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} placeholder="Write the review..." rows={3} />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={form.approved} onChange={(e) => setForm({ ...form, approved: e.target.checked })} className="rounded" />
+                Approved
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} className="rounded" />
+                Featured
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={saveMutation.isPending}>
+                {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                {editingId ? "Save Changes" : "Add Review"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }
