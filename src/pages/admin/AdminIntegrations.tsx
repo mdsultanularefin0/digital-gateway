@@ -92,7 +92,7 @@ export default function AdminIntegrations() {
         </div>
 
         <Tabs defaultValue="payment" className="w-full">
-          <TabsList className="w-full grid grid-cols-5">
+          <TabsList className="w-full grid grid-cols-6">
             <TabsTrigger value="payment" className="gap-1.5 text-xs sm:text-sm">
               <CreditCard className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Payment</span>
@@ -112,6 +112,10 @@ export default function AdminIntegrations() {
             <TabsTrigger value="storage" className="gap-1.5 text-xs sm:text-sm">
               <HardDrive className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Storage</span>
+            </TabsTrigger>
+            <TabsTrigger value="ai" className="gap-1.5 text-xs sm:text-sm">
+              <Brain className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">AI</span>
             </TabsTrigger>
           </TabsList>
 
