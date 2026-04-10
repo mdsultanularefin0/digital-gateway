@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Download, Plus, X, ChevronDown, Upload, ImageIcon, Trash2, Sparkles, Copy, Check, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 import mockupDatacamp from "@/assets/mockup-datacamp.png";
 import mockupCanva from "@/assets/mockup-canva.png";
@@ -68,148 +70,7 @@ const COLOR_PRESETS = [
   { name: "Warm", bg: "#fdf6e3", accent: "#d97706", text: "#1a1a1a", card: "#ffffff" },
 ];
 
-const SAMPLE_TEMPLATES: { name: string; data: PostData; colorIndex: number }[] = [
-  {
-    name: "DataCamp Pro",
-    data: {
-      productName: "DataCamp\nSubscription",
-      tagline: "Learn Python, SQL & Data Science from world-class instructors",
-      price: "৳999/yr",
-      originalPrice: "৳25,000/yr",
-      features: ["Full catalog access", "400+ courses", "AI-powered practice", "Certificates included"],
-      badge: "96% OFF",
-      ctaText: "ORDER NOW",
-      footerText: "Order now → digistack.shop",
-    },
-    colorIndex: 0,
-  },
-  {
-    name: "Canva Pro",
-    data: {
-      productName: "Canva\nPro",
-      tagline: "Design anything. Publish anywhere. No design skills needed.",
-      price: "৳350/yr",
-      originalPrice: "৳1,200/yr",
-      features: ["100M+ templates", "Brand Kit", "Background remover", "1TB cloud storage"],
-      badge: "BEST SELLER",
-      ctaText: "GET STARTED",
-      footerText: "Instant delivery • digistack.shop",
-    },
-    colorIndex: 5,
-  },
-  {
-    name: "Grammarly",
-    data: {
-      productName: "Grammarly\nPremium",
-      tagline: "Write confidently with AI-powered writing assistance",
-      price: "৳499/yr",
-      originalPrice: "৳12,000/yr",
-      features: ["Advanced grammar", "Tone detection", "Plagiarism checker", "Full rewrites"],
-      badge: "LIMITED",
-      ctaText: "ORDER NOW",
-      footerText: "Activate instantly → digistack.shop",
-    },
-    colorIndex: 2,
-  },
-  {
-    name: "Coursera Plus",
-    data: {
-      productName: "Coursera\nPlus",
-      tagline: "Unlimited access to 7,000+ courses from top universities",
-      price: "৳1,499/yr",
-      originalPrice: "৳42,000/yr",
-      features: ["Google & IBM certs", "University courses", "Guided projects", "Unlimited certs"],
-      badge: "96% OFF",
-      ctaText: "START LEARNING",
-      footerText: "Start learning today • digistack.shop",
-    },
-    colorIndex: 7,
-  },
-  {
-    name: "Ebook Bundle",
-    data: {
-      productName: "Ultimate\nEbook Bundle",
-      tagline: "10 bestselling ebooks on business, marketing & self-growth — one unbeatable price",
-      price: "৳499",
-      originalPrice: "৳2,500",
-      features: ["10 premium ebooks", "PDF + EPUB formats", "Lifetime access", "Free future updates"],
-      badge: "80% OFF",
-      ctaText: "DOWNLOAD NOW",
-      footerText: "Instant download • digistack.shop",
-    },
-    colorIndex: 6,
-  },
-  {
-    name: "Freelancing Guide",
-    data: {
-      productName: "Freelancing\nMasterclass",
-      tagline: "Step-by-step guide to earning $5K/month freelancing from Bangladesh",
-      price: "৳299",
-      originalPrice: "৳1,200",
-      features: ["150+ page PDF guide", "Client templates", "Proposal scripts", "Private community"],
-      badge: "NEW RELEASE",
-      ctaText: "GET THE GUIDE",
-      footerText: "Start earning today → digistack.shop",
-    },
-    colorIndex: 4,
-  },
-  {
-    name: "Video Course",
-    data: {
-      productName: "Complete\nVideo Course",
-      tagline: "Master web development from zero to hero with 40+ hours of HD video lessons",
-      price: "৳799",
-      originalPrice: "৳5,000",
-      features: ["40+ hours of video", "Source code included", "Certificate of completion", "Lifetime updates"],
-      badge: "BESTSELLER",
-      ctaText: "ENROLL NOW",
-      footerText: "Start learning • digistack.shop",
-    },
-    colorIndex: 1,
-  },
-  {
-    name: "Design Templates",
-    data: {
-      productName: "Pro Design\nTemplate Pack",
-      tagline: "500+ ready-to-use Canva & Figma templates for social media, branding & marketing",
-      price: "৳399",
-      originalPrice: "৳2,000",
-      features: ["500+ templates", "Canva & Figma files", "Commercial license", "Monthly new drops"],
-      badge: "HOT DEAL",
-      ctaText: "GET THE PACK",
-      footerText: "Instant access • digistack.shop",
-    },
-    colorIndex: 3,
-  },
-  {
-    name: "Notion Toolkit",
-    data: {
-      productName: "Notion\nProductivity Kit",
-      tagline: "All-in-one Notion workspace — project management, habit tracker, finance planner & more",
-      price: "৳199",
-      originalPrice: "৳800",
-      features: ["20+ Notion templates", "Drag & drop setup", "Video walkthrough", "Free updates"],
-      badge: "75% OFF",
-      ctaText: "GET INSTANT ACCESS",
-      footerText: "Duplicate & start → digistack.shop",
-    },
-    colorIndex: 8,
-  },
-  {
-    name: "Photography Preset",
-    data: {
-      productName: "Pro Lightroom\nPresets",
-      tagline: "50 cinematic Lightroom presets — transform your photos in one click",
-      price: "৳249",
-      originalPrice: "৳1,500",
-      features: ["50 premium presets", "Mobile + Desktop", "Before/after guide", "RAW file support"],
-      badge: "83% OFF",
-      ctaText: "DOWNLOAD PRESETS",
-      footerText: "Works on mobile too • digistack.shop",
-    },
-    colorIndex: 9,
-  },
-];
+// SAMPLE_TEMPLATES removed — products are now loaded from the database
 
 const emptyData: PostData = {
   productName: "",
@@ -225,16 +86,75 @@ const emptyData: PostData = {
 // ── Component ──────────────────────────────────────────────────────────
 export default function AdminPostGenerator() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [data, setData] = useState<PostData>(SAMPLE_TEMPLATES[0].data);
+  const [data, setData] = useState<PostData>(emptyData);
   const [template, setTemplate] = useState(TEMPLATES[0]);
-  const [colors, setColors] = useState(COLOR_PRESETS[SAMPLE_TEMPLATES[0].colorIndex]);
+  const [colors, setColors] = useState(COLOR_PRESETS[0]);
   const [customColors, setCustomColors] = useState({ bg: "", accent: "", text: "", card: "" });
   const [useCustom, setUseCustom] = useState(false);
   const [mockupImage, setMockupImage] = useState<HTMLImageElement | null>(null);
   const [customImageUrl, setCustomImageUrl] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<string | null>("content");
+  const [activeSection, setActiveSection] = useState<string | null>("products");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [layout, setLayout] = useState(LAYOUTS[0]);
+
+  const { data: settings } = useSiteSettings();
+  const currencySymbol = settings?.currency_symbol || "৳";
+
+  // Load products from DB
+  const { data: dbProducts = [], isLoading: productsLoading } = useQuery({
+    queryKey: ["admin-post-gen-products"],
+    queryFn: async () => {
+      const { data: products, error } = await supabase
+        .from("products")
+        .select("id, name, tagline, price, price_label, features, tags")
+        .eq("published", true)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+
+      // Also fetch first image for each product
+      const ids = (products || []).map((p) => p.id);
+      const { data: images } = await supabase
+        .from("product_images")
+        .select("product_id, image_url")
+        .in("product_id", ids)
+        .order("sort_order", { ascending: true });
+
+      const imageMap: Record<string, string> = {};
+      (images || []).forEach((img) => {
+        if (!imageMap[img.product_id]) imageMap[img.product_id] = img.image_url;
+      });
+
+      return (products || []).map((p) => ({
+        id: p.id,
+        name: p.name,
+        tagline: p.tagline,
+        price: Number(p.price),
+        priceLabel: p.price_label,
+        features: Array.isArray(p.features) ? (p.features as string[]) : [],
+        imageUrl: imageMap[p.id] || null,
+      }));
+    },
+  });
+
+  const loadProduct = (product: typeof dbProducts[number]) => {
+    setData({
+      productName: product.name,
+      tagline: product.tagline,
+      price: product.priceLabel || `${currencySymbol}${product.price}`,
+      originalPrice: "",
+      features: product.features.length > 0 ? product.features.slice(0, 6) : [""],
+      badge: "BEST DEAL",
+      ctaText: "ORDER NOW",
+      footerText: `Order now → ${settings?.site_name || "digistack.shop"}`,
+    });
+    if (product.imageUrl) {
+      setCustomImageUrl(product.imageUrl);
+    } else {
+      clearCustomImage();
+    }
+    setUseCustom(false);
+    setColors(COLOR_PRESETS[Math.floor(Math.random() * COLOR_PRESETS.length)]);
+  };
 
   const activeColors = useCustom
     ? {
@@ -719,23 +639,29 @@ export default function AdminPostGenerator() {
         <div className="grid gap-8 lg:grid-cols-[340px,1fr]">
           {/* ── Controls Sidebar ────────────────────────────────── */}
           <div className="order-2 lg:order-1 space-y-3">
-            {/* Quick Templates */}
-            <BentoSection title="TEMPLATES" id="templates" active={activeSection} onToggle={toggleSection}>
-              <div className="grid grid-cols-2 gap-1.5">
-                {SAMPLE_TEMPLATES.map((t) => (
-                  <button
-                    key={t.name}
-                    onClick={() => {
-                      setData(t.data);
-                      setColors(COLOR_PRESETS[t.colorIndex]);
-                      setUseCustom(false);
-                    }}
-                    className="text-left text-[11px] px-3 py-2.5 rounded-xl border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all group"
-                  >
-                    <span className="font-bold text-foreground block group-hover:text-primary transition-colors">{t.name}</span>
-                    <span className="text-muted-foreground">{t.data.price}</span>
-                  </button>
-                ))}
+            {/* Products from DB */}
+            <BentoSection title="PRODUCTS" id="products" active={activeSection} onToggle={toggleSection} defaultOpen>
+              <div className="grid grid-cols-2 gap-1.5 max-h-[280px] overflow-y-auto pr-1">
+                {productsLoading ? (
+                  <div className="col-span-2 py-4 text-center text-muted-foreground text-xs">
+                    <Loader2 className="h-4 w-4 animate-spin inline mr-1" /> Loading products...
+                  </div>
+                ) : dbProducts.length === 0 ? (
+                  <div className="col-span-2 py-4 text-center text-muted-foreground text-xs">
+                    No published products found.
+                  </div>
+                ) : (
+                  dbProducts.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => loadProduct(p)}
+                      className="text-left text-[11px] px-3 py-2.5 rounded-xl border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all group"
+                    >
+                      <span className="font-bold text-foreground block group-hover:text-primary transition-colors truncate">{p.name}</span>
+                      <span className="text-muted-foreground">{p.priceLabel || `${currencySymbol}${p.price}`}</span>
+                    </button>
+                  ))
+                )}
                 <button
                   onClick={() => setData(emptyData)}
                   className="text-[11px] px-3 py-2.5 rounded-xl border border-dashed border-border/60 hover:border-primary/40 text-muted-foreground hover:text-foreground transition-all col-span-2"
