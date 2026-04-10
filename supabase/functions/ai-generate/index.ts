@@ -97,9 +97,79 @@ Title: ${title}
 Category: ${category || "General"}
 Content preview: ${(content || "").slice(0, 500)}`;
 
+    } else if (type === "review_response") {
+      const { customerName, rating, reviewTitle, reviewContent, productName } = body;
+      systemPrompt = `You are a friendly customer service manager for GiftCardVibe. Write professional, warm replies to customer reviews. Be thankful, address specific points they made, and if the review is negative, offer help. Keep it 2-4 sentences. Output ONLY the reply text. ${langInstruction}`;
+      userPrompt = `Write a reply to this customer review:
+
+Customer: ${customerName}
+Product: ${productName || "Unknown"}
+Rating: ${rating}/5
+${reviewTitle ? `Title: ${reviewTitle}` : ""}
+Review: ${reviewContent}`;
+
+    } else if (type === "landing_section") {
+      const { sectionType, productName, tagline, features, existingContent, action } = body;
+      const actionGuide = action === "rewrite" 
+        ? "Rewrite and improve the existing content below. Keep the same structure but make it more compelling and conversion-focused."
+        : action === "fill"
+        ? "Fill in any empty or incomplete fields in the existing content below. Keep existing content that is already good."
+        : "Generate completely new, high-converting content from scratch. Ignore any existing content.";
+      
+      systemPrompt = `You are an expert landing page copywriter specializing in high-converting digital product sales pages. Write persuasive, benefit-driven copy. ${langInstruction}
+
+Output MUST be valid JSON matching this structure (include only relevant fields for the section type):
+{
+  "heading": "...",
+  "subheading": "...",
+  "body": "...",
+  "buttonText": "...",
+  "badge": "...",
+  "price": "...",
+  "originalPrice": "...",
+  "items": [{"title": "...", "description": "..."}]
+}
+Only include fields that are relevant for a "${sectionType}" section. For items, generate 3-5 entries.`;
+
+      userPrompt = `${actionGuide}
+
+Section type: ${sectionType}
+Product: ${productName || "Digital Product"}
+Tagline: ${tagline || ""}
+Features: ${(features || []).join(", ")}
+${existingContent ? `\nExisting content:\n${JSON.stringify(existingContent)}` : ""}`;
+
+    } else if (type === "landing_full") {
+      const { sections, productName, tagline, features } = body;
+      systemPrompt = `You are an expert landing page copywriter. Generate complete content for ALL sections of a landing page. ${langInstruction}
+
+Output MUST be valid JSON where each key is a section ID mapping to content:
+{
+  "sectionId": {
+    "heading": "...",
+    "subheading": "...",
+    "body": "...",
+    "buttonText": "...",
+    "badge": "...",
+    "items": [{"title": "...", "description": "..."}]
+  }
+}
+For each section, only include fields relevant to its type. For items, generate 3-5 entries.`;
+
+      const sectionList = (sections || []).map((s: any) => `- ${s.id} (type: ${s.type}, label: ${s.label})`).join("\n");
+      userPrompt = `Generate complete high-converting landing page content for ALL these sections:
+
+${sectionList}
+
+Product: ${productName || "Digital Product"}
+Tagline: ${tagline || ""}
+Features: ${(features || []).join(", ")}
+
+Make it persuasive and conversion-focused. Use urgency, social proof, and clear CTAs.`;
+
     } else {
       return new Response(
-        JSON.stringify({ error: "Invalid type. Use: product_description, seo_meta, blog_draft, blog_seo" }),
+        JSON.stringify({ error: "Invalid type." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
