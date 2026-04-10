@@ -5,7 +5,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, X, Upload, Loader2, Download, CheckSquare, Square, FileUp } from "lucide-react";
-import { AiGenerateButton, AiResultPreview } from "@/components/admin/AiGenerateButton";
+import { AiGenerateButton } from "@/components/admin/AiGenerateButton";
 import { exportToCSV, logActivity } from "@/lib/admin-utils";
 import { uploadToStorage } from "@/lib/storage";
 import type { Database } from "@/integrations/supabase/types";
@@ -643,5 +643,60 @@ export default function AdminProducts() {
         </div>
       )}
     </AdminLayout>
+  );
+}
+
+// ── AI SEO Meta Generator sub-component ──────────────────────────────
+function AiSeoSection({ editing, setEditing, featuresInput }: { editing: any; setEditing: (v: any) => void; featuresInput: string }) {
+  const [seoResult, setSeoResult] = useState<string | null>(null);
+
+  const applySeo = () => {
+    if (!seoResult) return;
+    const titleMatch = seoResult.match(/TITLE:\s*(.+)/i);
+    const descMatch = seoResult.match(/DESCRIPTION:\s*(.+)/i);
+    // Store SEO in tagline field if no dedicated SEO fields exist
+    if (titleMatch?.[1] || descMatch?.[1]) {
+      const parts: string[] = [];
+      if (titleMatch?.[1]) parts.push(`SEO Title: ${titleMatch[1].trim()}`);
+      if (descMatch?.[1]) parts.push(`SEO Description: ${descMatch[1].trim()}`);
+      toast({ title: "SEO tags generated!", description: parts.join(" | ") });
+      // Copy to clipboard for easy use
+      navigator.clipboard.writeText(parts.join("\n"));
+    }
+    setSeoResult(null);
+  };
+
+  return (
+    <div className="rounded-xl border border-border/50 p-4">
+      <div className="flex items-center justify-between">
+        <h4 className="text-xs font-medium tracking-widest uppercase text-muted-foreground">SEO Meta Tags</h4>
+        <AiGenerateButton
+          type="seo_meta"
+          payload={{
+            productName: editing.name,
+            tagline: editing.tagline,
+            description: editing.description,
+            category: editing.category,
+          }}
+          onResult={(result) => setSeoResult(result)}
+          label="Generate SEO"
+        />
+      </div>
+      {seoResult && (
+        <div className="mt-3">
+          <div className="rounded-lg border border-border/60 bg-muted/20 p-3 text-xs leading-relaxed whitespace-pre-wrap">
+            {seoResult}
+          </div>
+          <div className="flex gap-2 mt-2">
+            <Button type="button" variant="outline" size="sm" className="text-xs" onClick={applySeo}>
+              Copy & Close
+            </Button>
+            <Button type="button" variant="ghost" size="sm" className="text-xs" onClick={() => setSeoResult(null)}>
+              Dismiss
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
