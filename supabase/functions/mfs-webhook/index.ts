@@ -85,8 +85,6 @@ Deno.serve(async (req) => {
       return json({ error: "Failed to store verification" }, 500);
     }
 
-    // txn already looked up above
-
     if (txnErr) {
       console.error("Transaction lookup error:", txnErr);
       return json({ success: true, matched: false, message: "Verification stored but transaction lookup failed" });
