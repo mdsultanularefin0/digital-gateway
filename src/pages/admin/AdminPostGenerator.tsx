@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
-import { Download, Plus, X, ChevronDown, Upload, ImageIcon, Trash2, Sparkles, Copy, Check, Loader2, Database } from "lucide-react";
+import { Download, Plus, X, ChevronDown, Upload, ImageIcon, Trash2, Sparkles, Copy, Check, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -86,16 +86,75 @@ const emptyData: PostData = {
 // ── Component ──────────────────────────────────────────────────────────
 export default function AdminPostGenerator() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [data, setData] = useState<PostData>(SAMPLE_TEMPLATES[0].data);
+  const [data, setData] = useState<PostData>(emptyData);
   const [template, setTemplate] = useState(TEMPLATES[0]);
-  const [colors, setColors] = useState(COLOR_PRESETS[SAMPLE_TEMPLATES[0].colorIndex]);
+  const [colors, setColors] = useState(COLOR_PRESETS[0]);
   const [customColors, setCustomColors] = useState({ bg: "", accent: "", text: "", card: "" });
   const [useCustom, setUseCustom] = useState(false);
   const [mockupImage, setMockupImage] = useState<HTMLImageElement | null>(null);
   const [customImageUrl, setCustomImageUrl] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<string | null>("content");
+  const [activeSection, setActiveSection] = useState<string | null>("products");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [layout, setLayout] = useState(LAYOUTS[0]);
+
+  const { data: settings } = useSiteSettings();
+  const currencySymbol = settings?.currency_symbol || "৳";
+
+  // Load products from DB
+  const { data: dbProducts = [], isLoading: productsLoading } = useQuery({
+    queryKey: ["admin-post-gen-products"],
+    queryFn: async () => {
+      const { data: products, error } = await supabase
+        .from("products")
+        .select("id, name, tagline, price, price_label, features, tags")
+        .eq("published", true)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+
+      // Also fetch first image for each product
+      const ids = (products || []).map((p) => p.id);
+      const { data: images } = await supabase
+        .from("product_images")
+        .select("product_id, image_url")
+        .in("product_id", ids)
+        .order("sort_order", { ascending: true });
+
+      const imageMap: Record<string, string> = {};
+      (images || []).forEach((img) => {
+        if (!imageMap[img.product_id]) imageMap[img.product_id] = img.image_url;
+      });
+
+      return (products || []).map((p) => ({
+        id: p.id,
+        name: p.name,
+        tagline: p.tagline,
+        price: Number(p.price),
+        priceLabel: p.price_label,
+        features: Array.isArray(p.features) ? (p.features as string[]) : [],
+        imageUrl: imageMap[p.id] || null,
+      }));
+    },
+  });
+
+  const loadProduct = (product: typeof dbProducts[number]) => {
+    setData({
+      productName: product.name,
+      tagline: product.tagline,
+      price: product.priceLabel || `${currencySymbol}${product.price}`,
+      originalPrice: "",
+      features: product.features.length > 0 ? product.features.slice(0, 6) : [""],
+      badge: "BEST DEAL",
+      ctaText: "ORDER NOW",
+      footerText: `Order now → ${settings?.site_name || "digistack.shop"}`,
+    });
+    if (product.imageUrl) {
+      setCustomImageUrl(product.imageUrl);
+    } else {
+      clearCustomImage();
+    }
+    setUseCustom(false);
+    setColors(COLOR_PRESETS[Math.floor(Math.random() * COLOR_PRESETS.length)]);
+  };
 
   const activeColors = useCustom
     ? {
@@ -580,23 +639,29 @@ export default function AdminPostGenerator() {
         <div className="grid gap-8 lg:grid-cols-[340px,1fr]">
           {/* ── Controls Sidebar ────────────────────────────────── */}
           <div className="order-2 lg:order-1 space-y-3">
-            {/* Quick Templates */}
-            <BentoSection title="TEMPLATES" id="templates" active={activeSection} onToggle={toggleSection}>
-              <div className="grid grid-cols-2 gap-1.5">
-                {SAMPLE_TEMPLATES.map((t) => (
-                  <button
-                    key={t.name}
-                    onClick={() => {
-                      setData(t.data);
-                      setColors(COLOR_PRESETS[t.colorIndex]);
-                      setUseCustom(false);
-                    }}
-                    className="text-left text-[11px] px-3 py-2.5 rounded-xl border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all group"
-                  >
-                    <span className="font-bold text-foreground block group-hover:text-primary transition-colors">{t.name}</span>
-                    <span className="text-muted-foreground">{t.data.price}</span>
-                  </button>
-                ))}
+            {/* Products from DB */}
+            <BentoSection title="PRODUCTS" id="products" active={activeSection} onToggle={toggleSection} defaultOpen>
+              <div className="grid grid-cols-2 gap-1.5 max-h-[280px] overflow-y-auto pr-1">
+                {productsLoading ? (
+                  <div className="col-span-2 py-4 text-center text-muted-foreground text-xs">
+                    <Loader2 className="h-4 w-4 animate-spin inline mr-1" /> Loading products...
+                  </div>
+                ) : dbProducts.length === 0 ? (
+                  <div className="col-span-2 py-4 text-center text-muted-foreground text-xs">
+                    No published products found.
+                  </div>
+                ) : (
+                  dbProducts.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => loadProduct(p)}
+                      className="text-left text-[11px] px-3 py-2.5 rounded-xl border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all group"
+                    >
+                      <span className="font-bold text-foreground block group-hover:text-primary transition-colors truncate">{p.name}</span>
+                      <span className="text-muted-foreground">{p.priceLabel || `${currencySymbol}${p.price}`}</span>
+                    </button>
+                  ))
+                )}
                 <button
                   onClick={() => setData(emptyData)}
                   className="text-[11px] px-3 py-2.5 rounded-xl border border-dashed border-border/60 hover:border-primary/40 text-muted-foreground hover:text-foreground transition-all col-span-2"
