@@ -932,8 +932,14 @@ const PLATFORMS = [
   { id: "tiktok", label: "TikTok" },
 ];
 
+const LANGUAGES = [
+  { id: "en", label: "English" },
+  { id: "bn", label: "বাংলা" },
+];
+
 function CaptionGenerator({ data }: { data: PostData }) {
   const [platform, setPlatform] = useState("facebook");
+  const [language, setLanguage] = useState("en");
   const [caption, setCaption] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -954,6 +960,7 @@ function CaptionGenerator({ data }: { data: PostData }) {
           originalPrice: data.originalPrice,
           features: data.features,
           platform,
+          language,
         },
       });
       if (error) throw error;
@@ -987,6 +994,22 @@ function CaptionGenerator({ data }: { data: PostData }) {
             }`}
           >
             {p.label}
+          </button>
+        ))}
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Language:</span>
+        {LANGUAGES.map((l) => (
+          <button
+            key={l.id}
+            onClick={() => setLanguage(l.id)}
+            className={`text-[11px] font-medium px-3 py-1.5 rounded-xl border transition-all ${
+              language === l.id
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border/60 text-muted-foreground hover:border-foreground/20"
+            }`}
+          >
+            {l.label}
           </button>
         ))}
       </div>

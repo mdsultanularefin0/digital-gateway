@@ -33,7 +33,9 @@ serve(async (req) => {
 
     const model = cfg.openrouter_custom_model || cfg.openrouter_model || "google/gemini-2.5-flash";
 
-    const { productName, tagline, price, originalPrice, features, platform } = await req.json();
+    const { productName, tagline, price, originalPrice, features, platform, language } = await req.json();
+
+    const lang = language === "bn" ? "bn" : "en";
 
     const platformGuide: Record<string, string> = {
       facebook: "Write for Facebook. Use engaging, conversational tone. 2-3 short paragraphs. Include emojis sparingly. Add 3-5 relevant hashtags at the end.",
@@ -43,11 +45,15 @@ serve(async (req) => {
       tiktok: "Write for TikTok caption. Gen-Z friendly, casual, use trending phrases. Keep short. 5-8 hashtags.",
     };
 
+    const langInstruction = lang === "bn"
+      ? "IMPORTANT: Write the ENTIRE caption in Bengali (বাংলা). Use Bengali script throughout. Hashtags can remain in English."
+      : "Write the caption in English.";
+
     const guide = platformGuide[platform] || platformGuide.facebook;
     const discount = originalPrice ? `(Original: ${originalPrice}, Now: ${price})` : `Price: ${price}`;
     const featureList = (features || []).filter((f: string) => f.trim()).join(", ");
 
-    const systemPrompt = `You are an expert social media copywriter for a digital products store called GiftCardVibe. You write high-converting captions that drive sales. Always write in a persuasive, benefit-focused style. Never use placeholder text. Output ONLY the caption text, nothing else.`;
+    const systemPrompt = `You are an expert social media copywriter for a digital products store called GiftCardVibe. You write high-converting captions that drive sales. Always write in a persuasive, benefit-focused style. Never use placeholder text. Output ONLY the caption text, nothing else. ${langInstruction}`;
 
     const userPrompt = `Generate a social media caption for this product:
 
