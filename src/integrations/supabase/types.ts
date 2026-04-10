@@ -837,6 +837,7 @@ export type Database = {
           amount: number
           created_at: string
           id: string
+          matched_order_id: string | null
           provider: string
           raw_data: Json | null
           sender_number: string
@@ -847,6 +848,7 @@ export type Database = {
           amount?: number
           created_at?: string
           id?: string
+          matched_order_id?: string | null
           provider?: string
           raw_data?: Json | null
           sender_number?: string
@@ -857,6 +859,7 @@ export type Database = {
           amount?: number
           created_at?: string
           id?: string
+          matched_order_id?: string | null
           provider?: string
           raw_data?: Json | null
           sender_number?: string

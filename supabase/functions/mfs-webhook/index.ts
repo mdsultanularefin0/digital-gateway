@@ -54,33 +54,36 @@ Deno.serve(async (req) => {
       return json({ error: "Invalid provider. Must be 'bkash' or 'nagad'" }, 400);
     }
 
-    // Insert into send_money_verifications
-    const { error: insertErr } = await supabase
-      .from("send_money_verifications")
-      .upsert(
-        {
-          trx_id,
-          sender_number: sender_number || "",
-          amount: amount || 0,
-          provider,
-          verified: true,
-          raw_data: body,
-        },
-        { onConflict: "trx_id" }
-      );
+    // Insert into send_money_verifications (matched_order_id filled later if matched)
+    const verificationRow: Record<string, unknown> = {
+      trx_id,
+      sender_number: sender_number || "",
+      amount: amount || 0,
+      provider,
+      verified: true,
+      raw_data: body,
+    };
 
-    if (insertErr) {
-      console.error("Insert verification error:", insertErr);
-      return json({ error: "Failed to store verification" }, 500);
-    }
-
-    // Look up matching pending transaction by trx_id
+    // Look up matching pending transaction by trx_id first
     const { data: txn, error: txnErr } = await supabase
       .from("transactions")
       .select("id, order_id, order_number, trx_id, status")
       .eq("trx_id", trx_id)
       .eq("status", "pending")
       .maybeSingle();
+
+    if (txn) {
+      verificationRow.matched_order_id = txn.order_id;
+    }
+
+    const { error: insertErr } = await supabase
+      .from("send_money_verifications")
+      .upsert(verificationRow, { onConflict: "trx_id" });
+
+    if (insertErr) {
+      console.error("Insert verification error:", insertErr);
+      return json({ error: "Failed to store verification" }, 500);
+    }
 
     if (txnErr) {
       console.error("Transaction lookup error:", txnErr);

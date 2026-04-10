@@ -1,0 +1,1 @@
+ALTER TABLE public.send_money_verifications ADD COLUMN matched_order_id text DEFAULT NULL;

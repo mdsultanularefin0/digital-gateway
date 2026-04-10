@@ -5,7 +5,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Download, Search, ShieldCheck, Smartphone, RefreshCw } from "lucide-react";
+import { Download, Search, ShieldCheck, Smartphone, RefreshCw, Clock } from "lucide-react";
 import { exportToCSV } from "@/lib/admin-utils";
 import { format } from "date-fns";
 import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components/admin/DateRangeFilter";
@@ -45,8 +45,8 @@ export default function AdminMfsVerifications() {
 
   const totalCount = dateFiltered.length;
   const totalAmount = dateFiltered.reduce((s, v) => s + Number(v.amount || 0), 0);
-  const bkashCount = dateFiltered.filter((v) => v.provider === "bkash").length;
-  const nagadCount = dateFiltered.filter((v) => v.provider === "nagad").length;
+  const matchedCount = dateFiltered.filter((v) => (v as any).matched_order_id).length;
+  const unmatchedCount = dateFiltered.filter((v) => !(v as any).matched_order_id).length;
 
   const handleExport = () => {
     if (!filtered.length) return;
@@ -82,12 +82,12 @@ export default function AdminMfsVerifications() {
             <p className="text-2xl font-display font-bold">{sym}{totalAmount.toLocaleString()}</p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 space-y-1">
-            <p className="text-xs text-muted-foreground font-medium">bKash</p>
-            <p className="text-2xl font-display font-bold text-pink-500">{bkashCount}</p>
+            <p className="text-xs text-muted-foreground font-medium">Matched</p>
+            <p className="text-2xl font-display font-bold text-success">{matchedCount}</p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 space-y-1">
-            <p className="text-xs text-muted-foreground font-medium">Nagad</p>
-            <p className="text-2xl font-display font-bold text-orange-500">{nagadCount}</p>
+            <p className="text-xs text-muted-foreground font-medium">Unmatched</p>
+            <p className="text-2xl font-display font-bold text-warning">{unmatchedCount}</p>
           </div>
         </div>
 
@@ -159,10 +159,17 @@ export default function AdminMfsVerifications() {
                         <span className="font-mono">{sym}{Number(v.amount).toLocaleString()}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <Badge variant={v.verified ? "default" : "secondary"} className="text-xs gap-1">
-                          <ShieldCheck className="h-3 w-3" />
-                          {v.verified ? "Verified" : "Unverified"}
-                        </Badge>
+                        {(v as any).matched_order_id ? (
+                          <Badge variant="default" className="text-xs gap-1">
+                            <ShieldCheck className="h-3 w-3" />
+                            Matched
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs gap-1">
+                            <Clock className="h-3 w-3" />
+                            Unmatched
+                          </Badge>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
                         {format(new Date(v.created_at), "MMM dd, yyyy HH:mm")}
