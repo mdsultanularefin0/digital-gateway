@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Download, Search, ShieldCheck, Smartphone } from "lucide-react";
+import { Download, Search, ShieldCheck, Smartphone, RefreshCw } from "lucide-react";
 import { exportToCSV } from "@/lib/admin-utils";
 import { format } from "date-fns";
 import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components/admin/DateRangeFilter";
@@ -16,6 +16,7 @@ export default function AdminMfsVerifications() {
   const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
   const { data: settings } = useSiteSettings();
   const sym = settings?.currency_symbol || "৳";
+  const queryClient = useQueryClient();
 
   const { data: verifications, isLoading } = useQuery({
     queryKey: ["admin-mfs-verifications"],
@@ -103,6 +104,13 @@ export default function AdminMfsVerifications() {
               className="pl-9"
             />
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-mfs-verifications"] })}
+          >
+            <RefreshCw className="h-4 w-4 mr-1" /> Refresh
+          </Button>
           <Button variant="outline" size="sm" onClick={handleExport} disabled={!filtered.length}>
             <Download className="h-4 w-4 mr-1" /> Export
           </Button>
