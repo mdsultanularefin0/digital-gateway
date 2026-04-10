@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, X, Eye, Globe } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Eye, Globe, Sparkles, Loader2 } from "lucide-react";
 import { SectionEditor } from "@/components/admin/SectionEditor";
+import { AiGenerateButton } from "@/components/admin/AiGenerateButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -291,9 +292,18 @@ export default function AdminLandingPages() {
             </div>
           </div>
 
+          {/* AI Full Page Generator */}
+          <LandingAiToolbar
+            editing={editing}
+            setEditing={setEditing}
+            activeLang={activeLang}
+            tmpl={tmpl}
+            products={products}
+          />
+
           <div className="space-y-4">
             {tmpl?.sections.map((sec) => (
-              <SectionEditor
+              <SectionEditorWithAi
                 key={sec.id}
                 section={sec}
                 content={sections[sec.id] || {}}
@@ -305,6 +315,7 @@ export default function AdminLandingPages() {
                     [key]: { ...editing[key], [sec.id]: content },
                   });
                 }}
+                productName={products?.find(p => p.id === editing.product_id)?.name}
               />
             ))}
           </div>
@@ -404,5 +415,151 @@ export default function AdminLandingPages() {
         </div>
       )}
     </AdminLayout>
+  );
+}
+
+// ── AI Toolbar for full page regeneration ────────────────────────────
+function LandingAiToolbar({ editing, setEditing, activeLang, tmpl, products }: any) {
+  const [loading, setLoading] = useState(false);
+  const [language, setLanguage] = useState<"en" | "bn">(activeLang);
+
+  const product = products?.find((p: any) => p.id === editing?.product_id);
+
+  const generateAll = async () => {
+    if (!tmpl || !product) {
+      toast({ title: "Select a product first", variant: "destructive" });
+      return;
+    }
+    if (!confirm("This will replace ALL section content for the current language. Continue?")) return;
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-generate", {
+        body: {
+          type: "landing_full",
+          language,
+          sections: tmpl.sections,
+          productName: product.name,
+          tagline: "",
+          features: [],
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      let parsed: Record<string, any>;
+      try {
+        const raw = data.result.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        parsed = JSON.parse(raw);
+      } catch {
+        toast({ title: "AI returned invalid format. Try again.", variant: "destructive" });
+        return;
+      }
+
+      const key = activeLang === "en" ? "sections_en" : "sections_bn";
+      const current = { ...editing[key] };
+      for (const [sectionId, content] of Object.entries(parsed)) {
+        if (typeof content === "object") {
+          current[sectionId] = { ...(current[sectionId] || {}), ...content };
+        }
+      }
+      setEditing({ ...editing, [key]: current });
+      toast({ title: "All sections generated!" });
+    } catch (e: any) {
+      toast({ title: e.message || "AI generation failed", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4 flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-4 w-4 text-primary" />
+        <span className="text-sm font-medium">AI Content Generator</span>
+        <span className="text-xs text-muted-foreground">Generate all sections at once</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => setLanguage(language === "en" ? "bn" : "en")}
+          className="text-[10px] font-medium px-2 py-1 rounded-lg border border-border/60 text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+        >
+          <Globe className="h-3 w-3" />
+          {language === "en" ? "EN" : "বা"}
+        </button>
+        <Button type="button" variant="outline" size="sm" onClick={generateAll} disabled={loading} className="gap-1.5 text-xs">
+          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+          {loading ? "Generating All..." : "Generate All Sections"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ── Section editor wrapped with per-section AI ───────────────────────
+function SectionEditorWithAi({ section, content, lang, onChange, productName }: any) {
+  const [loading, setLoading] = useState(false);
+
+  const generateSection = async (action: "fill" | "rewrite" | "recreate") => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-generate", {
+        body: {
+          type: "landing_section",
+          language: lang,
+          sectionType: section.type,
+          productName: productName || "Digital Product",
+          existingContent: action !== "recreate" ? content : undefined,
+          action,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      let parsed: any;
+      try {
+        const raw = data.result.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        parsed = JSON.parse(raw);
+      } catch {
+        toast({ title: "AI returned invalid format. Try again.", variant: "destructive" });
+        return;
+      }
+
+      // Merge keeping image URLs and other non-text fields
+      const merged = { ...content, ...parsed };
+      if (content.imageUrl && !parsed.imageUrl) merged.imageUrl = content.imageUrl;
+      if (content.images && !parsed.images) merged.images = content.images;
+      if (content.imageRatio) merged.imageRatio = content.imageRatio;
+      if (content.countdownDate) merged.countdownDate = content.countdownDate;
+      onChange(merged);
+      toast({ title: `Section ${action === "fill" ? "filled" : action === "rewrite" ? "rewritten" : "recreated"}!` });
+    } catch (e: any) {
+      toast({ title: e.message || "AI generation failed", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <div className="absolute top-3 right-3 z-10 flex gap-1">
+        {loading ? (
+          <span className="text-xs text-muted-foreground flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Generating...</span>
+        ) : (
+          <>
+            <Button type="button" variant="ghost" size="sm" className="h-6 text-[10px] gap-1" onClick={() => generateSection("fill")}>
+              <Sparkles className="h-3 w-3" /> Fill
+            </Button>
+            <Button type="button" variant="ghost" size="sm" className="h-6 text-[10px] gap-1" onClick={() => generateSection("rewrite")}>
+              <Sparkles className="h-3 w-3" /> Rewrite
+            </Button>
+            <Button type="button" variant="ghost" size="sm" className="h-6 text-[10px] gap-1" onClick={() => generateSection("recreate")}>
+              <Sparkles className="h-3 w-3" /> Recreate
+            </Button>
+          </>
+        )}
+      </div>
+      <SectionEditor section={section} content={content} lang={lang} onChange={onChange} />
+    </div>
   );
 }
