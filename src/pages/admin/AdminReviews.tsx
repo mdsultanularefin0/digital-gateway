@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Search, Check, X, Star, Trash2, MessageSquare } from "lucide-react";
+import { Search, Check, X, Star, Trash2, MessageSquare, Sparkles, Loader2, Copy, Globe } from "lucide-react";
 import { format } from "date-fns";
 
 export default function AdminReviews() {
@@ -118,6 +118,7 @@ export default function AdminReviews() {
                   </p>
                   {r.title && <p className="text-sm font-medium mb-0.5">{r.title}</p>}
                   <p className="text-sm text-muted-foreground">{r.content}</p>
+                  <ReviewResponseGenerator review={r} />
                 </div>
                 <div className="flex gap-1 shrink-0">
                   <Button
@@ -145,5 +146,83 @@ export default function AdminReviews() {
         </div>
       )}
     </AdminLayout>
+  );
+}
+
+function ReviewResponseGenerator({ review }: { review: any }) {
+  const [response, setResponse] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [language, setLanguage] = useState<"en" | "bn">("en");
+
+  const generate = async () => {
+    setLoading(true);
+    setResponse(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-generate", {
+        body: {
+          type: "review_response",
+          language,
+          customerName: review.customer_name,
+          rating: review.rating,
+          reviewTitle: review.title,
+          reviewContent: review.content,
+          productName: review.products?.name,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setResponse(data?.result || "");
+    } catch (e: any) {
+      toast({ title: e.message || "Failed to generate response", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyResponse = () => {
+    if (!response) return;
+    navigator.clipboard.writeText(response);
+    setCopied(true);
+    toast({ title: "Response copied!" });
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="mt-2">
+      {!response ? (
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setLanguage(language === "en" ? "bn" : "en")}
+            className="text-[10px] font-medium px-2 py-1 rounded-lg border border-border/60 text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+          >
+            <Globe className="h-3 w-3" />
+            {language === "en" ? "EN" : "বা"}
+          </button>
+          <Button variant="ghost" size="sm" onClick={generate} disabled={loading} className="text-xs gap-1.5 h-7 text-muted-foreground hover:text-foreground">
+            {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+            {loading ? "Generating..." : "AI Reply"}
+          </Button>
+        </div>
+      ) : (
+        <div className="rounded-lg border border-border/60 bg-muted/20 p-3 text-xs leading-relaxed relative">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Suggested Reply</p>
+          {response}
+          <div className="flex gap-1 mt-2">
+            <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1" onClick={copyResponse}>
+              {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+              {copied ? "Copied" : "Copy"}
+            </Button>
+            <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={generate} disabled={loading}>
+              Regenerate
+            </Button>
+            <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => setResponse(null)}>
+              Dismiss
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

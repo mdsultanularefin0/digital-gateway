@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, X, Eye, Globe } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Eye, Globe, Sparkles, Loader2 } from "lucide-react";
 import { SectionEditor } from "@/components/admin/SectionEditor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -13,6 +13,8 @@ import {
   landingTemplates,
   getDefaultSections,
   type SectionsData,
+  type SectionContent,
+  type LandingSection,
 } from "@/data/landing-templates";
 
 interface LandingPage {
@@ -291,9 +293,18 @@ export default function AdminLandingPages() {
             </div>
           </div>
 
+          {/* AI Full Page Generator */}
+          <LandingAiToolbar
+            editing={editing}
+            setEditing={setEditing}
+            activeLang={activeLang}
+            tmpl={tmpl}
+            products={products}
+          />
+
           <div className="space-y-4">
             {tmpl?.sections.map((sec) => (
-              <SectionEditor
+              <SectionEditorWithAi
                 key={sec.id}
                 section={sec}
                 content={sections[sec.id] || {}}
@@ -305,6 +316,7 @@ export default function AdminLandingPages() {
                     [key]: { ...editing[key], [sec.id]: content },
                   });
                 }}
+                productName={products?.find(p => p.id === editing.product_id)?.name}
               />
             ))}
           </div>
