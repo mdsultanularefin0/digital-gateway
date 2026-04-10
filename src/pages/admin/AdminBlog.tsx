@@ -6,6 +6,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, X, Upload, ImageIcon } from "lucide-react";
+import { AiGenerateButton } from "@/components/admin/AiGenerateButton";
 import type { Database } from "@/integrations/supabase/types";
 
 type BlogPost = Database["public"]["Tables"]["blog_posts"]["Row"];
@@ -188,11 +189,30 @@ export default function AdminBlog() {
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium mb-1 block">Excerpt</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-sm font-medium">Excerpt</label>
+              <AiGenerateButton
+                type="blog_seo"
+                payload={{ title: editing.title, content: editing.content, category: editing.category }}
+                onResult={(result) => {
+                  const excerptMatch = result.match(/EXCERPT:\s*(.+)/i);
+                  if (excerptMatch?.[1]) setEditing({ ...editing, excerpt: excerptMatch[1].trim() });
+                }}
+                label="AI Excerpt"
+              />
+            </div>
             <textarea value={editing.excerpt ?? ""} onChange={(e) => setEditing({ ...editing, excerpt: e.target.value })} className="w-full rounded-lg border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]" />
           </div>
           <div>
-            <label className="text-sm font-medium mb-1 block">Content</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-sm font-medium">Content</label>
+              <AiGenerateButton
+                type="blog_draft"
+                payload={{ title: editing.title, category: editing.category, excerpt: editing.excerpt }}
+                onResult={(result) => setEditing({ ...editing, content: result })}
+                label="AI Draft"
+              />
+            </div>
             <textarea value={editing.content ?? ""} onChange={(e) => setEditing({ ...editing, content: e.target.value })} className="w-full rounded-lg border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[200px]" />
           </div>
           <label className="flex items-center gap-2 text-sm">
