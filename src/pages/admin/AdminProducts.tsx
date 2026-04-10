@@ -5,6 +5,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, X, Upload, Loader2, Download, CheckSquare, Square, FileUp } from "lucide-react";
+import { AiGenerateButton, AiResultPreview } from "@/components/admin/AiGenerateButton";
 import { exportToCSV, logActivity } from "@/lib/admin-utils";
 import { uploadToStorage } from "@/lib/storage";
 import type { Database } from "@/integrations/supabase/types";
@@ -341,9 +342,25 @@ export default function AdminProducts() {
             <input value={editing.tagline ?? ""} onChange={(e) => setEditing({ ...editing, tagline: e.target.value })} className={inputClass} />
           </div>
           <div>
-            <label className="text-sm font-medium mb-1 block">Description</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-sm font-medium">Description</label>
+              <AiGenerateButton
+                type="product_description"
+                payload={{
+                  productName: editing.name,
+                  tagline: editing.tagline,
+                  features: editing.features || featuresInput.split("\n").filter(Boolean),
+                  category: editing.category,
+                }}
+                onResult={(result) => setEditing({ ...editing, description: result })}
+                label="AI Description"
+              />
+            </div>
             <textarea value={editing.description ?? ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="w-full rounded-xl border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[100px]" />
           </div>
+
+          {/* AI SEO Meta Generator */}
+          <AiSeoSection editing={editing} setEditing={setEditing} featuresInput={featuresInput} />
           <div className="grid gap-4 md:grid-cols-3">
             <div>
               <label className="text-sm font-medium mb-1 block">Base Price</label>
