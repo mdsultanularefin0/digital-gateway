@@ -56,7 +56,19 @@ Deno.serve(async (req) => {
       return json({ error: "Payment method mismatch" }, 400);
     }
 
-    // Store send money details on the order
+    // Map provider name for verification table (bkash_send -> bkash, nagad_send -> nagad)
+    const verificationProvider = provider === "bkash_send" ? "bkash" : "nagad";
+
+    // Check send_money_verifications table for a matching record
+    const { data: verification } = await supabase
+      .from("send_money_verifications")
+      .select("*")
+      .eq("trx_id", trxId)
+      .eq("sender_number", senderNumber)
+      .eq("provider", verificationProvider)
+      .eq("verified", true)
+      .maybeSingle();
+
     const sendMoneyData = {
       provider,
       sender_number: senderNumber,
@@ -64,6 +76,68 @@ Deno.serve(async (req) => {
       submitted_at: new Date().toISOString(),
     };
 
+    // Check if verification matches (amount must be >= order total and <= 102% of order total)
+    const isAmountValid = verification
+      ? Number(verification.amount) >= Number(order.total) &&
+        Number(verification.amount) <= Number(order.total) * 1.02
+      : false;
+
+    const isVerified = !!verification && isAmountValid;
+
+    if (isVerified) {
+      // Auto-complete the order
+      await supabase
+        .from("orders")
+        .update({
+          payment_status: "paid",
+          status: "completed",
+          notes: `${provider}_trxID:${trxId} | sender:${senderNumber} | verified:auto`,
+          bkash_response: { ...sendMoneyData, verified: true, verified_at: new Date().toISOString() },
+        })
+        .eq("id", orderId);
+
+      // Insert completed transaction
+      await supabase.from("transactions").insert({
+        order_id: orderId,
+        order_number: order.order_number,
+        payment_method: provider,
+        provider: provider === "bkash_send" ? "bKash" : "Nagad",
+        sender_number: senderNumber,
+        trx_id: trxId,
+        amount: order.total,
+        currency: "BDT",
+        status: "completed",
+        verified_at: new Date().toISOString(),
+        customer_name: order.customer_name,
+        customer_email: order.customer_email,
+        customer_phone: order.customer_phone,
+        raw_response: { ...sendMoneyData, verified: true, source: "auto_match" },
+      });
+
+      // Update verification record with matched order
+      await supabase
+        .from("send_money_verifications")
+        .update({ matched_order_id: orderId })
+        .eq("id", verification.id);
+
+      // Generate download tokens for digital products
+      await supabase.rpc("generate_download_tokens", { _order_id: orderId });
+
+      // Send confirmation email (non-blocking)
+      fetch(`${supabaseUrl}/functions/v1/send-order-confirmation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseKey}` },
+        body: JSON.stringify({ order_id: orderId, type: "payment_verified" }),
+      }).catch(() => {});
+
+      return json({
+        success: true,
+        verified: true,
+        message: "Payment verified and order completed.",
+      });
+    }
+
+    // Not verified — store as pending
     await supabase
       .from("orders")
       .update({
@@ -72,7 +146,6 @@ Deno.serve(async (req) => {
       })
       .eq("id", orderId);
 
-    // Insert transaction record
     await supabase.from("transactions").insert({
       order_id: orderId,
       order_number: order.order_number,
@@ -89,11 +162,12 @@ Deno.serve(async (req) => {
       raw_response: sendMoneyData,
     });
 
-    // No webhook verification — n8n will push verification via mfs-webhook
     return json({
       success: true,
       verified: false,
-      message: "Payment details submitted. Awaiting verification.",
+      message: verification
+        ? "Transaction found but amount mismatch. Awaiting manual verification."
+        : "Payment details submitted. Awaiting verification.",
     });
   } catch (err: unknown) {
     console.error("verify-send-money error:", err);
