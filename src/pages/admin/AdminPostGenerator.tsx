@@ -965,6 +965,11 @@ export default function AdminPostGenerator() {
                 </button>
               </div>
             </BentoSection>
+
+            {/* AI Caption Generator */}
+            <BentoSection title="AI CAPTION" id="caption" active={activeSection} onToggle={toggleSection}>
+              <CaptionGenerator data={data} />
+            </BentoSection>
           </div>
 
           {/* ── Canvas Preview ──────────────────────────────────── */}
