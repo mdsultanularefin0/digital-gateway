@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.verify-send-money]
 verify_jwt = false
+
+[functions.mfs-webhook]
+verify_jwt = false

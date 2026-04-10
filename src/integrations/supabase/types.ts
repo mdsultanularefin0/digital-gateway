@@ -832,6 +832,39 @@ export type Database = {
           },
         ]
       }
+      send_money_verifications: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          provider: string
+          raw_data: Json | null
+          sender_number: string
+          trx_id: string
+          verified: boolean
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          provider?: string
+          raw_data?: Json | null
+          sender_number?: string
+          trx_id: string
+          verified?: boolean
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          provider?: string
+          raw_data?: Json | null
+          sender_number?: string
+          trx_id?: string
+          verified?: boolean
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           id: string
