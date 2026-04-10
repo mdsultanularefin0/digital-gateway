@@ -50,6 +50,7 @@ const LandingPage = lazyRetry(() => import("./pages/LandingPage"));
 const AdminBkashTransactions = lazyRetry(() => import("./pages/admin/AdminBkashTransactions"));
 const AdminTransactions = lazyRetry(() => import("./pages/admin/AdminTransactions"));
 const AdminPaymentSettings = lazyRetry(() => import("./pages/admin/AdminPaymentSettings"));
+const AdminMfsVerifications = lazyRetry(() => import("./pages/admin/AdminMfsVerifications"));
 const AdminPageEditor = lazyRetry(() => import("./pages/admin/AdminPageEditor"));
 const AdminEmailTemplates = lazyRetry(() => import("./pages/admin/AdminEmailTemplates"));
 const NotFound = lazyRetry(() => import("./pages/NotFound"));
@@ -113,6 +114,7 @@ const App = () => (
                       <Route path="/admin/transactions" element={<AdminGuard><AdminTransactions /></AdminGuard>} />
                       <Route path="/admin/bkash-transactions" element={<AdminGuard><AdminBkashTransactions /></AdminGuard>} />
                       <Route path="/admin/payment-settings" element={<AdminGuard><AdminPaymentSettings /></AdminGuard>} />
+                      <Route path="/admin/mfs-verifications" element={<AdminGuard><AdminMfsVerifications /></AdminGuard>} />
                       <Route path="/admin/page-editor" element={<AdminGuard><AdminPageEditor /></AdminGuard>} />
                       <Route path="/admin/email-templates" element={<AdminGuard><AdminEmailTemplates /></AdminGuard>} />
                       <Route path="/p/:slug" element={<LandingPage />} />
