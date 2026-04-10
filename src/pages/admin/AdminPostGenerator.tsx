@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
-import { Download, Plus, X, ChevronDown, Upload, ImageIcon, Trash2, LayoutGrid } from "lucide-react";
+import { Download, Plus, X, ChevronDown, Upload, ImageIcon, Trash2, LayoutGrid, Sparkles, Copy, Check, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 import mockupDatacamp from "@/assets/mockup-datacamp.png";
