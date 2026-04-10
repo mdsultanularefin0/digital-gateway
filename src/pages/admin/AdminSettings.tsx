@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadToStorage } from "@/lib/storage";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
@@ -261,18 +262,8 @@ export default function AdminSettings() {
   const handleImageUpload = async (key: string, file: File) => {
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
-      const filePath = `settings/${key}-${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from("product-images")
-        .upload(filePath, file, { upsert: true });
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from("product-images")
-        .getPublicUrl(filePath);
-
-      setValues({ ...values, [key]: urlData.publicUrl });
+      const result = await uploadToStorage(file, "assets");
+      setValues({ ...values, [key]: result.url });
       toast({ title: "Image uploaded" });
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });

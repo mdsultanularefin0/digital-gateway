@@ -731,14 +731,20 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
       if (itemsErr) throw itemsErr;
 
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const fnHeaders = {
+        "Content-Type": "application/json",
+        "apikey": anonKey,
+        "Authorization": `Bearer ${anonKey}`,
+      };
       fetch(`https://${projectId}.supabase.co/functions/v1/order-webhook`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: fnHeaders,
         body: JSON.stringify({ order_id: order.id, event: "order.created" }),
       }).catch(() => {});
       fetch(`https://${projectId}.supabase.co/functions/v1/send-order-confirmation`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: fnHeaders,
         body: JSON.stringify({ order_id: order.id, type: "order_confirmation", origin: window.location.origin }),
       }).catch(() => {});
 
@@ -746,7 +752,7 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
         const callbackURL = `${window.location.origin}/bkash/callback`;
         const res = await fetch(`https://${projectId}.supabase.co/functions/v1/bkash-payment?action=create`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: fnHeaders,
           body: JSON.stringify({ orderId: order.id, callbackURL, payerReference: form.phone }),
         });
         const bkashData = await res.json();
@@ -766,7 +772,7 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
           `https://${projectId}.supabase.co/functions/v1/verify-send-money`,
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: fnHeaders,
             body: JSON.stringify({
               orderId: order.id,
               senderNumber: form.senderNumber.trim(),

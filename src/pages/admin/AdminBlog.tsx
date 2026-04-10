@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadToStorage } from "@/lib/storage";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
@@ -30,12 +31,8 @@ export default function AdminBlog() {
   const handleImageUpload = async (file: File) => {
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
-      const path = `${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage.from("blog-images").upload(path, file);
-      if (error) throw error;
-      const { data: { publicUrl } } = supabase.storage.from("blog-images").getPublicUrl(path);
-      setEditing((prev) => prev ? { ...prev, image_url: publicUrl } : prev);
+      const result = await uploadToStorage(file, "blog");
+      setEditing((prev) => prev ? { ...prev, image_url: result.url } : prev);
       toast({ title: "Image uploaded" });
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });

@@ -163,7 +163,7 @@ Deno.serve(async (req) => {
         baseUrl,
         idToken,
         amount,
-        orderId,
+        order.order_number,
         callbackURL,
         payerReference || "guest"
       );

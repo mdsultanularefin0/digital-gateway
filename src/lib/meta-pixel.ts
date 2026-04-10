@@ -1,7 +1,5 @@
 // Meta Pixel (Facebook Pixel) + Conversions API integration utility
 
-import { supabase } from "@/integrations/supabase/client";
-
 declare global {
   interface Window {
     fbq: (...args: any[]) => void;
@@ -70,18 +68,29 @@ async function sendCAPIEvent(
   // Queue CAPI calls to avoid overwhelming the edge function
   capiQueue = capiQueue.then(async () => {
     try {
-      await supabase.functions.invoke("capi-event", {
-        body: {
-          event_name: eventName,
-          event_id: eventId,
-          event_source_url: window.location.href,
-          user_data: {
-            client_user_agent: navigator.userAgent,
-            ...(userData || {}),
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      await fetch(
+        `https://${projectId}.supabase.co/functions/v1/capi-event`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": anonKey,
+            "Authorization": `Bearer ${anonKey}`,
           },
-          custom_data: customData || undefined,
-        },
-      });
+          body: JSON.stringify({
+            event_name: eventName,
+            event_id: eventId,
+            event_source_url: window.location.href,
+            user_data: {
+              client_user_agent: navigator.userAgent,
+              ...(userData || {}),
+            },
+            custom_data: customData || undefined,
+          }),
+        }
+      );
     } catch {
       // Silently fail — CAPI is best-effort
     }

@@ -54,9 +54,18 @@ export async function uploadToStorage(file: File, folder: string = "assets"): Pr
     throw new Error("External storage is not configured. Go to Admin → Integrations → Storage to set it up.");
   }
 
+  // Map logical folder names → server bucket names
+  const bucketMap: Record<string, string> = {
+    "products": "product-images",
+    "blog": "blog-images",
+    "assets": "assets",
+    "digital-products": "digital-products",
+  };
+  const bucket = bucketMap[folder] ?? folder;
+
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("folder", folder);
+  formData.append("bucket", bucket); // server reads req.body.bucket
 
   const headers: Record<string, string> = {};
   if (config.apiKey) {
@@ -72,7 +81,9 @@ export async function uploadToStorage(file: File, folder: string = "assets"): Pr
 
   if (!res.ok) {
     const text = await res.text().catch(() => "Unknown error");
-    throw new Error(`Storage upload failed (${res.status}): ${text}`);
+    // Strip HTML tags to get readable error text
+    const clean = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
+    throw new Error(`Storage upload failed (${res.status}): ${clean}`);
   }
 
   const result = await res.json();

@@ -293,29 +293,34 @@ export default function CheckoutPage() {
 
       // Fire outbound webhook (non-blocking)
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const fnHeaders = {
+        "Content-Type": "application/json",
+        "apikey": anonKey,
+        "Authorization": `Bearer ${anonKey}`,
+      };
       fetch(`https://${projectId}.supabase.co/functions/v1/order-webhook`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: fnHeaders,
         body: JSON.stringify({ order_id: order.id, event: "order.created" }),
       }).catch(() => {});
 
       // Send order confirmation email (non-blocking)
       fetch(`https://${projectId}.supabase.co/functions/v1/send-order-confirmation`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: fnHeaders,
         body: JSON.stringify({ order_id: order.id, type: "order_confirmation", origin: window.location.origin }),
       }).catch(() => {});
 
       // 4. Handle bKash payment
       if (form.paymentMethod === "bkash") {
-        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
         const callbackURL = `${window.location.origin}/bkash/callback`;
 
         const res = await fetch(
           `https://${projectId}.supabase.co/functions/v1/bkash-payment?action=create`,
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: fnHeaders,
             body: JSON.stringify({
               orderId: order.id,
               callbackURL,
@@ -339,12 +344,11 @@ export default function CheckoutPage() {
 
       // 5. Handle Send Money (bkash_send / nagad_send)
       if (form.paymentMethod === "bkash_send" || form.paymentMethod === "nagad_send") {
-        const projectId2 = import.meta.env.VITE_SUPABASE_PROJECT_ID;
         const res = await fetch(
-          `https://${projectId2}.supabase.co/functions/v1/verify-send-money`,
+          `https://${projectId}.supabase.co/functions/v1/verify-send-money`,
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: fnHeaders,
             body: JSON.stringify({
               orderId: order.id,
               senderNumber: form.senderNumber.trim(),

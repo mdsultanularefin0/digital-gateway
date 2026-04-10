@@ -31,11 +31,16 @@ export default function BkashCallback() {
     (async () => {
       try {
         const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+        const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
         const res = await fetch(
           `https://${projectId}.supabase.co/functions/v1/bkash-payment?action=execute`,
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": anonKey,
+              "Authorization": `Bearer ${anonKey}`,
+            },
             body: JSON.stringify({ paymentID, orderId }),
           }
         );

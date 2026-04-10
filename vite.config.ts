@@ -8,8 +8,9 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: true,
     port: 5175,
-	allowedHosts: [
+    allowedHosts: [
       "www.giftcardvibe.xyz",
+      "file.giftcardvibe.xyz",
       "giftcardvibe.xyz",
     ],
     // -----------------
