@@ -998,7 +998,105 @@ export default function AdminPostGenerator() {
 
 // ── Sub-components ──────────────────────────────────────────────────────
 
-function BentoSection({
+const PLATFORMS = [
+  { id: "facebook", label: "Facebook" },
+  { id: "instagram", label: "Instagram" },
+  { id: "twitter", label: "Twitter/X" },
+  { id: "linkedin", label: "LinkedIn" },
+  { id: "tiktok", label: "TikTok" },
+];
+
+function CaptionGenerator({ data }: { data: PostData }) {
+  const [platform, setPlatform] = useState("facebook");
+  const [caption, setCaption] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const generate = async () => {
+    if (!data.productName?.trim()) {
+      toast({ title: "Enter a product name first", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    setCaption("");
+    try {
+      const { data: result, error } = await supabase.functions.invoke("generate-caption", {
+        body: {
+          productName: data.productName,
+          tagline: data.tagline,
+          price: data.price,
+          originalPrice: data.originalPrice,
+          features: data.features,
+          platform,
+        },
+      });
+      if (error) throw error;
+      if (result?.error) throw new Error(result.error);
+      setCaption(result?.caption || "");
+    } catch (e: any) {
+      toast({ title: e.message || "Failed to generate caption", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyCaption = () => {
+    navigator.clipboard.writeText(caption);
+    setCopied(true);
+    toast({ title: "Caption copied!" });
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-1.5">
+        {PLATFORMS.map((p) => (
+          <button
+            key={p.id}
+            onClick={() => setPlatform(p.id)}
+            className={`text-[11px] font-medium px-3 py-1.5 rounded-xl border transition-all ${
+              platform === p.id
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border/60 text-muted-foreground hover:border-foreground/20"
+            }`}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+      <Button
+        onClick={generate}
+        disabled={loading}
+        variant="outline"
+        className="w-full gap-2 rounded-xl text-xs"
+        size="sm"
+      >
+        {loading ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Sparkles className="h-3.5 w-3.5" />
+        )}
+        {loading ? "Generating..." : "Generate Caption"}
+      </Button>
+      {caption && (
+        <div className="relative">
+          <div className="rounded-xl border border-border/60 bg-muted/20 p-3 text-xs leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto">
+            {caption}
+          </div>
+          <button
+            onClick={copyCaption}
+            className="absolute top-2 right-2 p-1.5 rounded-lg bg-background/90 border border-border/60 text-muted-foreground hover:text-foreground transition-colors"
+            title="Copy caption"
+          >
+            {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
   title,
   id,
   active,
