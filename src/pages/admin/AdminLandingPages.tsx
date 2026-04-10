@@ -14,8 +14,6 @@ import {
   landingTemplates,
   getDefaultSections,
   type SectionsData,
-  type SectionContent,
-  type LandingSection,
 } from "@/data/landing-templates";
 
 interface LandingPage {
