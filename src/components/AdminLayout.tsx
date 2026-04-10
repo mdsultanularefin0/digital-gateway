@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, Users, BarChart3, Tag,
   MessageSquare, Settings, LogOut, Menu, X, Zap, ChevronLeft, Plug,
   ImageIcon, Mail, Inbox, Clock, Newspaper, CreditCard, FileText,
-  PanelTop, ChevronDown, FileEdit,
+  PanelTop, ChevronDown, FileEdit, ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,7 @@ const navStructure: NavEntry[] = [
     items: [
       { label: "Payment Settings", to: "/admin/payment-settings", icon: CreditCard },
       { label: "Transactions", to: "/admin/transactions", icon: CreditCard },
+      { label: "MFS Verifications", to: "/admin/mfs-verifications", icon: ShieldCheck },
       { label: "bKash PGW", to: "/admin/bkash-transactions", icon: CreditCard },
     ],
   },
