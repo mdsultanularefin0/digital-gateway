@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,8 +10,28 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    // Get OpenRouter API key from site_settings
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const sb = createClient(supabaseUrl, serviceKey);
+
+    const { data: settingsRows } = await sb
+      .from("site_settings")
+      .select("key, value")
+      .in("key", ["openrouter_api_key", "openrouter_model", "openrouter_custom_model"]);
+
+    const cfg: Record<string, string> = {};
+    (settingsRows || []).forEach((r: any) => (cfg[r.key] = r.value));
+
+    const apiKey = cfg.openrouter_api_key;
+    if (!apiKey) {
+      return new Response(
+        JSON.stringify({ error: "OpenRouter API key not configured. Go to Admin → Integrations → AI to set it up." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const model = cfg.openrouter_custom_model || cfg.openrouter_model || "google/gemini-2.5-flash";
 
     const { productName, tagline, price, originalPrice, features, platform } = await req.json();
 
@@ -37,14 +58,16 @@ Key Features: ${featureList}
 
 ${guide}`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://giftcardvibe.xyz",
+        "X-Title": "GiftCardVibe Post Generator",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -53,25 +76,32 @@ ${guide}`;
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited, please try again in a moment." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      const t = await response.text();
+      console.error("OpenRouter error:", response.status, t);
+      if (response.status === 401) {
+        return new Response(JSON.stringify({ error: "Invalid OpenRouter API key. Check Admin → Integrations → AI." }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Add funds in Settings > Workspace > Usage." }), {
+        return new Response(JSON.stringify({ error: "OpenRouter credits exhausted. Add funds at openrouter.ai." }), {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      throw new Error("AI gateway error");
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limited. Please try again in a moment." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ error: "AI provider error" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const data = await response.json();
     const caption = data.choices?.[0]?.message?.content || "";
 
-    return new Response(JSON.stringify({ caption }), {
+    return new Response(JSON.stringify({ caption, model }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
