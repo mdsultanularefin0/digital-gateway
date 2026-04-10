@@ -1,63 +1,53 @@
 
 
-## Landing Pages with Embedded Checkout
+## Plan: Send Money Verification via n8n Webhook
 
-### What Changes
+### What we're building
 
-Landing pages become self-contained sales funnels. Every CTA button scrolls to a checkout form at the bottom of the page instead of linking to external URLs. The product info (name, price, image) comes from the landing page's own section data — no redirection to `/products` or `/checkout`.
+Instead of the current outbound webhook verification, we'll create an **inbound webhook** that n8n calls to push verified send money data into a dedicated table. When n8n confirms a transaction, the system auto-completes the order.
 
-### Architecture
+### Changes
 
-```text
-Landing Page (/p/:slug)
-├── Hero Section          ← CTA scrolls to #checkout
-├── Features Section
-├── Pricing Section       ← CTA scrolls to #checkout
-├── Testimonials
-├── FAQ
-├── Countdown             ← CTA scrolls to #checkout
-├── Final CTA             ← CTA scrolls to #checkout
-└── ★ Embedded Checkout Section (NEW)
-    ├── Product Summary (from pricing section data)
-    ├── Contact Form (name, email, phone)
-    ├── Address
-    ├── Payment Method
-    ├── Coupon Code
-    └── Place Order button
-```
+**1. New database table: `send_money_verifications`**
 
-### Implementation Steps
+Stores verified send money records pushed by n8n:
 
-**1. Add `checkout` section type to templates** (`src/data/landing-templates.ts`)
-- Add `"checkout"` to the `LandingSection.type` union
-- Add a `{ id: "checkout", type: "checkout", label: "Checkout" }` section as the last section in every template (except `coming-soon`)
-- Add `productName` field to `SectionContent` interface for the checkout to know the product
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid | PK |
+| trx_id | text | unique, the MFS transaction ID |
+| sender_number | text | sender's mobile number |
+| amount | numeric | verified amount |
+| provider | text | "bkash" or "nagad" |
+| verified | boolean | default true |
+| raw_data | jsonb | full payload from n8n |
+| created_at | timestamptz | auto |
 
-**2. Make all CTA buttons scroll to `#checkout`** (`src/pages/LandingPage.tsx`)
-- In every section renderer (Hero, CTA, Pricing, Countdown), change button behavior: if `buttonUrl` is empty or `#`, scroll to the `#checkout` element using `document.getElementById('checkout')?.scrollIntoView({ behavior: 'smooth' })`
-- Replace `<a href={...}>` with `<button onClick={scrollToCheckout}>` pattern for internal CTAs
+RLS: service-role only (no public access needed since edge function uses service role key).
 
-**3. Create `LandingCheckoutSection` component** (`src/pages/LandingPage.tsx`)
-- New section renderer that embeds a full checkout form directly in the landing page
-- Extracts product info (name, price, image) from the page's pricing section data
-- Contains: contact fields (name, email, phone), address textarea, payment method radio buttons, coupon input, order summary, and Place Order button
-- Order placement logic reuses the same Supabase flow from `Checkout.tsx`: `upsert_checkout_customer` RPC, insert into `orders` + `order_items`, fire webhook + email confirmation, handle bKash redirect
-- Shows success state inline after order is placed
-- The checkout section gets `id="checkout"` on its container div
+**2. New edge function: `mfs-webhook`**
 
-**4. Update `SectionEditor`** (`src/components/admin/SectionEditor.tsx`)
-- Add `checkout` to the recognized section types
-- Show minimal editable fields for checkout: heading (e.g. "Complete Your Order"), subheading, button text (e.g. "Place Order")
+An inbound webhook endpoint that n8n calls with verified transaction data:
+- Accepts POST with `trx_id`, `sender_number`, `amount`, `provider`, and optional extra fields
+- Inserts into `send_money_verifications`
+- Looks up matching pending transaction by `trx_id`
+- If found: auto-marks order as `paid`/`completed`, generates download tokens, sends confirmation email
+- Returns success/failure JSON
 
-**5. Update `AdminLandingPages.tsx`**
-- The checkout section is auto-included in templates, so no special handling needed beyond what `SectionEditor` provides
+**3. Simplify `verify-send-money` edge function**
 
-### Key Details
+Remove the outbound webhook verification block (lines 92-162). The function will only:
+- Validate input and store send money details on the order
+- Insert a pending transaction record
+- Return "awaiting verification" — n8n handles the rest asynchronously
 
-- Product name and price are pulled from the `pricing` section's content (heading + price fields) of the same landing page — no need for a separate product ID
-- Payment methods are loaded from `site_settings` (same as main checkout)
-- Coupon validation uses the same `coupons` table query
-- The `order_items` entry uses the landing page title as `product_name` and the pricing section price as `unit_price`
-- bKash flow redirects to `/bkash/callback` and works as before
-- No cart involvement — the landing page is a single-product direct purchase
+**4. Admin visibility (optional)**
+
+The existing Transactions page already shows all records. No new admin page needed, but the `send_money_verifications` table provides a separate audit trail of n8n-confirmed payments.
+
+### Technical details
+
+- `mfs-webhook` will use `verify_jwt = false` in `config.toml` (n8n can't send JWTs)
+- Optional: support a shared secret header (`x-webhook-secret`) checked against a `site_settings` key for security
+- The `mfs-webhook` function matches transactions by `trx_id` to link verification to the correct order
 
