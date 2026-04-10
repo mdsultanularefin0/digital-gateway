@@ -138,6 +138,10 @@ export default function AdminIntegrations() {
           <TabsContent value="storage">
             <StorageTab settings={settings} update={update} />
           </TabsContent>
+
+          <TabsContent value="ai">
+            <AiTab settings={settings} update={update} />
+          </TabsContent>
         </Tabs>
       </div>
     </AdminLayout>
