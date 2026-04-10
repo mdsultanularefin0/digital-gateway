@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
-import { Download, Plus, X, ChevronDown, Upload, ImageIcon, Trash2, Sparkles, Copy, Check, Loader2 } from "lucide-react";
+import { Download, Plus, X, ChevronDown, Upload, ImageIcon, Trash2, Sparkles, Copy, Check, Loader2, Database } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 import mockupDatacamp from "@/assets/mockup-datacamp.png";
 import mockupCanva from "@/assets/mockup-canva.png";
