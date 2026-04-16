@@ -101,3 +101,89 @@ export async function getFileUrl(filename: string): Promise<string> {
   if (!config.enabled || !config.baseUrl) return filename;
   return `${config.baseUrl}${config.filesPath}/${filename}`;
 }
+
+// ---------- Browse / Manage ----------
+
+export interface StorageFile {
+  name: string;
+  size: number;
+  modified?: string;
+  url?: string;
+}
+
+export interface StorageListResult {
+  folders: string[];
+  files: StorageFile[];
+}
+
+function authHeaders(config: StorageConfig): Record<string, string> {
+  const h: Record<string, string> = {};
+  if (config.apiKey) {
+    h["X-API-Key"] = config.apiKey;
+    h["Authorization"] = config.apiKey;
+  }
+  return h;
+}
+
+export async function listStorage(bucket: string, prefix = ""): Promise<StorageListResult> {
+  const config = await getStorageConfig();
+  if (!config.enabled || !config.baseUrl) throw new Error("Storage not configured");
+  const url = new URL(`${config.baseUrl}/list`);
+  url.searchParams.set("bucket", bucket);
+  if (prefix) url.searchParams.set("prefix", prefix);
+  const res = await fetch(url.toString(), { headers: authHeaders(config) });
+  if (!res.ok) throw new Error(`List failed (${res.status}): ${await res.text().catch(() => "")}`.slice(0, 300));
+  const data = await res.json();
+  const files: StorageFile[] = (data.files || []).map((f: any) => ({
+    name: f.name,
+    size: f.size ?? 0,
+    modified: f.modified,
+    url: f.url || `${config.baseUrl}${config.filesPath}/${prefix ? prefix + "/" : ""}${f.name}`,
+  }));
+  return { folders: data.folders || [], files };
+}
+
+export async function deleteStoragePath(bucket: string, path: string): Promise<void> {
+  const config = await getStorageConfig();
+  if (!config.enabled || !config.baseUrl) throw new Error("Storage not configured");
+  const res = await fetch(`${config.baseUrl}/delete`, {
+    method: "DELETE",
+    headers: { ...authHeaders(config), "Content-Type": "application/json" },
+    body: JSON.stringify({ bucket, path }),
+  });
+  if (!res.ok) throw new Error(`Delete failed (${res.status})`);
+}
+
+export async function createStorageFolder(bucket: string, path: string): Promise<void> {
+  const config = await getStorageConfig();
+  if (!config.enabled || !config.baseUrl) throw new Error("Storage not configured");
+  const res = await fetch(`${config.baseUrl}/mkdir`, {
+    method: "POST",
+    headers: { ...authHeaders(config), "Content-Type": "application/json" },
+    body: JSON.stringify({ bucket, path }),
+  });
+  if (!res.ok) throw new Error(`Create folder failed (${res.status})`);
+}
+
+export async function uploadToStoragePath(file: File, bucket: string, path: string): Promise<UploadResult> {
+  const config = await getStorageConfig();
+  if (!config.enabled || !config.baseUrl) throw new Error("Storage not configured");
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("bucket", bucket);
+  if (path) formData.append("path", path);
+  const res = await fetch(`${config.baseUrl}${config.uploadPath}`, {
+    method: "POST",
+    headers: authHeaders(config),
+    body: formData,
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Upload failed (${res.status}): ${text.replace(/<[^>]+>/g, " ").slice(0, 200)}`);
+  }
+  const result = await res.json();
+  return {
+    url: result.url || `${config.baseUrl}${config.filesPath}/${path ? path + "/" : ""}${result.filename || file.name}`,
+    filename: result.filename || file.name,
+  };
+}
