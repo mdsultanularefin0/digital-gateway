@@ -118,6 +118,7 @@ const App = () => (
                       <Route path="/admin/mfs-verifications" element={<AdminGuard><AdminMfsVerifications /></AdminGuard>} />
                       <Route path="/admin/page-editor" element={<AdminGuard><AdminPageEditor /></AdminGuard>} />
                       <Route path="/admin/email-templates" element={<AdminGuard><AdminEmailTemplates /></AdminGuard>} />
+                      <Route path="/admin/storage" element={<AdminGuard><AdminStorage /></AdminGuard>} />
                       <Route path="/p/:slug" element={<LandingPage />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
