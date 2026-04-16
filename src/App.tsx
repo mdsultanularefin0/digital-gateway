@@ -53,6 +53,7 @@ const AdminPaymentSettings = lazyRetry(() => import("./pages/admin/AdminPaymentS
 const AdminMfsVerifications = lazyRetry(() => import("./pages/admin/AdminMfsVerifications"));
 const AdminPageEditor = lazyRetry(() => import("./pages/admin/AdminPageEditor"));
 const AdminEmailTemplates = lazyRetry(() => import("./pages/admin/AdminEmailTemplates"));
+const AdminStorage = lazyRetry(() => import("./pages/admin/AdminStorage"));
 const NotFound = lazyRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
