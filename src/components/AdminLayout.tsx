@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, Users, BarChart3, Tag,
   MessageSquare, Settings, LogOut, Menu, X, Zap, ChevronLeft, Plug,
   ImageIcon, Mail, Inbox, Clock, Newspaper, CreditCard, FileText,
-  PanelTop, ChevronDown, FileEdit, ShieldCheck,
+  PanelTop, ChevronDown, FileEdit, ShieldCheck, HardDrive,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
