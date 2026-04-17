@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, X, Upload, ImageIcon } from "lucide-react";
 import { AiGenerateButton } from "@/components/admin/AiGenerateButton";
+import { TranslateButton } from "@/components/admin/TranslateButton";
 import type { Database } from "@/integrations/supabase/types";
 
 type BlogPost = Database["public"]["Tables"]["blog_posts"]["Row"];
@@ -27,6 +28,7 @@ export default function AdminBlog() {
   const [editing, setEditing] = useState<BlogPost | BlogPostInsert | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [activeLang, setActiveLang] = useState<"en" | "bn">("en");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = async (file: File) => {
@@ -89,6 +91,7 @@ export default function AdminBlog() {
   });
 
   const openEditor = (post?: BlogPost) => {
+    setActiveLang("en");
     if (post) {
       setEditing(post);
       setIsNew(false);
