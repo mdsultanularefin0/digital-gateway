@@ -374,6 +374,86 @@ export default function AdminProducts() {
           </Button>
         </div>
 
+        <div className="max-w-2xl mb-4 inline-flex rounded-xl border border-border bg-muted/40 p-1">
+          <button
+            type="button"
+            onClick={() => setActiveLang("en")}
+            className={`px-4 h-8 rounded-lg text-xs font-medium transition-colors ${activeLang === "en" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            English
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveLang("bn")}
+            className={`px-4 h-8 rounded-lg text-xs font-medium transition-colors ${activeLang === "bn" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            বাংলা
+          </button>
+        </div>
+
+        {activeLang === "bn" ? (
+          <form onSubmit={handleSave} className="max-w-2xl space-y-4">
+            <div className="rounded-xl border border-dashed border-border p-3 text-xs text-muted-foreground">
+              Bangla translations are optional. Empty fields fall back to English on the storefront.
+              {isNew && <span className="block mt-1 text-amber-600 dark:text-amber-400">Save the English version first to enable translations.</span>}
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium">নাম (Name)</label>
+                <TranslateButton
+                  sourceText={editing.name || ""}
+                  context="product"
+                  onTranslated={(t) => setBn((b) => ({ ...b, name: t }))}
+                  size="xs"
+                  label="From EN"
+                />
+              </div>
+              <input value={bn.name} onChange={(e) => setBn({ ...bn, name: e.target.value })} className={inputClass} placeholder="Bangla product name" />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium">ট্যাগলাইন (Tagline)</label>
+                <TranslateButton
+                  sourceText={editing.tagline || ""}
+                  context="product"
+                  onTranslated={(t) => setBn((b) => ({ ...b, tagline: t }))}
+                  size="xs"
+                  label="From EN"
+                />
+              </div>
+              <input value={bn.tagline} onChange={(e) => setBn({ ...bn, tagline: e.target.value })} className={inputClass} placeholder="Bangla tagline" />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium">বিবরণ (Description)</label>
+                <TranslateButton
+                  sourceText={editing.description || ""}
+                  context="product"
+                  onTranslated={(t) => setBn((b) => ({ ...b, description: t }))}
+                  size="xs"
+                  label="From EN"
+                />
+              </div>
+              <textarea value={bn.description} onChange={(e) => setBn({ ...bn, description: e.target.value })} className="w-full rounded-xl border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[120px]" placeholder="Bangla description" />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium">বৈশিষ্ট্য (Features — one per line)</label>
+                <TranslateButton
+                  sourceText={featuresInput}
+                  context="product"
+                  onTranslated={(t) => setBnFeaturesInput(t)}
+                  size="xs"
+                  label="From EN"
+                />
+              </div>
+              <textarea value={bnFeaturesInput} onChange={(e) => setBnFeaturesInput(e.target.value)} className="w-full rounded-xl border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[120px]" placeholder="বৈশিষ্ট্য ১&#10;বৈশিষ্ট্য ২" />
+            </div>
+            <Button variant="gradient" size="lg" type="submit" disabled={saveMutation.isPending || isNew}>
+              {saveMutation.isPending ? "Saving..." : "Save Bangla Translation"}
+            </Button>
+          </form>
+        ) : (
         <form onSubmit={handleSave} className="max-w-2xl space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
