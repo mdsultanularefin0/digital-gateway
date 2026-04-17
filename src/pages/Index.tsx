@@ -12,6 +12,7 @@ import { WelcomePopup } from "@/components/WelcomePopup";
 import { useProducts } from "@/data/products";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { usePageContents } from "@/hooks/use-page-contents";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import defaultHeroImage from "@/assets/hero-glass-render.png";
 import DOMPurify from "dompurify";
 

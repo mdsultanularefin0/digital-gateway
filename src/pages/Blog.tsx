@@ -5,6 +5,7 @@ import { Layout } from "@/components/Layout";
 import { SEOHead } from "@/components/SEOHead";
 import { useBlogPosts, pickBlog } from "@/data/products";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePageMeta } from "@/hooks/use-page-meta";
 
 export default function Blog() {
   const { data: posts = [], isLoading } = useBlogPosts();

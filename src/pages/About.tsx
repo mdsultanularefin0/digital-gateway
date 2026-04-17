@@ -2,6 +2,8 @@ import { Layout } from "@/components/Layout";
 import { Users, Target, Heart } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { usePageContents } from "@/hooks/use-page-contents";
+import { usePageMeta } from "@/hooks/use-page-meta";
+import { SEOHead } from "@/components/SEOHead";
 import DOMPurify from "dompurify";
 
 const iconMap: Record<string, React.ElementType> = { Target, Users, Heart };
