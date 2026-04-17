@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Package, ShoppingCart, Users, BarChart3, Tag,
   MessageSquare, Settings, LogOut, Menu, X, Zap, ChevronLeft, Plug,
-  ImageIcon, Mail, Inbox, Clock, Newspaper, CreditCard, FileText,
+  ImageIcon, Mail, Clock, Newspaper, CreditCard, FileText,
   PanelTop, ChevronDown, FileEdit, ShieldCheck, HardDrive,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -68,7 +68,6 @@ const navStructure: NavEntry[] = [
     items: [
       { label: "Integrations", to: "/admin/integrations", icon: Plug },
       { label: "Storage", to: "/admin/storage", icon: HardDrive },
-      { label: "Support Inbox", to: "/admin/support-inbox", icon: Inbox },
       { label: "Activity Log", to: "/admin/activity", icon: Clock },
       { label: "Settings", to: "/admin/settings", icon: Settings },
     ],

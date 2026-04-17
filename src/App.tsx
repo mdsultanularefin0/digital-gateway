@@ -41,7 +41,7 @@ const AdminSettings = lazyRetry(() => import("./pages/admin/AdminSettings"));
 const AdminIntegrations = lazyRetry(() => import("./pages/admin/AdminIntegrations"));
 const AdminPostGenerator = lazyRetry(() => import("./pages/admin/AdminPostGenerator"));
 const AdminMailSettings = lazyRetry(() => import("./pages/admin/AdminMailSettings"));
-const AdminSupportInbox = lazyRetry(() => import("./pages/admin/AdminSupportInbox"));
+
 const AdminActivityLog = lazyRetry(() => import("./pages/admin/AdminActivityLog"));
 const AdminNewsletter = lazyRetry(() => import("./pages/admin/AdminNewsletter"));
 const AdminBlog = lazyRetry(() => import("./pages/admin/AdminBlog"));
@@ -108,7 +108,7 @@ const App = () => (
                       <Route path="/admin/integrations" element={<AdminGuard><AdminIntegrations /></AdminGuard>} />
                       <Route path="/admin/post-generator" element={<AdminGuard><AdminPostGenerator /></AdminGuard>} />
                       <Route path="/admin/mail-settings" element={<AdminGuard><AdminMailSettings /></AdminGuard>} />
-                      <Route path="/admin/support-inbox" element={<AdminGuard><AdminSupportInbox /></AdminGuard>} />
+                      
                       <Route path="/admin/activity" element={<AdminGuard><AdminActivityLog /></AdminGuard>} />
                       <Route path="/admin/newsletter" element={<AdminGuard><AdminNewsletter /></AdminGuard>} />
                       <Route path="/admin/blog" element={<AdminGuard><AdminBlog /></AdminGuard>} />

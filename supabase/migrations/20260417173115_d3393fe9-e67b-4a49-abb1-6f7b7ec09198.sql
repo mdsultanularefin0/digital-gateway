@@ -1,0 +1,1 @@
+DELETE FROM public.mail_config WHERE key IN ('imap_host','imap_port','imap_username','imap_password');
