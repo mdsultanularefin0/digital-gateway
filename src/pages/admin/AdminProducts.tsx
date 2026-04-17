@@ -12,9 +12,18 @@ import type { Database } from "@/integrations/supabase/types";
 import BulkProductImport from "@/components/admin/BulkProductImport";
 import DigitalFilesEditor, { type DigitalFile } from "@/components/admin/DigitalFilesEditor";
 import CodePoolManager from "@/components/admin/CodePoolManager";
+import { TranslateButton } from "@/components/admin/TranslateButton";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
+
+interface BnTranslation {
+  name: string;
+  tagline: string;
+  description: string;
+  features: string[];
+}
+const emptyBn: BnTranslation = { name: "", tagline: "", description: "", features: [] };
 
 interface Tier {
   id?: string;
@@ -55,6 +64,9 @@ export default function AdminProducts() {
   const [uploading, setUploading] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showBulkImport, setShowBulkImport] = useState(false);
+  const [activeLang, setActiveLang] = useState<"en" | "bn">("en");
+  const [bn, setBn] = useState<BnTranslation>(emptyBn);
+  const [bnFeaturesInput, setBnFeaturesInput] = useState("");
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["admin-products"],
