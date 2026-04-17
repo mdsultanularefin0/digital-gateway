@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, X, Upload, ImageIcon } from "lucide-react";
 import { AiGenerateButton } from "@/components/admin/AiGenerateButton";
+import { TranslateButton } from "@/components/admin/TranslateButton";
 import type { Database } from "@/integrations/supabase/types";
 
 type BlogPost = Database["public"]["Tables"]["blog_posts"]["Row"];
@@ -27,6 +28,7 @@ export default function AdminBlog() {
   const [editing, setEditing] = useState<BlogPost | BlogPostInsert | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [activeLang, setActiveLang] = useState<"en" | "bn">("en");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = async (file: File) => {
@@ -89,6 +91,7 @@ export default function AdminBlog() {
   });
 
   const openEditor = (post?: BlogPost) => {
+    setActiveLang("en");
     if (post) {
       setEditing(post);
       setIsNew(false);
@@ -117,18 +120,6 @@ export default function AdminBlog() {
         </div>
 
         <form onSubmit={handleSave} className="max-w-2xl space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-1 block">Title *</label>
-            <input
-              required
-              value={editing.title}
-              onChange={(e) => {
-                const title = e.target.value;
-                setEditing({ ...editing, title, slug: isNew ? generateSlug(title) : editing.slug });
-              }}
-              className="h-10 w-full rounded-lg border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
           <div>
             <label className="text-sm font-medium mb-1 block">Slug *</label>
             <input
@@ -188,33 +179,82 @@ export default function AdminBlog() {
               <input value={editing.author ?? ""} onChange={(e) => setEditing({ ...editing, author: e.target.value })} className="h-10 w-full rounded-lg border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
           </div>
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-sm font-medium">Excerpt</label>
-              <AiGenerateButton
-                type="blog_seo"
-                payload={{ title: editing.title, content: editing.content, category: editing.category }}
-                onResult={(result) => {
-                  const excerptMatch = result.match(/EXCERPT:\s*(.+)/i);
-                  if (excerptMatch?.[1]) setEditing({ ...editing, excerpt: excerptMatch[1].trim() });
-                }}
-                label="AI Excerpt"
-              />
-            </div>
-            <textarea value={editing.excerpt ?? ""} onChange={(e) => setEditing({ ...editing, excerpt: e.target.value })} className="w-full rounded-lg border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]" />
+
+          <div className="inline-flex rounded-xl border border-border bg-muted/40 p-1">
+            <button type="button" onClick={() => setActiveLang("en")} className={`px-4 h-8 rounded-lg text-xs font-medium transition-colors ${activeLang === "en" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>English</button>
+            <button type="button" onClick={() => setActiveLang("bn")} className={`px-4 h-8 rounded-lg text-xs font-medium transition-colors ${activeLang === "bn" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>বাংলা</button>
           </div>
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-sm font-medium">Content</label>
-              <AiGenerateButton
-                type="blog_draft"
-                payload={{ title: editing.title, category: editing.category, excerpt: editing.excerpt }}
-                onResult={(result) => setEditing({ ...editing, content: result })}
-                label="AI Draft"
-              />
-            </div>
-            <textarea value={editing.content ?? ""} onChange={(e) => setEditing({ ...editing, content: e.target.value })} className="w-full rounded-lg border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[200px]" />
-          </div>
+
+          {activeLang === "en" ? (
+            <>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Title *</label>
+                <input
+                  required
+                  value={editing.title}
+                  onChange={(e) => {
+                    const title = e.target.value;
+                    setEditing({ ...editing, title, slug: isNew ? generateSlug(title) : editing.slug });
+                  }}
+                  className="h-10 w-full rounded-lg border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium">Excerpt</label>
+                  <AiGenerateButton
+                    type="blog_seo"
+                    payload={{ title: editing.title, content: editing.content, category: editing.category }}
+                    onResult={(result) => {
+                      const excerptMatch = result.match(/EXCERPT:\s*(.+)/i);
+                      if (excerptMatch?.[1]) setEditing({ ...editing, excerpt: excerptMatch[1].trim() });
+                    }}
+                    label="AI Excerpt"
+                  />
+                </div>
+                <textarea value={editing.excerpt ?? ""} onChange={(e) => setEditing({ ...editing, excerpt: e.target.value })} className="w-full rounded-lg border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]" />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium">Content</label>
+                  <AiGenerateButton
+                    type="blog_draft"
+                    payload={{ title: editing.title, category: editing.category, excerpt: editing.excerpt }}
+                    onResult={(result) => setEditing({ ...editing, content: result })}
+                    label="AI Draft"
+                  />
+                </div>
+                <textarea value={editing.content ?? ""} onChange={(e) => setEditing({ ...editing, content: e.target.value })} className="w-full rounded-lg border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[200px]" />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="rounded-xl border border-dashed border-border p-3 text-xs text-muted-foreground">
+                Bangla fields are optional. Empty fields fall back to the English version on the storefront.
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium">শিরোনাম (Title)</label>
+                  <TranslateButton sourceText={editing.title || ""} context="blog" onTranslated={(t) => setEditing({ ...editing, title_bn: t } as any)} size="xs" label="From EN" />
+                </div>
+                <input value={(editing as any).title_bn ?? ""} onChange={(e) => setEditing({ ...editing, title_bn: e.target.value } as any)} className="h-10 w-full rounded-lg border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Bangla title" />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium">সারাংশ (Excerpt)</label>
+                  <TranslateButton sourceText={editing.excerpt || ""} context="blog" onTranslated={(t) => setEditing({ ...editing, excerpt_bn: t } as any)} size="xs" label="From EN" />
+                </div>
+                <textarea value={(editing as any).excerpt_bn ?? ""} onChange={(e) => setEditing({ ...editing, excerpt_bn: e.target.value } as any)} className="w-full rounded-lg border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]" placeholder="Bangla excerpt" />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium">কন্টেন্ট (Content)</label>
+                  <TranslateButton sourceText={editing.content || ""} context="blog" onTranslated={(t) => setEditing({ ...editing, content_bn: t } as any)} size="xs" label="From EN" />
+                </div>
+                <textarea value={(editing as any).content_bn ?? ""} onChange={(e) => setEditing({ ...editing, content_bn: e.target.value } as any)} className="w-full rounded-lg border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[200px]" placeholder="Bangla content" />
+              </div>
+            </>
+          )}
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={editing.published ?? false} onChange={(e) => setEditing({ ...editing, published: e.target.checked })} className="rounded" />
             Published
