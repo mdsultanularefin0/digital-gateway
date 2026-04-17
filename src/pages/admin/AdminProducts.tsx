@@ -11,6 +11,7 @@ import { uploadToStorage } from "@/lib/storage";
 import type { Database } from "@/integrations/supabase/types";
 import BulkProductImport from "@/components/admin/BulkProductImport";
 import DigitalFilesEditor, { type DigitalFile } from "@/components/admin/DigitalFilesEditor";
+import CodePoolManager from "@/components/admin/CodePoolManager";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
@@ -39,6 +40,7 @@ const emptyProduct: ProductInsert = {
   published: true,
   in_stock: true,
   slug: "",
+  delivery_type: "download",
 };
 
 export default function AdminProducts() {
@@ -472,8 +474,42 @@ export default function AdminProducts() {
             )}
           </div>
 
-          {/* Digital Files */}
-          <DigitalFilesEditor files={digitalFiles} onChange={setDigitalFiles} />
+          {/* Delivery Type */}
+          <div className="rounded-xl border border-border p-5 space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Delivery Type *</label>
+              <p className="text-xs text-muted-foreground mb-2">How will customers receive this product after payment?</p>
+              <select
+                value={(editing as any).delivery_type || "download"}
+                onChange={(e) => setEditing({ ...editing, delivery_type: e.target.value } as any)}
+                className={inputClass}
+              >
+                <option value="download">📥 Downloadable Files (ebooks, videos, assets)</option>
+                <option value="code">🔑 Code / License Key (gift cards, activation keys)</option>
+                <option value="account">👤 Account Credentials (email + password)</option>
+                <option value="service">🛠️ Service / Top-up (manual delivery by admin)</option>
+              </select>
+            </div>
+
+            {(editing as any).delivery_type === "download" && (
+              <DigitalFilesEditor files={digitalFiles} onChange={setDigitalFiles} />
+            )}
+
+            {((editing as any).delivery_type === "code" || (editing as any).delivery_type === "account") && (
+              <CodePoolManager
+                productId={editingId}
+                deliveryType={(editing as any).delivery_type}
+              />
+            )}
+
+            {(editing as any).delivery_type === "service" && (
+              <div className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+                <strong className="text-foreground">Manual fulfillment.</strong> When a customer pays, the order
+                will appear in admin with a "pending" delivery. You'll deliver the service (top-up, ad credits,
+                etc.) and mark it as delivered with a confirmation note.
+              </div>
+            )}
+          </div>
 
           <div>
             <label className="text-sm font-medium mb-1 block">External URL *</label>

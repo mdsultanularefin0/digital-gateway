@@ -403,6 +403,73 @@ export type Database = {
         }
         Relationships: []
       }
+      order_deliveries: {
+        Row: {
+          admin_note: string
+          created_at: string
+          delivered_at: string | null
+          delivered_by: string | null
+          delivery_type: string
+          id: string
+          order_id: string
+          order_item_id: string | null
+          payload: Json
+          product_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string
+          created_at?: string
+          delivered_at?: string | null
+          delivered_by?: string | null
+          delivery_type: string
+          id?: string
+          order_id: string
+          order_item_id?: string | null
+          payload?: Json
+          product_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string
+          created_at?: string
+          delivered_at?: string | null
+          delivered_by?: string | null
+          delivery_type?: string
+          id?: string
+          order_id?: string
+          order_item_id?: string | null
+          payload?: Json
+          product_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_deliveries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_deliveries_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_deliveries_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -563,6 +630,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      product_codes: {
+        Row: {
+          assigned_at: string | null
+          assigned_order_id: string | null
+          code_value: string
+          created_at: string
+          credential_extra: string
+          id: string
+          product_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_order_id?: string | null
+          code_value: string
+          created_at?: string
+          credential_extra?: string
+          id?: string
+          product_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_order_id?: string | null
+          code_value?: string
+          created_at?: string
+          credential_extra?: string
+          id?: string
+          product_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_codes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_email_templates: {
         Row: {
@@ -733,6 +844,7 @@ export type Database = {
           billing_cycle: string | null
           category: string
           created_at: string
+          delivery_type: string
           description: string
           external_url: string
           featured: boolean
@@ -753,6 +865,7 @@ export type Database = {
           billing_cycle?: string | null
           category?: string
           created_at?: string
+          delivery_type?: string
           description?: string
           external_url?: string
           featured?: boolean
@@ -773,6 +886,7 @@ export type Database = {
           billing_cycle?: string | null
           category?: string
           created_at?: string
+          delivery_type?: string
           description?: string
           external_url?: string
           featured?: boolean
@@ -1183,6 +1297,7 @@ export type Database = {
       }
     }
     Functions: {
+      auto_fulfill_order: { Args: { _order_id: string }; Returns: undefined }
       generate_download_tokens: {
         Args: { _order_id: string }
         Returns: undefined

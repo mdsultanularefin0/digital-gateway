@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import FulfillmentPanel from "./FulfillmentPanel";
 
 interface OrderDetailProps {
   order: any;
@@ -96,6 +97,8 @@ export default function OrderDetail({ order: o, currencySymbol, onBack, onDelete
             <div className="flex justify-between font-bold pt-1 border-t border-border"><span>Total</span><span>{currencySymbol}{Number(o.total).toFixed(2)}</span></div>
           </div>
         </div>
+
+        <FulfillmentPanel orderId={o.id} paymentStatus={o.payment_status} />
 
         {o.notes && (
           <div className="rounded-xl border border-border p-4">

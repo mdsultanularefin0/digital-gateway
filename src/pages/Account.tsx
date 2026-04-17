@@ -13,6 +13,7 @@ import {
   Package, MapPin, User, Settings, Save, LogOut, Download, Lock,
 } from "lucide-react";
 import { DownloadLinks } from "@/components/DownloadLinks";
+import { CustomerDeliveries } from "@/components/CustomerDeliveries";
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/10 text-yellow-600",
@@ -260,6 +261,7 @@ export default function AccountPage() {
                           {currencySymbol}{Number(o.total).toFixed(2)}
                         </span>
                       </div>
+                      {o.payment_status === "paid" && <CustomerDeliveries orderId={o.id} />}
                     </div>
                   ))}
                 </div>
