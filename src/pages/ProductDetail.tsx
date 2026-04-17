@@ -17,6 +17,8 @@ import { toast } from "@/hooks/use-toast";
 import { ProductImageGallery } from "@/components/ProductImageGallery";
 import { ReviewForm } from "@/components/ReviewForm";
 import { trackViewContent, trackAddToCart } from "@/lib/meta-pixel";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useProductTranslator } from "@/hooks/use-product-translation";
 import DOMPurify from "dompurify";
 
 interface Tier {
@@ -38,7 +40,10 @@ interface Review {
 
 export default function ProductDetailPage() {
   const { slug } = useParams();
-  const { data: product, isLoading } = useProductBySlug(slug ?? "");
+  const { data: rawProduct, isLoading } = useProductBySlug(slug ?? "");
+  const { t, lang } = useLanguage();
+  const { tr } = useProductTranslator();
+  const product = rawProduct ? (tr(rawProduct as any) as typeof rawProduct) : rawProduct;
   const [selectedTierIdx, setSelectedTierIdx] = useState(0);
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "৳";
@@ -115,7 +120,7 @@ export default function ProductDetailPage() {
       value: price,
       currency: settings?.currency || "USD",
     });
-    toast({ title: `${product.name} added to cart` });
+    toast({ title: lang === "bn" ? `${product.name} কার্টে যোগ করা হয়েছে` : `${product.name} added to cart` });
   };
 
   const handleBuyNow = () => {
@@ -135,7 +140,7 @@ export default function ProductDetailPage() {
   if (isLoading) {
     return (
       <Layout>
-        <div className="container py-32 text-center text-muted-foreground">Loading...</div>
+        <div className="container py-32 text-center text-muted-foreground">{t("common.loading")}</div>
       </Layout>
     );
   }
@@ -144,9 +149,9 @@ export default function ProductDetailPage() {
     return (
       <Layout>
         <div className="container py-32 text-center">
-          <h1 className="text-2xl font-display font-bold">Product not found</h1>
+          <h1 className="text-2xl font-display font-bold">{lang === "bn" ? "পণ্য পাওয়া যায়নি" : "Product not found"}</h1>
           <Button variant="outline-primary" className="mt-4" asChild>
-            <Link to="/products">Back to Products</Link>
+            <Link to="/products">{lang === "bn" ? "পণ্যে ফিরে যান" : "Back to Products"}</Link>
           </Button>
         </div>
       </Layout>
@@ -192,7 +197,7 @@ export default function ProductDetailPage() {
       <section className="py-16 md:py-24">
         <div className="container px-5 md:px-8">
           <Link to="/products" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
-            <ArrowLeft className="h-4 w-4" /> Back to Products
+            <ArrowLeft className="h-4 w-4" /> {lang === "bn" ? "পণ্যে ফিরে যান" : "Back to Products"}
           </Link>
 
           <div className="grid gap-12 lg:grid-cols-2">
@@ -219,14 +224,14 @@ export default function ProductDetailPage() {
                       <Star key={i} className={`h-4 w-4 ${i <= Math.round(avgRating) ? "fill-primary text-primary" : "text-border"}`} />
                     ))}
                   </div>
-                  <span className="text-sm text-muted-foreground">{avgRating.toFixed(1)} ({reviews.length} review{reviews.length !== 1 ? "s" : ""})</span>
+                  <span className="text-sm text-muted-foreground">{avgRating.toFixed(1)} ({reviews.length} {t("product.reviews").toLowerCase()})</span>
                 </div>
               )}
 
               {/* Features & Benefits inline */}
               {product.features.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="text-sm font-medium tracking-executive uppercase text-muted-foreground mb-3">Features & Benefits</h3>
+                  <h3 className="text-sm font-medium tracking-executive uppercase text-muted-foreground mb-3">{t("product.features")}</h3>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {product.features.map((f) => (
                       <div key={f} className="flex items-center gap-2">
@@ -242,7 +247,7 @@ export default function ProductDetailPage() {
               <div className="mt-10 rounded-xl border border-border p-6">
                 {hasTiers ? (
                   <>
-                    <h3 className="text-sm font-medium tracking-executive uppercase text-muted-foreground mb-4">Choose Plan</h3>
+                    <h3 className="text-sm font-medium tracking-executive uppercase text-muted-foreground mb-4">{lang === "bn" ? "প্ল্যান বাছাই করুন" : "Choose Plan"}</h3>
                     <div className="flex flex-wrap gap-2 sm:gap-3">
                       {tiers.map((tier, i) => (
                         <button
@@ -270,7 +275,7 @@ export default function ProductDetailPage() {
                     </div>
                   </>
                 ) : (
-                  <h3 className="text-sm font-medium tracking-executive uppercase text-muted-foreground mb-2">Pricing</h3>
+                  <h3 className="text-sm font-medium tracking-executive uppercase text-muted-foreground mb-2">{lang === "bn" ? "মূল্য" : "Pricing"}</h3>
                 )}
 
                 <div className="mt-6 flex items-baseline gap-2">
@@ -292,16 +297,16 @@ export default function ProductDetailPage() {
 
                 {savings > 0 && (
                   <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-success mt-1">
-                    You save {currencySymbol}{savings.toFixed(2)} compared to {tiers[0].label}
+                    {lang === "bn" ? `আপনি সাশ্রয় করছেন ${currencySymbol}${savings.toFixed(2)} (${tiers[0].label} এর তুলনায়)` : `You save ${currencySymbol}${savings.toFixed(2)} compared to ${tiers[0].label}`}
                   </motion.p>
                 )}
 
                 <div className="flex gap-3 mt-6">
                   <Button variant="outline" size="xl" className="flex-1" onClick={handleAddToCart}>
-                    <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
+                    <ShoppingCart className="mr-2 h-4 w-4" /> {t("action.add_to_cart")}
                   </Button>
                   <Button variant="gradient" size="xl" className="flex-1" onClick={handleBuyNow}>
-                    Buy Now
+                    {t("action.buy_now")}
                   </Button>
                 </div>
               </div>
@@ -310,7 +315,7 @@ export default function ProductDetailPage() {
 
           {/* Description */}
           <div className="mt-20">
-            <h2 className="text-2xl font-display font-bold mb-6">Description</h2>
+            <h2 className="text-2xl font-display font-bold mb-6">{t("product.description")}</h2>
             <div
               className="prose prose-sm md:prose-base max-w-none text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-ul:text-muted-foreground prose-li:marker:text-primary"
               dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }}
@@ -320,7 +325,7 @@ export default function ProductDetailPage() {
           {/* Customer Reviews */}
           <div className="mt-20">
             <h2 className="text-2xl font-display font-bold mb-8">
-              Customer Reviews
+              {lang === "bn" ? "কাস্টমার রিভিউ" : "Customer Reviews"}
               {reviews.length > 0 && <span className="text-muted-foreground text-lg font-normal ml-2">({reviews.length})</span>}
             </h2>
 
@@ -343,14 +348,14 @@ export default function ProductDetailPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground mb-8">No reviews yet. Be the first to review this product!</p>
+              <p className="text-muted-foreground mb-8">{lang === "bn" ? "এখনো কোনো রিভিউ নেই। প্রথম রিভিউ দিন!" : "No reviews yet. Be the first to review this product!"}</p>
             )}
 
             <ReviewForm productId={product.id} onSubmitted={() => refetchReviews()} />
           </div>
 
           <div className="mt-20 max-w-2xl mx-auto">
-            <h2 className="text-2xl font-display font-bold mb-8 text-center">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-display font-bold mb-8 text-center">{lang === "bn" ? "প্রায়শই জিজ্ঞাসিত প্রশ্ন" : "Frequently Asked Questions"}</h2>
             <Accordion type="single" collapsible className="w-full">
               {faqs.slice(0, 5).map((faq, i) => (
                 <AccordionItem key={i} value={`faq-${i}`}>
