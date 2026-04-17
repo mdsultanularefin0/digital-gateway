@@ -9,6 +9,8 @@ import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { uploadToStorage } from "@/lib/storage";
 import { Save, Upload, X, Loader2 } from "lucide-react";
 import { RepeaterField, type RepeaterFieldDef } from "@/components/admin/RepeaterField";
+import { AiGenerateButton } from "@/components/admin/AiGenerateButton";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 function HeroImageUploader() {
   const queryClient = useQueryClient();
@@ -283,6 +285,8 @@ const pages: PageConfig[] = [
 
 export default function AdminPageEditor() {
   const queryClient = useQueryClient();
+  const settingsQuery = useSiteSettings();
+  const siteName = (settingsQuery as any)?.data?.site_name || "GiftCardVibe";
   const [activeTab, setActiveTab] = useState(pages[0].slug);
   const [edits, setEdits] = useState<Record<string, Record<string, string>>>({});
 
@@ -387,31 +391,87 @@ export default function AdminPageEditor() {
         <div className="max-w-4xl space-y-6">
           {activeTab === "home" && <HeroImageUploader />}
 
-          {activePage.sections.map((section) => (
-            <div key={section.key}>
-              <label className="text-sm font-medium mb-2 block">{section.label}</label>
-              {section.type === "rich" ? (
-                <RichTextEditor
-                  value={currentData[section.key] || ""}
-                  onChange={(html) => updateField(section.key, html)}
-                />
-              ) : section.type === "repeater" ? (
-                <RepeaterField
-                  value={currentData[section.key] || ""}
-                  onChange={(json) => updateField(section.key, json)}
-                  fields={section.fields || []}
-                  itemLabel={section.itemLabel || "Item"}
-                />
-              ) : (
-                <textarea
-                  value={currentData[section.key] || ""}
-                  onChange={(e) => updateField(section.key, e.target.value)}
-                  className="w-full rounded-lg border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]"
-                  placeholder={section.label}
-                />
-              )}
-            </div>
-          ))}
+          {activePage.sections.map((section) => {
+            const aiPayload = {
+              pageSlug: activeTab,
+              sectionKey: section.key,
+              sectionLabel: section.label,
+              fieldType: section.type,
+              currentValue: currentData[section.key] || "",
+              repeaterFields: section.fields || [],
+              itemLabel: section.itemLabel || "Item",
+              siteName,
+            };
+            const handleAiResult = (result: string) => {
+              if (section.type === "repeater") {
+                // Strip markdown fences if model wrapped JSON
+                const cleaned = result
+                  .replace(/^```(?:json)?\s*/i, "")
+                  .replace(/\s*```\s*$/i, "")
+                  .trim();
+                try {
+                  const parsed = JSON.parse(cleaned);
+                  if (Array.isArray(parsed)) {
+                    updateField(section.key, JSON.stringify(parsed, null, 2));
+                    return;
+                  }
+                } catch {
+                  /* fall through */
+                }
+                toast({
+                  title: "AI returned invalid JSON",
+                  description: "Try again or edit manually.",
+                  variant: "destructive",
+                });
+                return;
+              }
+              updateField(section.key, result.trim());
+            };
+
+            return (
+              <div key={section.key}>
+                <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+                  <label className="text-sm font-medium">{section.label}</label>
+                  {section.type !== "repeater" && (
+                    <AiGenerateButton
+                      type="page_section"
+                      payload={aiPayload}
+                      onResult={handleAiResult}
+                      label="AI Generate"
+                    />
+                  )}
+                </div>
+                {section.type === "rich" ? (
+                  <RichTextEditor
+                    value={currentData[section.key] || ""}
+                    onChange={(html) => updateField(section.key, html)}
+                  />
+                ) : section.type === "repeater" ? (
+                  <RepeaterField
+                    value={currentData[section.key] || ""}
+                    onChange={(json) => updateField(section.key, json)}
+                    fields={section.fields || []}
+                    itemLabel={section.itemLabel || "Item"}
+                    toolbar={
+                      <AiGenerateButton
+                        type="page_section"
+                        payload={aiPayload}
+                        onResult={handleAiResult}
+                        label="AI Generate Items"
+                      />
+                    }
+                  />
+                ) : (
+                  <textarea
+                    value={currentData[section.key] || ""}
+                    onChange={(e) => updateField(section.key, e.target.value)}
+                    className="w-full rounded-lg border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]"
+                    placeholder={section.label}
+                  />
+                )}
+              </div>
+            );
+          })}
 
           <Button
             variant="gradient"

@@ -19,6 +19,8 @@ interface RepeaterFieldProps {
   /** Optional defaults applied to a new item */
   defaultItem?: Record<string, string>;
   maxItems?: number;
+  /** Optional toolbar (e.g. AI Generate button) shown above the items */
+  toolbar?: React.ReactNode;
 }
 
 function safeParse(value: string): Record<string, string>[] {
@@ -39,6 +41,7 @@ export function RepeaterField({
   itemLabel = "Item",
   defaultItem,
   maxItems,
+  toolbar,
 }: RepeaterFieldProps) {
   const items = useMemo(() => safeParse(value), [value]);
 
@@ -73,6 +76,8 @@ export function RepeaterField({
 
   return (
     <div className="space-y-3">
+      {toolbar && <div className="flex justify-end">{toolbar}</div>}
+
       {items.length === 0 && (
         <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
           No items yet. Click "Add {itemLabel}" to create one.
