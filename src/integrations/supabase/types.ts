@@ -889,57 +889,6 @@ export type Database = {
         }
         Relationships: []
       }
-      sms_logs: {
-        Row: {
-          content: string
-          created_at: string
-          error: string
-          id: string
-          message_id: string
-          order_id: string | null
-          provider: string
-          raw_response: Json | null
-          recipient: string
-          remaining_credits: number | null
-          status: string
-          tag: string
-          triggered_by: string
-          type: string
-        }
-        Insert: {
-          content?: string
-          created_at?: string
-          error?: string
-          id?: string
-          message_id?: string
-          order_id?: string | null
-          provider?: string
-          raw_response?: Json | null
-          recipient: string
-          remaining_credits?: number | null
-          status?: string
-          tag?: string
-          triggered_by?: string
-          type?: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          error?: string
-          id?: string
-          message_id?: string
-          order_id?: string | null
-          provider?: string
-          raw_response?: Json | null
-          recipient?: string
-          remaining_credits?: number | null
-          status?: string
-          tag?: string
-          triggered_by?: string
-          type?: string
-        }
-        Relationships: []
-      }
       transactions: {
         Row: {
           amount: number
