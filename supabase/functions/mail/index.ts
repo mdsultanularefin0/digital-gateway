@@ -32,108 +32,6 @@ function resolveFrom(cfg: Record<string, string>, purpose?: string): string {
   return (purpose && map[purpose]) || cfg.smtp_from || cfg.from_support || cfg.smtp_username || "";
 }
 
-function escapeImapString(s: string): string {
-  // Use literal string format for IMAP to handle special chars
-  return `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
-}
-
-// ---------- IMAP ----------
-
-async function imapFetch(cfg: Record<string, string>, action: string, uid?: string) {
-  const host = cfg.imap_host || "";
-  const port = parseInt(cfg.imap_port || "993", 10);
-  const user = cfg.imap_username || cfg.smtp_username || "";
-  const pass = cfg.imap_password || cfg.smtp_password || "";
-
-  if (!host || !user || !pass) throw new Error("IMAP not configured");
-
-  console.log(`[IMAP] Connecting to ${host}:${port} as ${user}`);
-  const conn = await Deno.connectTls({ hostname: host, port });
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
-  let buffer = "";
-
-  async function read(tag: string): Promise<string> {
-    while (true) {
-      const buf = new Uint8Array(32768);
-      const n = await conn.read(buf);
-      if (!n) break;
-      buffer += decoder.decode(buf.subarray(0, n));
-      if (buffer.includes(`${tag} OK`) || buffer.includes(`${tag} NO`) || buffer.includes(`${tag} BAD`)) break;
-      if (buffer.length > 512 * 1024) break;
-    }
-    const result = buffer;
-    buffer = "";
-    return result;
-  }
-
-  async function cmd(tag: string, command: string): Promise<string> {
-    await conn.write(encoder.encode(`${tag} ${command}\r\n`));
-    return read(tag);
-  }
-
-  try {
-    // Greeting
-    const greetBuf = new Uint8Array(4096);
-    await conn.read(greetBuf);
-
-    // Login with properly escaped credentials
-    const loginResp = await cmd("A1", `LOGIN ${escapeImapString(user)} ${escapeImapString(pass)}`);
-    console.log("[IMAP] Login response:", loginResp.substring(0, 200));
-    if (loginResp.includes("A1 NO") || loginResp.includes("A1 BAD")) {
-      throw new Error("IMAP login failed");
-    }
-
-    await cmd("A2", "SELECT INBOX");
-
-    if (action === "list") {
-      const searchResp = await cmd("A3", "SEARCH ALL");
-      const match = searchResp.match(/\* SEARCH ([\d\s]+)/);
-      const allIds = match ? match[1].trim().split(/\s+/) : [];
-      const ids = allIds.slice(-200).reverse();
-
-      if (!ids.length) { await cmd("A9", "LOGOUT"); return []; }
-
-      const messages: any[] = [];
-      let tagNum = 4;
-      for (let i = 0; i < ids.length; i += 50) {
-        const range = ids.slice(i, i + 50).join(",");
-        const tag = `A${tagNum++}`;
-        const resp = await cmd(tag, `FETCH ${range} (UID FLAGS BODY[HEADER.FIELDS (FROM SUBJECT DATE)])`);
-        for (const part of resp.split(/\* \d+ FETCH/)) {
-          if (!part.trim()) continue;
-          const u = part.match(/UID (\d+)/);
-          if (u) {
-            messages.push({
-              uid: u[1],
-              from: part.match(/From:\s*(.+)/i)?.[1]?.trim() || "Unknown",
-              subject: part.match(/Subject:\s*(.+)/i)?.[1]?.trim() || "(No Subject)",
-              date: part.match(/Date:\s*(.+)/i)?.[1]?.trim() || "",
-              read: part.includes("\\Seen"),
-            });
-          }
-        }
-      }
-      await cmd("A9", "LOGOUT");
-      return messages;
-    }
-
-    if (action === "read" && uid) {
-      const resp = await cmd("A5", `UID FETCH ${uid} (BODY[TEXT] BODY[HEADER])`);
-      await cmd("A6", `UID STORE ${uid} +FLAGS (\\Seen)`);
-      await cmd("A9", "LOGOUT");
-      const hdr = resp.match(/BODY\[HEADER\] \{(\d+)\}\r\n([\s\S]*?)(?=BODY\[TEXT\]|\)$)/);
-      const bod = resp.match(/BODY\[TEXT\] \{(\d+)\}\r\n([\s\S]*?)(?=\)$|\r\nA)/);
-      return { uid, headers: hdr?.[2]?.trim() || "", body: bod?.[2]?.trim() || resp };
-    }
-
-    await cmd("A9", "LOGOUT");
-    return null;
-  } finally {
-    try { conn.close(); } catch { /* */ }
-  }
-}
-
 // ---------- SMTP ----------
 
 async function smtpSend(cfg: Record<string, string>, to: string, subject: string, body: string) {
@@ -278,20 +176,6 @@ Deno.serve(async (req) => {
         c.close();
         return json({ success: true, greeting: n ? new TextDecoder().decode(buf.subarray(0, n)).trim() : "" });
       }
-
-      case "test-imap": {
-        const c = await Deno.connectTls({ hostname: cfg.imap_host || "", port: parseInt(cfg.imap_port || "993", 10) });
-        const buf = new Uint8Array(1024);
-        const n = await c.read(buf);
-        c.close();
-        return json({ success: true, greeting: n ? new TextDecoder().decode(buf.subarray(0, n)).trim() : "" });
-      }
-
-      case "fetch-inbox":
-        return json({ success: true, messages: await imapFetch(cfg, "list") });
-
-      case "read-email":
-        return json({ success: true, email: await imapFetch(cfg, "read", params.uid) });
 
       case "send-email": {
         const { to = "", subject = "", body = "" } = params;

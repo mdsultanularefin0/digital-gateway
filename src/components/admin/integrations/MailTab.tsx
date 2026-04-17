@@ -16,15 +16,8 @@ const SMTP_FIELDS = [
   { key: "smtp_password", label: "Password", placeholder: "••••••••", sensitive: true },
 ];
 
-const IMAP_FIELDS = [
-  { key: "imap_host", label: "IMAP Host", placeholder: "imap.gmail.com" },
-  { key: "imap_port", label: "Port", placeholder: "993" },
-  { key: "imap_username", label: "Username (if different)", placeholder: "Same as SMTP if empty" },
-  { key: "imap_password", label: "Password (if different)", placeholder: "Same as SMTP if empty", sensitive: true },
-];
-
 const FROM_ADDRESSES = [
-  { key: "from_support", label: "Support Inbox", icon: Mail, placeholder: "support@example.com", description: "Customer support emails & replies" },
+  { key: "from_support", label: "Support", icon: Mail, placeholder: "support@example.com", description: "Customer support emails & replies" },
   { key: "from_orders", label: "Order Confirmations", icon: ShoppingBag, placeholder: "noreply@example.com", description: "Order receipts & shipping updates" },
   { key: "from_newsletter", label: "Newsletter", icon: Newspaper, placeholder: "news@example.com", description: "Newsletter & marketing emails" },
   { key: "from_notifications", label: "Notifications", icon: Bell, placeholder: "contact@example.com", description: "System alerts & password resets" },
@@ -64,7 +57,7 @@ export function MailTab() {
 
   const update = (key: string, value: string) => setSettings((s) => ({ ...s, [key]: value }));
 
-  const testConnection = async (type: "smtp" | "imap") => {
+  const testConnection = async (type: "smtp") => {
     setTesting(type);
     try {
       await saveMutation.mutateAsync(settings);
@@ -161,41 +154,6 @@ export function MailTab() {
           <Button variant="outline" size="sm" onClick={() => testConnection("smtp")} disabled={testing === "smtp"}>
             {testing === "smtp" ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <TestTube className="h-4 w-4 mr-2" />}
             Test SMTP
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">IMAP (Incoming)</CardTitle>
-          <CardDescription>Used to fetch support inbox emails.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {IMAP_FIELDS.map((f) => (
-            <div key={f.key} className="space-y-1.5">
-              <Label>{f.label}</Label>
-              <div className="relative">
-                <Input
-                  type={f.sensitive && !visible[f.key] ? "password" : "text"}
-                  placeholder={f.placeholder}
-                  value={settings[f.key] ?? ""}
-                  onChange={(e) => update(f.key, e.target.value)}
-                />
-                {f.sensitive && (
-                  <button
-                    type="button"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    onClick={() => setVisible((v) => ({ ...v, [f.key]: !v[f.key] }))}
-                  >
-                    {visible[f.key] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-          <Button variant="outline" size="sm" onClick={() => testConnection("imap")} disabled={testing === "imap"}>
-            {testing === "imap" ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <TestTube className="h-4 w-4 mr-2" />}
-            Test IMAP
           </Button>
         </CardContent>
       </Card>
