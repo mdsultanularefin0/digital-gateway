@@ -5,10 +5,12 @@ import { Layout } from "@/components/Layout";
 import { SEOHead } from "@/components/SEOHead";
 import { useBlogPosts, pickBlog } from "@/data/products";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePageMeta } from "@/hooks/use-page-meta";
 
 export default function Blog() {
   const { data: posts = [], isLoading } = useBlogPosts();
   const { lang, t } = useLanguage();
+  const { data: pageMeta } = usePageMeta("blog");
   const blogTitle = lang === "bn" ? "ব্লগ" : "Blog";
   const blogSub = lang === "bn"
     ? "আমাদের সর্বশেষ আর্টিকেল, টিপস এবং আপডেট।"
@@ -16,7 +18,12 @@ export default function Blog() {
 
   return (
     <Layout>
-      <SEOHead title={blogTitle} description={blogSub} />
+      <SEOHead
+        title={pageMeta?.meta_title?.trim() || blogTitle}
+        description={pageMeta?.meta_description?.trim() || blogSub}
+        keywords={pageMeta?.meta_keywords?.trim() || undefined}
+        ogImage={pageMeta?.og_image_url?.trim() || undefined}
+      />
       <section className="py-16 md:py-24">
         <div className="container max-w-5xl mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">

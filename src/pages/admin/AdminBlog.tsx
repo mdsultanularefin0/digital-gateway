@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, X, Upload, ImageIcon } from "lucide-react";
 import { AiGenerateButton } from "@/components/admin/AiGenerateButton";
 import { TranslateButton } from "@/components/admin/TranslateButton";
+import { MetaSeoFields } from "@/components/admin/MetaSeoFields";
 import type { Database } from "@/integrations/supabase/types";
 
 type BlogPost = Database["public"]["Tables"]["blog_posts"]["Row"];
@@ -226,6 +227,18 @@ export default function AdminBlog() {
                 </div>
                 <textarea value={editing.content ?? ""} onChange={(e) => setEditing({ ...editing, content: e.target.value })} className="w-full rounded-lg border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[200px]" />
               </div>
+              <MetaSeoFields
+                values={{
+                  meta_title: (editing as any).meta_title ?? "",
+                  meta_description: (editing as any).meta_description ?? "",
+                  meta_keywords: (editing as any).meta_keywords ?? "",
+                  og_image_url: (editing as any).og_image_url ?? "",
+                }}
+                onChange={(next) => setEditing({ ...editing, ...next } as any)}
+                aiType="blog_seo"
+                aiPayload={{ title: editing.title, content: editing.content, category: editing.category }}
+                langLabel="EN"
+              />
             </>
           ) : (
             <>
@@ -253,6 +266,40 @@ export default function AdminBlog() {
                 </div>
                 <textarea value={(editing as any).content_bn ?? ""} onChange={(e) => setEditing({ ...editing, content_bn: e.target.value } as any)} className="w-full rounded-lg border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[200px]" placeholder="Bangla content" />
               </div>
+              <MetaSeoFields
+                values={{
+                  meta_title: (editing as any).meta_title_bn ?? "",
+                  meta_description: (editing as any).meta_description_bn ?? "",
+                  meta_keywords: (editing as any).meta_keywords_bn ?? "",
+                }}
+                onChange={(next) => setEditing({
+                  ...editing,
+                  meta_title_bn: next.meta_title,
+                  meta_description_bn: next.meta_description,
+                  meta_keywords_bn: next.meta_keywords,
+                } as any)}
+                aiType="blog_seo"
+                aiPayload={{ title: (editing as any).title_bn || editing.title, content: (editing as any).content_bn || editing.content, category: editing.category, language: "bn" }}
+                showOgImage={false}
+                langLabel="বাংলা"
+                translateAction={
+                  <TranslateButton
+                    sourceText={`${(editing as any).meta_title || ""}\n---\n${(editing as any).meta_description || ""}\n---\n${(editing as any).meta_keywords || ""}`}
+                    context="blog"
+                    size="xs"
+                    label="From EN"
+                    onTranslated={(t) => {
+                      const [mt, md, mk] = (t || "").split(/\n---\n/);
+                      setEditing({
+                        ...editing,
+                        meta_title_bn: (mt || "").trim(),
+                        meta_description_bn: (md || "").trim(),
+                        meta_keywords_bn: (mk || "").trim(),
+                      } as any);
+                    }}
+                  />
+                }
+              />
             </>
           )}
           <label className="flex items-center gap-2 text-sm">

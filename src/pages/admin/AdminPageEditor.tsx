@@ -10,6 +10,7 @@ import { uploadToStorage } from "@/lib/storage";
 import { Save, Upload, X, Loader2 } from "lucide-react";
 import { RepeaterField, type RepeaterFieldDef } from "@/components/admin/RepeaterField";
 import { AiGenerateButton } from "@/components/admin/AiGenerateButton";
+import { MetaSeoFields } from "@/components/admin/MetaSeoFields";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
 function HeroImageUploader() {
@@ -435,6 +436,32 @@ export default function AdminPageEditor() {
       ) : (
         <div className="max-w-4xl space-y-6">
           {activeTab === "home" && editLang === "en" && <HeroImageUploader />}
+
+          <MetaSeoFields
+            values={{
+              meta_title: currentData["meta_title"] || "",
+              meta_description: currentData["meta_description"] || "",
+              meta_keywords: currentData["meta_keywords"] || "",
+              og_image_url: currentData["og_image_url"] || "",
+            }}
+            onChange={(next) => {
+              updateField("meta_title", next.meta_title);
+              updateField("meta_description", next.meta_description);
+              updateField("meta_keywords", next.meta_keywords);
+              updateField("og_image_url", next.og_image_url || "");
+            }}
+            aiType="page_meta"
+            aiPayload={{
+              pageSlug: activeTab,
+              pageLabel: activePage.label,
+              siteName,
+              language: editLang,
+              currentHeading: currentData["heading"] || currentData["hero_heading"] || "",
+              currentBody: currentData["body"] || currentData["hero_description"] || "",
+            }}
+            showOgImage={editLang === "en"}
+            langLabel={editLang === "en" ? "EN" : "বাংলা"}
+          />
 
           {activePage.sections.map((section) => {
             const aiPayload = {

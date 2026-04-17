@@ -12,6 +12,7 @@ import { WelcomePopup } from "@/components/WelcomePopup";
 import { useProducts } from "@/data/products";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { usePageContents } from "@/hooks/use-page-contents";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import defaultHeroImage from "@/assets/hero-glass-render.png";
 import DOMPurify from "dompurify";
 
@@ -26,6 +27,7 @@ export default function HomePage() {
   const { data: allProducts = [] } = useProducts();
   const { data: settings } = useSiteSettings();
   const { data: pageContent } = usePageContents("home");
+  const { data: pageMeta } = usePageMeta("home");
   const featured = allProducts.filter((p) => p.featured).slice(0, 3);
   const siteName = settings?.site_name || "GiftCardVibe";
   const tagline = pageContent?.hero_description || settings?.site_tagline || "Premium digital products designed for teams who demand precision, speed, and simplicity.";
@@ -62,8 +64,10 @@ export default function HomePage() {
   return (
     <>
       <SEOHead
-        title={`${siteName} — Premium Digital Products`}
-        description={tagline}
+        title={pageMeta?.meta_title?.trim() || `${siteName} — Premium Digital Products`}
+        description={pageMeta?.meta_description?.trim() || tagline}
+        keywords={pageMeta?.meta_keywords?.trim() || undefined}
+        ogImage={pageMeta?.og_image_url?.trim() || undefined}
         canonical="https://secure-link-shop.lovable.app/"
         type="website"
         jsonLd={jsonLd}

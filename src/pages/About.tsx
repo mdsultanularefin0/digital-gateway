@@ -2,6 +2,8 @@ import { Layout } from "@/components/Layout";
 import { Users, Target, Heart } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { usePageContents } from "@/hooks/use-page-contents";
+import { usePageMeta } from "@/hooks/use-page-meta";
+import { SEOHead } from "@/components/SEOHead";
 import DOMPurify from "dompurify";
 
 const iconMap: Record<string, React.ElementType> = { Target, Users, Heart };
@@ -17,6 +19,7 @@ const defaultBody = `<p>Founded in 2024, we started with a simple idea: digital 
 export default function AboutPage() {
   const { data: settings } = useSiteSettings();
   const { data: pageContent } = usePageContents("about");
+  const { data: pageMeta } = usePageMeta("about");
   const siteName = settings?.site_name || "GiftCardVibe";
   const heading = pageContent?.heading || `About ${siteName}`;
   const subheading = pageContent?.subheading || "We're a team of builders, designers, and data enthusiasts on a mission to create the best digital tools for modern teams.";
@@ -32,6 +35,12 @@ export default function AboutPage() {
 
   return (
     <Layout>
+      <SEOHead
+        title={pageMeta?.meta_title?.trim() || heading}
+        description={pageMeta?.meta_description?.trim() || subheading}
+        keywords={pageMeta?.meta_keywords?.trim() || undefined}
+        ogImage={pageMeta?.og_image_url?.trim() || undefined}
+      />
       <section className="py-16 md:py-24">
         <div className="container px-5 md:px-8 max-w-4xl">
           <div className="text-center mb-16">

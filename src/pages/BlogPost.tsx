@@ -54,10 +54,17 @@ export default function BlogPost() {
   }
 
   const tr = pickBlog(post as any, lang);
+  const ogImage = (post as any).og_image_url?.trim() || (post as any).image_url || undefined;
 
   return (
     <Layout>
-      <SEOHead title={tr.title} description={tr.excerpt} />
+      <SEOHead
+        title={tr.meta_title?.trim() || tr.title}
+        description={tr.meta_description?.trim() || tr.excerpt}
+        keywords={tr.meta_keywords?.trim() || undefined}
+        ogImage={ogImage}
+        type="article"
+      />
       <article className="py-16 md:py-24">
         <div className="container max-w-3xl mx-auto px-4">
           <Link to="/blog" className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-1 mb-8">
