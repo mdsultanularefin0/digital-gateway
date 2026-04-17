@@ -11,6 +11,7 @@ import { Loader2, CheckCircle, ShoppingBag, Copy, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { trackInitiateCheckout, trackPurchase } from "@/lib/meta-pixel";
 import { DownloadLinks } from "@/components/DownloadLinks";
+import { OrderSuccessInstructions } from "@/components/OrderSuccessInstructions";
 import paymentBkash from "@/assets/payment-bkash.png";
 import paymentNagad from "@/assets/payment-nagad.png";
 import paymentCod from "@/assets/payment-cod.png";
@@ -424,6 +425,7 @@ export default function CheckoutPage() {
                   <p className="text-lg font-mono font-bold text-primary">{orderPlaced}</p>
                 </motion.div>
                 {placedOrderId && <DownloadLinks orderId={placedOrderId} />}
+                <OrderSuccessInstructions />
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
                   <Button variant="gradient" asChild>
                     <Link to="/products">Continue Shopping</Link>
