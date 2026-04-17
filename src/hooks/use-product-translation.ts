@@ -9,6 +9,9 @@ export interface ProductTranslation {
   tagline: string;
   description: string;
   features: string[];
+  meta_title?: string;
+  meta_description?: string;
+  meta_keywords?: string;
 }
 
 /**
@@ -25,10 +28,9 @@ export function useProductTranslator() {
       if (lang === "en") return [] as ProductTranslation[];
       const { data, error } = await supabase
         .from("product_translations" as any)
-        .select("product_id, lang, name, tagline, description, features")
-        .eq("lang", lang);
+        .select("product_id, lang, name, tagline, description, features, meta_title, meta_description, meta_keywords");
       if (error) throw error;
-      return (data as any[]) as ProductTranslation[];
+      return ((data as any[]) || []).filter((r) => r.lang === lang) as ProductTranslation[];
     },
     enabled: lang === "bn",
     staleTime: 5 * 60 * 1000,
@@ -37,7 +39,18 @@ export function useProductTranslator() {
   const map = new Map<string, ProductTranslation>();
   (rows || []).forEach((r) => map.set(r.product_id, r));
 
-  function tr<T extends { id: string; name?: string; tagline?: string; description?: string; features?: string[] }>(p: T): T {
+  function tr<
+    T extends {
+      id: string;
+      name?: string;
+      tagline?: string;
+      description?: string;
+      features?: string[];
+      meta_title?: string;
+      meta_description?: string;
+      meta_keywords?: string;
+    }
+  >(p: T): T {
     if (lang === "en") return p;
     const t = map.get(p.id);
     if (!t) return p;
@@ -47,6 +60,9 @@ export function useProductTranslator() {
       tagline: t.tagline?.trim() || p.tagline,
       description: t.description?.trim() || p.description,
       features: t.features && t.features.length > 0 ? t.features : p.features,
+      meta_title: t.meta_title?.trim() || p.meta_title,
+      meta_description: t.meta_description?.trim() || p.meta_description,
+      meta_keywords: t.meta_keywords?.trim() || p.meta_keywords,
     } as T;
   }
 

@@ -60,9 +60,13 @@ Write 2-3 paragraphs covering what the product is, key benefits, and why custome
 
     } else if (type === "seo_meta") {
       const { productName, tagline, description, category } = body;
-      systemPrompt = `You are an SEO expert. Generate optimized meta title and description for e-commerce product pages. The meta title should be under 60 characters with the primary keyword. The meta description should be under 160 characters and include a call-to-action. Output in this exact format:
-TITLE: [meta title here]
-DESCRIPTION: [meta description here]
+      systemPrompt = `You are an SEO expert for an e-commerce site (GiftCardVibe). Generate optimized meta tags for a product page.
+
+Output in this EXACT format (no markdown fences, no extra text):
+TITLE: [meta title under 60 chars, primary keyword first]
+DESCRIPTION: [meta description under 160 chars with a clear benefit + call-to-action]
+KEYWORDS: [5-8 comma-separated keywords/phrases, lowercase]
+
 ${langInstruction}`;
       userPrompt = `Generate SEO meta tags for this product:
 
@@ -91,15 +95,39 @@ Write a comprehensive blog post with:
 
     } else if (type === "blog_seo") {
       const { title, content, category } = body;
-      systemPrompt = `You are an SEO expert for blogs. Generate an optimized excerpt/meta description (under 160 characters) and 3-5 suggested tags for a blog post. Output in this exact format:
-EXCERPT: [meta description here]
-TAGS: [tag1, tag2, tag3]
+      systemPrompt = `You are an SEO expert for blogs. Generate optimized meta tags for a blog post.
+
+Output in this EXACT format (no markdown fences, no extra text):
+TITLE: [SEO title under 60 chars, hook the reader]
+DESCRIPTION: [meta description / excerpt under 160 chars]
+KEYWORDS: [5-8 comma-separated keywords, lowercase]
+EXCERPT: [short on-page excerpt, 1-2 sentences, can match DESCRIPTION]
+TAGS: [3-5 comma-separated content tags]
+
 ${langInstruction}`;
       userPrompt = `Generate SEO metadata for this blog post:
 
 Title: ${title}
 Category: ${category || "General"}
 Content preview: ${(content || "").slice(0, 500)}`;
+
+    } else if (type === "page_meta") {
+      const { pageSlug, pageLabel, siteName, sampleHeading, sampleBody } = body;
+      systemPrompt = `You are an SEO expert. Generate optimized meta tags for a website page.
+
+Output in this EXACT format (no markdown fences, no extra text):
+TITLE: [meta title under 60 chars, includes the site name where natural]
+DESCRIPTION: [meta description under 160 chars, clear value statement]
+KEYWORDS: [5-8 comma-separated keywords, lowercase]
+
+${langInstruction}`;
+      userPrompt = `Generate SEO meta tags for this page:
+
+Page: ${pageLabel || pageSlug}
+Slug: /${pageSlug}
+Site: ${siteName || "GiftCardVibe"}
+${sampleHeading ? `Page heading: ${sampleHeading}` : ""}
+${sampleBody ? `Sample copy: ${(sampleBody as string).slice(0, 400)}` : ""}`;
 
     } else if (type === "review_response") {
       const { customerName, rating, reviewTitle, reviewContent, productName } = body;

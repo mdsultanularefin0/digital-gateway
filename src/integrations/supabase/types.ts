@@ -85,6 +85,13 @@ export type Database = {
           excerpt_bn: string | null
           id: string
           image_url: string | null
+          meta_description: string
+          meta_description_bn: string
+          meta_keywords: string
+          meta_keywords_bn: string
+          meta_title: string
+          meta_title_bn: string
+          og_image_url: string
           published: boolean
           published_at: string | null
           slug: string
@@ -102,6 +109,13 @@ export type Database = {
           excerpt_bn?: string | null
           id?: string
           image_url?: string | null
+          meta_description?: string
+          meta_description_bn?: string
+          meta_keywords?: string
+          meta_keywords_bn?: string
+          meta_title?: string
+          meta_title_bn?: string
+          og_image_url?: string
           published?: boolean
           published_at?: string | null
           slug: string
@@ -119,6 +133,13 @@ export type Database = {
           excerpt_bn?: string | null
           id?: string
           image_url?: string | null
+          meta_description?: string
+          meta_description_bn?: string
+          meta_keywords?: string
+          meta_keywords_bn?: string
+          meta_title?: string
+          meta_title_bn?: string
+          og_image_url?: string
           published?: boolean
           published_at?: string | null
           slug?: string
@@ -858,6 +879,9 @@ export type Database = {
           features: string[]
           id: string
           lang: string
+          meta_description: string
+          meta_keywords: string
+          meta_title: string
           name: string
           product_id: string
           tagline: string
@@ -869,6 +893,9 @@ export type Database = {
           features?: string[]
           id?: string
           lang?: string
+          meta_description?: string
+          meta_keywords?: string
+          meta_title?: string
           name?: string
           product_id: string
           tagline?: string
@@ -880,6 +907,9 @@ export type Database = {
           features?: string[]
           id?: string
           lang?: string
+          meta_description?: string
+          meta_keywords?: string
+          meta_title?: string
           name?: string
           product_id?: string
           tagline?: string
@@ -908,7 +938,11 @@ export type Database = {
           id: string
           image_url: string | null
           in_stock: boolean
+          meta_description: string
+          meta_keywords: string
+          meta_title: string
           name: string
+          og_image_url: string
           price: number
           price_label: string
           published: boolean
@@ -929,7 +963,11 @@ export type Database = {
           id?: string
           image_url?: string | null
           in_stock?: boolean
+          meta_description?: string
+          meta_keywords?: string
+          meta_title?: string
           name: string
+          og_image_url?: string
           price?: number
           price_label?: string
           published?: boolean
@@ -950,7 +988,11 @@ export type Database = {
           id?: string
           image_url?: string | null
           in_stock?: boolean
+          meta_description?: string
+          meta_keywords?: string
+          meta_title?: string
           name?: string
+          og_image_url?: string
           price?: number
           price_label?: string
           published?: boolean

@@ -13,6 +13,7 @@ import BulkProductImport from "@/components/admin/BulkProductImport";
 import DigitalFilesEditor, { type DigitalFile } from "@/components/admin/DigitalFilesEditor";
 import CodePoolManager from "@/components/admin/CodePoolManager";
 import { TranslateButton } from "@/components/admin/TranslateButton";
+import { MetaSeoFields } from "@/components/admin/MetaSeoFields";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
@@ -22,8 +23,14 @@ interface BnTranslation {
   tagline: string;
   description: string;
   features: string[];
+  meta_title: string;
+  meta_description: string;
+  meta_keywords: string;
 }
-const emptyBn: BnTranslation = { name: "", tagline: "", description: "", features: [] };
+const emptyBn: BnTranslation = {
+  name: "", tagline: "", description: "", features: [],
+  meta_title: "", meta_description: "", meta_keywords: "",
+};
 
 interface Tier {
   id?: string;
@@ -119,11 +126,14 @@ export default function AdminProducts() {
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
-          const next = {
+          const next: BnTranslation = {
             name: data.name || "",
             tagline: data.tagline || "",
             description: data.description || "",
             features: data.features || [],
+            meta_title: (data as any).meta_title || "",
+            meta_description: (data as any).meta_description || "",
+            meta_keywords: (data as any).meta_keywords || "",
           };
           setBn(next);
           setBnFeaturesInput(next.features.join("\n"));
@@ -204,7 +214,9 @@ export default function AdminProducts() {
 
         // Save BN translation (upsert)
         const bnFeatures = bnFeaturesInput.split("\n").map((f) => f.trim()).filter(Boolean);
-        const hasBnContent = bn.name.trim() || bn.tagline.trim() || bn.description.trim() || bnFeatures.length > 0;
+        const hasBnContent =
+          bn.name.trim() || bn.tagline.trim() || bn.description.trim() || bnFeatures.length > 0 ||
+          bn.meta_title.trim() || bn.meta_description.trim() || bn.meta_keywords.trim();
         if (hasBnContent) {
           const { error: bnErr } = await supabase
             .from("product_translations")
@@ -216,7 +228,10 @@ export default function AdminProducts() {
                 tagline: bn.tagline.trim(),
                 description: bn.description.trim(),
                 features: bnFeatures,
-              },
+                meta_title: bn.meta_title.trim(),
+                meta_description: bn.meta_description.trim(),
+                meta_keywords: bn.meta_keywords.trim(),
+              } as any,
               { onConflict: "product_id,lang" }
             );
           if (bnErr) throw bnErr;
@@ -449,6 +464,31 @@ export default function AdminProducts() {
               </div>
               <textarea value={bnFeaturesInput} onChange={(e) => setBnFeaturesInput(e.target.value)} className="w-full rounded-xl border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[120px]" placeholder="বৈশিষ্ট্য ১&#10;বৈশিষ্ট্য ২" />
             </div>
+
+            {/* SEO Meta — Bangla (saved to product_translations.meta_*) */}
+            <MetaSeoFields
+              values={{
+                meta_title: bn.meta_title,
+                meta_description: bn.meta_description,
+                meta_keywords: bn.meta_keywords,
+              }}
+              onChange={(v) => setBn({
+                ...bn,
+                meta_title: v.meta_title,
+                meta_description: v.meta_description,
+                meta_keywords: v.meta_keywords,
+              })}
+              aiType="seo_meta"
+              aiPayload={{
+                productName: bn.name || editing.name,
+                tagline: bn.tagline || editing.tagline,
+                description: bn.description || editing.description,
+                category: editing.category,
+              }}
+              showOgImage={false}
+              langLabel="বাংলা"
+            />
+
             <Button variant="gradient" size="lg" type="submit" disabled={saveMutation.isPending || isNew}>
               {saveMutation.isPending ? "Saving..." : "Save Bangla Translation"}
             </Button>
@@ -501,8 +541,30 @@ export default function AdminProducts() {
             <textarea value={editing.description ?? ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="w-full rounded-xl border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[100px]" />
           </div>
 
-          {/* AI SEO Meta Generator */}
-          <AiSeoSection editing={editing} setEditing={setEditing} featuresInput={featuresInput} />
+          {/* SEO Meta — English (saved to products.meta_*) */}
+          <MetaSeoFields
+            values={{
+              meta_title: (editing as any).meta_title || "",
+              meta_description: (editing as any).meta_description || "",
+              meta_keywords: (editing as any).meta_keywords || "",
+              og_image_url: (editing as any).og_image_url || "",
+            }}
+            onChange={(v) => setEditing({
+              ...editing,
+              meta_title: v.meta_title,
+              meta_description: v.meta_description,
+              meta_keywords: v.meta_keywords,
+              og_image_url: v.og_image_url || "",
+            } as any)}
+            aiType="seo_meta"
+            aiPayload={{
+              productName: editing.name,
+              tagline: editing.tagline,
+              description: editing.description,
+              category: editing.category,
+            }}
+            langLabel="EN"
+          />
           <div className="grid gap-4 md:grid-cols-3">
             <div>
               <label className="text-sm font-medium mb-1 block">Base Price</label>
@@ -823,57 +885,4 @@ export default function AdminProducts() {
   );
 }
 
-// ── AI SEO Meta Generator sub-component ──────────────────────────────
-function AiSeoSection({ editing, setEditing, featuresInput }: { editing: any; setEditing: (v: any) => void; featuresInput: string }) {
-  const [seoResult, setSeoResult] = useState<string | null>(null);
-
-  const applySeo = () => {
-    if (!seoResult) return;
-    const titleMatch = seoResult.match(/TITLE:\s*(.+)/i);
-    const descMatch = seoResult.match(/DESCRIPTION:\s*(.+)/i);
-    // Store SEO in tagline field if no dedicated SEO fields exist
-    if (titleMatch?.[1] || descMatch?.[1]) {
-      const parts: string[] = [];
-      if (titleMatch?.[1]) parts.push(`SEO Title: ${titleMatch[1].trim()}`);
-      if (descMatch?.[1]) parts.push(`SEO Description: ${descMatch[1].trim()}`);
-      toast({ title: "SEO tags generated!", description: parts.join(" | ") });
-      // Copy to clipboard for easy use
-      navigator.clipboard.writeText(parts.join("\n"));
-    }
-    setSeoResult(null);
-  };
-
-  return (
-    <div className="rounded-xl border border-border/50 p-4">
-      <div className="flex items-center justify-between">
-        <h4 className="text-xs font-medium tracking-widest uppercase text-muted-foreground">SEO Meta Tags</h4>
-        <AiGenerateButton
-          type="seo_meta"
-          payload={{
-            productName: editing.name,
-            tagline: editing.tagline,
-            description: editing.description,
-            category: editing.category,
-          }}
-          onResult={(result) => setSeoResult(result)}
-          label="Generate SEO"
-        />
-      </div>
-      {seoResult && (
-        <div className="mt-3">
-          <div className="rounded-lg border border-border/60 bg-muted/20 p-3 text-xs leading-relaxed whitespace-pre-wrap">
-            {seoResult}
-          </div>
-          <div className="flex gap-2 mt-2">
-            <Button type="button" variant="outline" size="sm" className="text-xs" onClick={applySeo}>
-              Copy & Close
-            </Button>
-            <Button type="button" variant="ghost" size="sm" className="text-xs" onClick={() => setSeoResult(null)}>
-              Dismiss
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+// (legacy AiSeoSection removed — replaced by <MetaSeoFields>)

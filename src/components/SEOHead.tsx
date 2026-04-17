@@ -3,6 +3,7 @@ import { useEffect } from "react";
 interface SEOHeadProps {
   title?: string;
   description?: string;
+  keywords?: string;
   canonical?: string;
   ogImage?: string;
   type?: "website" | "product" | "article";
@@ -12,6 +13,7 @@ interface SEOHeadProps {
 export function SEOHead({
   title = "GiftCardVibe — Premium Gift Cards",
   description = "Premium gift cards and digital products.",
+  keywords,
   canonical,
   ogImage,
   type = "website",
@@ -30,6 +32,10 @@ export function SEOHead({
       el.setAttribute("content", content);
     };
 
+    const removeMeta = (attr: string, key: string) => {
+      document.querySelector(`meta[${attr}="${key}"]`)?.remove();
+    };
+
     setMeta("name", "description", description);
     setMeta("property", "og:title", title);
     setMeta("property", "og:description", description);
@@ -37,9 +43,16 @@ export function SEOHead({
     setMeta("name", "twitter:title", title);
     setMeta("name", "twitter:description", description);
 
+    if (keywords && keywords.trim()) {
+      setMeta("name", "keywords", keywords.trim());
+    } else {
+      removeMeta("name", "keywords");
+    }
+
     if (ogImage) {
       setMeta("property", "og:image", ogImage);
       setMeta("name", "twitter:image", ogImage);
+      setMeta("name", "twitter:card", "summary_large_image");
     }
 
     // Canonical
@@ -69,7 +82,7 @@ export function SEOHead({
     return () => {
       document.querySelector('script[data-seo-jsonld]')?.remove();
     };
-  }, [title, description, canonical, ogImage, type, jsonLd]);
+  }, [title, description, keywords, canonical, ogImage, type, jsonLd]);
 
   return null;
 }
