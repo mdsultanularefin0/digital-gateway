@@ -353,6 +353,7 @@ Deno.serve(async (req) => {
             ${templateVars.transaction_id ? `<p style="margin:4px 0 0;font-size:14px;color:#166534;">Transaction ID: <strong>${templateVars.transaction_id}</strong></p>` : ""}
           </div>
           ${orderTable}
+          ${deliverablesHtml}
           ${productEmailSections}
           <p style="margin:24px 0 0;font-size:13px;color:#888;">If you have any questions, reply to this email or contact our support team.</p>
         `);
@@ -366,6 +367,7 @@ Deno.serve(async (req) => {
             <p style="margin:4px 0 0;font-size:16px;font-weight:bold;color:#1a1a2e;">${order.order_number}</p>
           </div>
           ${orderTable}
+          ${deliverablesHtml}
           ${productEmailSections}
           <p style="margin:24px 0 0;font-size:13px;color:#888;">If you have any questions, reply to this email or contact our support team.</p>
         `);
