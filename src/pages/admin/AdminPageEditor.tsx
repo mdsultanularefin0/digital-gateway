@@ -395,6 +395,13 @@ export default function AdminPageEditor() {
                   value={currentData[section.key] || ""}
                   onChange={(html) => updateField(section.key, html)}
                 />
+              ) : section.type === "repeater" ? (
+                <RepeaterField
+                  value={currentData[section.key] || ""}
+                  onChange={(json) => updateField(section.key, json)}
+                  fields={section.fields || []}
+                  itemLabel={section.itemLabel || "Item"}
+                />
               ) : (
                 <textarea
                   value={currentData[section.key] || ""}
