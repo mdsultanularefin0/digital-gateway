@@ -119,10 +119,6 @@ export default function AdminIntegrations() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="payment">
-            <PaymentTab settings={settings} update={update} />
-          </TabsContent>
-
           <TabsContent value="mail">
             <MailTab />
           </TabsContent>
