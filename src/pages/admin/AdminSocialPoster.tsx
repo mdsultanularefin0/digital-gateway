@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Upload, Loader2, Send, Image as ImageIcon, Video, Calendar, Facebook, Instagram } from "lucide-react";
+import { Upload, Loader2, Send, Image as ImageIcon, Video, Calendar, Facebook, Instagram, X } from "lucide-react";
 import { uploadToStorage } from "@/lib/storage";
 import { format } from "date-fns";
 import { AiGenerateButton } from "@/components/admin/AiGenerateButton";
