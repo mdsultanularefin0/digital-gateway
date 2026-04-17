@@ -6,6 +6,41 @@ import { toast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 
+const CONTEXT_PRESETS: { label: string; value: string }[] = [
+  {
+    label: "Friendly & casual",
+    value: "Use a friendly, casual, conversational tone. Write like you're talking to a friend. Keep it warm, approachable, and easy to read. Avoid jargon.",
+  },
+  {
+    label: "Professional B2B",
+    value: "Use a professional, authoritative B2B tone. Focus on ROI, efficiency, and business outcomes. Be concise, data-driven, and avoid hype or slang.",
+  },
+  {
+    label: "Urgent sale",
+    value: "Create urgency and excitement. Highlight scarcity, limited-time offers, and immediate benefits. Use strong action verbs and persuasive language. Push the reader to act now.",
+  },
+  {
+    label: "Luxury & premium",
+    value: "Use a refined, elegant, premium tone. Emphasize craftsmanship, exclusivity, and quality. Use sophisticated vocabulary. Avoid discounts or aggressive sales language.",
+  },
+  {
+    label: "Playful & fun",
+    value: "Use a playful, witty, and fun tone. Add light humor and personality. Keep it energetic and memorable. Use emojis sparingly where appropriate.",
+  },
+  {
+    label: "Minimal & direct",
+    value: "Be extremely concise and direct. No fluff, no filler. Short sentences. Get to the point immediately. Maximum clarity, minimum words.",
+  },
+  {
+    label: "Storytelling",
+    value: "Use a narrative, storytelling approach. Paint a picture, evoke emotion, and connect with the reader through vivid scenarios and relatable moments.",
+  },
+  {
+    label: "Bengali audience",
+    value: "Write for a Bangladeshi audience. Use culturally relevant references, local examples, and a tone that resonates with Bengali readers. Mix in light Banglish where it feels natural.",
+  },
+];
+
 interface AiGenerateButtonProps {
   type: string;
   payload: Record<string, any>;
@@ -69,8 +104,23 @@ export function AiGenerateButton({ type, payload, onResult, label = "AI Generate
           <div className="space-y-2">
             <p className="text-xs font-semibold">Custom instructions for the AI</p>
             <p className="text-[11px] text-muted-foreground">
-              Tell the AI how you want it to write — tone, length, audience, things to include or avoid.
+              Pick a preset or write your own — tone, length, audience, things to include or avoid.
             </p>
+            <div>
+              <p className="text-[10px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wide">Presets</p>
+              <div className="flex flex-wrap gap-1">
+                {CONTEXT_PRESETS.map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => setUserContext(preset.value)}
+                    className="text-[10px] px-2 py-1 rounded-md border border-border/60 text-muted-foreground hover:text-foreground hover:border-foreground/20 hover:bg-accent/40 transition-colors"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <Textarea
               value={userContext}
               onChange={(e) => setUserContext(e.target.value)}
