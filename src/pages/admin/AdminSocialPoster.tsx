@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Upload, Loader2, Send, Image as ImageIcon, Video, Calendar, Facebook, Instagram } from "lucide-react";
+import { Upload, Loader2, Send, Image as ImageIcon, Video, Calendar, Facebook, Instagram, X } from "lucide-react";
 import { uploadToStorage } from "@/lib/storage";
 import { format } from "date-fns";
 import { AiGenerateButton } from "@/components/admin/AiGenerateButton";
@@ -95,6 +95,22 @@ export default function AdminSocialPoster() {
       qc.invalidateQueries({ queryKey: ["social-posts"] });
     },
     onError: (err: any) => toast.error("Publish failed", { description: err.message }),
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: async (rowId: string) => {
+      const { data, error } = await supabase.functions.invoke("social-media-poster", {
+        body: { action: "cancel", rowId },
+      });
+      if (error) throw error;
+      if (data?.errors?.length && !data?.success) throw new Error(data.errors.join(" | "));
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Scheduled post cancelled");
+      qc.invalidateQueries({ queryKey: ["social-posts"] });
+    },
+    onError: (err: any) => toast.error("Cancel failed", { description: err.message }),
   });
 
   const canSubmit = mediaUrl && caption && !publishMutation.isPending;
@@ -238,6 +254,26 @@ export default function AdminSocialPoster() {
                 </div>
                 <p className="text-sm whitespace-pre-wrap line-clamp-3">{p.caption}</p>
                 {p.error && <p className="text-xs text-destructive">{p.error}</p>}
+                {p.status === "scheduled" && (
+                  <div className="flex justify-end pt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (confirm("Cancel this scheduled post? This will delete it from Meta.")) {
+                          cancelMutation.mutate(p.id);
+                        }
+                      }}
+                      disabled={cancelMutation.isPending}
+                      className="gap-1.5"
+                    >
+                      {cancelMutation.isPending && cancelMutation.variables === p.id
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : <X className="h-3.5 w-3.5" />}
+                      Cancel scheduled
+                    </Button>
+                  </div>
+                )}
               </Card>
             ))}
           </TabsContent>

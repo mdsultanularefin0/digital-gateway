@@ -124,7 +124,50 @@ Deno.serve(async (req) => {
       });
     }
 
-    const body = (await req.json()) as RequestBody;
+    const rawBody = await req.json();
+
+    // ---- CANCEL scheduled post ----
+    if (rawBody?.action === "cancel") {
+      const rowId = rawBody.rowId as string;
+      if (!rowId) throw new Error("rowId required");
+
+      const { data: row, error: rowErr } = await admin
+        .from("social_posts").select("*").eq("id", rowId).maybeSingle();
+      if (rowErr || !row) throw new Error("Post not found");
+      if (row.status !== "scheduled") throw new Error("Only scheduled posts can be cancelled");
+
+      const { data: sRows } = await admin
+        .from("site_settings").select("key,value")
+        .in("key", ["meta_page_access_token", "meta_ig_access_token"]);
+      const s = Object.fromEntries((sRows || []).map((r: any) => [r.key, r.value]));
+      const fbTok = s.meta_page_access_token;
+      const igTok = s.meta_ig_access_token || fbTok;
+
+      const cancelErrors: string[] = [];
+      const deleteAt = async (id: string, token: string, label: string) => {
+        try {
+          const res = await fetch(`${GRAPH}/${id}?access_token=${encodeURIComponent(token)}`, { method: "DELETE" });
+          const j = await res.json();
+          if (!res.ok || j?.success === false) throw new Error(j?.error?.message || `${label} delete failed`);
+        } catch (e: any) { cancelErrors.push(`${label}: ${e.message}`); }
+      };
+
+      if (row.fb_post_id && fbTok) await deleteAt(row.fb_post_id, fbTok, "FB");
+      if (row.ig_post_id && igTok) await deleteAt(row.ig_post_id, igTok, "IG");
+
+      await admin.from("social_posts").update({
+        status: "cancelled",
+        error: cancelErrors.join(" | "),
+      }).eq("id", rowId);
+
+      return new Response(JSON.stringify({
+        success: cancelErrors.length === 0,
+        cancelled: true,
+        errors: cancelErrors,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    const body = rawBody as RequestBody;
     if (!body.caption && !body.mediaUrl) {
       return new Response(JSON.stringify({ error: "Caption or media required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
