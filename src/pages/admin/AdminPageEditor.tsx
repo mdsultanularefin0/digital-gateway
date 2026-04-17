@@ -540,10 +540,6 @@ export default function AdminPageEditor() {
     </AdminLayout>
   );
 }
-
-  const activePage = pages.find((p) => p.slug === activeTab)!;
-  const currentData = { ...(allContents?.[activeTab] || {}), ...(edits[activeTab] || {}) };
-
   const updateField = (key: string, value: string) => {
     setEdits((prev) => ({
       ...prev,
