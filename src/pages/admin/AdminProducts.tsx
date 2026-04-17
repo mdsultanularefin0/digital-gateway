@@ -289,6 +289,7 @@ export default function AdminProducts() {
   };
 
   const openEditor = (product?: Product) => {
+    setActiveLang("en");
     if (product) {
       setEditing(product);
       setIsNew(false);
@@ -302,6 +303,8 @@ export default function AdminProducts() {
       setTiers([]);
       setImages([]);
       setDigitalFiles([]);
+      setBn(emptyBn);
+      setBnFeaturesInput("");
     }
   };
 
