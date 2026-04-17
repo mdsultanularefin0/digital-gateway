@@ -254,6 +254,26 @@ export default function AdminSocialPoster() {
                 </div>
                 <p className="text-sm whitespace-pre-wrap line-clamp-3">{p.caption}</p>
                 {p.error && <p className="text-xs text-destructive">{p.error}</p>}
+                {p.status === "scheduled" && (
+                  <div className="flex justify-end pt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (confirm("Cancel this scheduled post? This will delete it from Meta.")) {
+                          cancelMutation.mutate(p.id);
+                        }
+                      }}
+                      disabled={cancelMutation.isPending}
+                      className="gap-1.5"
+                    >
+                      {cancelMutation.isPending && cancelMutation.variables === p.id
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : <X className="h-3.5 w-3.5" />}
+                      Cancel scheduled
+                    </Button>
+                  </div>
+                )}
               </Card>
             ))}
           </TabsContent>
