@@ -4,15 +4,26 @@ import { Search } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
 import { useProducts, categories } from "@/data/products";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useProductTranslator } from "@/hooks/use-product-translation";
 
 export default function ProductsPage() {
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
   const { data: products = [], isLoading } = useProducts();
+  const { t, lang } = useLanguage();
+  const { tr } = useProductTranslator();
 
+  const q = search.toLowerCase();
   const filtered = products.filter((p) => {
     const matchCat = category === "All" || p.category === category;
-    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.tagline.toLowerCase().includes(search.toLowerCase());
+    const trans = tr(p as any) as typeof p;
+    const matchSearch =
+      !q ||
+      p.name.toLowerCase().includes(q) ||
+      p.tagline.toLowerCase().includes(q) ||
+      trans.name.toLowerCase().includes(q) ||
+      trans.tagline.toLowerCase().includes(q);
     return matchCat && matchSearch;
   });
 
@@ -21,8 +32,12 @@ export default function ProductsPage() {
       <section className="py-16 md:py-24">
         <div className="container px-5 md:px-8">
           <div className="mx-auto max-w-2xl text-center mb-12">
-            <h1 className="text-3xl font-display font-bold md:text-5xl">All Products</h1>
-            <p className="mt-4 text-muted-foreground">Browse our collection of premium digital tools and services.</p>
+            <h1 className="text-3xl font-display font-bold md:text-5xl">{t("product.all_products")}</h1>
+            <p className="mt-4 text-muted-foreground">
+              {lang === "bn"
+                ? "আমাদের প্রিমিয়াম ডিজিটাল টুল ও সার্ভিসের সংগ্রহ ব্রাউজ করুন।"
+                : "Browse our collection of premium digital tools and services."}
+            </p>
           </div>
 
           {/* Filters */}
@@ -47,14 +62,14 @@ export default function ProductsPage() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search products..."
+                placeholder={t("product.search_placeholder")}
                 className="h-10 w-full rounded-xl border border-border bg-background pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary md:w-64"
               />
             </div>
           </div>
 
           {isLoading ? (
-            <div className="py-20 text-center text-muted-foreground">Loading products...</div>
+            <div className="py-20 text-center text-muted-foreground">{t("common.loading")}</div>
           ) : (
             <>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -70,7 +85,7 @@ export default function ProductsPage() {
                 ))}
               </div>
               {filtered.length === 0 && (
-                <div className="py-20 text-center text-muted-foreground">No products found matching your criteria.</div>
+                <div className="py-20 text-center text-muted-foreground">{t("product.no_results")}</div>
               )}
             </>
           )}
