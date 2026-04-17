@@ -227,6 +227,18 @@ export default function AdminBlog() {
                 </div>
                 <textarea value={editing.content ?? ""} onChange={(e) => setEditing({ ...editing, content: e.target.value })} className="w-full rounded-lg border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[200px]" />
               </div>
+              <MetaSeoFields
+                values={{
+                  meta_title: (editing as any).meta_title ?? "",
+                  meta_description: (editing as any).meta_description ?? "",
+                  meta_keywords: (editing as any).meta_keywords ?? "",
+                  og_image_url: (editing as any).og_image_url ?? "",
+                }}
+                onChange={(next) => setEditing({ ...editing, ...next } as any)}
+                aiType="blog_seo"
+                aiPayload={{ title: editing.title, content: editing.content, category: editing.category }}
+                langLabel="EN"
+              />
             </>
           ) : (
             <>
