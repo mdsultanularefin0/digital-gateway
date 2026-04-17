@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { uploadToStorage } from "@/lib/storage";
 import { Save, Upload, X, Loader2 } from "lucide-react";
+import { RepeaterField, type RepeaterFieldDef } from "@/components/admin/RepeaterField";
 
 function HeroImageUploader() {
   const queryClient = useQueryClient();
