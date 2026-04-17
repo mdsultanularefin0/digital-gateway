@@ -321,6 +321,7 @@ export default function AdminPageEditor() {
         <div className="max-w-4xl space-y-6">
           {activeTab === "home" && <HeroImageUploader />}
 
+          {activePage.sections.map((section) => (
             <div key={section.key}>
               <label className="text-sm font-medium mb-2 block">{section.label}</label>
               {section.type === "rich" ? (
