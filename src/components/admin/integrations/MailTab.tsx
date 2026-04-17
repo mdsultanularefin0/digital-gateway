@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { Save, TestTube, Eye, EyeOff, Loader2, Mail, ShoppingBag, Newspaper, Bell } from "lucide-react";
+import { Save, TestTube, Eye, EyeOff, Loader2, Mail, ShoppingBag, Newspaper, Bell, Send } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SMTP_FIELDS = [
   { key: "smtp_host", label: "SMTP Host", placeholder: "smtp.resend.com" },
@@ -25,9 +26,39 @@ const FROM_ADDRESSES = [
 
 export function MailTab() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [visible, setVisible] = useState<Record<string, boolean>>({});
   const [testing, setTesting] = useState<string | null>(null);
+  const [sendingTest, setSendingTest] = useState(false);
+
+  const sendTestEmail = async () => {
+    if (!user?.email) {
+      toast({ title: "No email", description: "Your admin account has no email.", variant: "destructive" });
+      return;
+    }
+    setSendingTest(true);
+    try {
+      await saveMutation.mutateAsync(settings);
+      const { data, error } = await supabase.functions.invoke("mail", {
+        body: {
+          action: "send-email",
+          purpose: "notifications",
+          to: user.email,
+          subject: "Test email from GiftCardVibe admin",
+          body: `This is a test email sent at ${new Date().toLocaleString()}.\n\nIf you received this, your SMTP configuration is working correctly.`,
+        },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Send failed");
+      toast({ title: "Test email sent", description: `Delivered to ${user.email}. Check /admin/email-logs.` });
+      queryClient.invalidateQueries({ queryKey: ["email-logs"] });
+    } catch (e: any) {
+      toast({ title: "Failed", description: e.message, variant: "destructive" });
+    } finally {
+      setSendingTest(false);
+    }
+  };
 
   const { isLoading } = useQuery({
     queryKey: ["mail-config"],
@@ -151,10 +182,16 @@ export function MailTab() {
               </SelectContent>
             </Select>
           </div>
-          <Button variant="outline" size="sm" onClick={() => testConnection("smtp")} disabled={testing === "smtp"}>
-            {testing === "smtp" ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <TestTube className="h-4 w-4 mr-2" />}
-            Test SMTP
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => testConnection("smtp")} disabled={testing === "smtp"}>
+              {testing === "smtp" ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <TestTube className="h-4 w-4 mr-2" />}
+              Test SMTP
+            </Button>
+            <Button variant="default" size="sm" onClick={sendTestEmail} disabled={sendingTest}>
+              {sendingTest ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+              Send test email to me
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
