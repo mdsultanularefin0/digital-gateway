@@ -1,4 +1,5 @@
-import { MessageSquare, Eye, EyeOff, Send, Loader2, Users } from "lucide-react";
+import { MessageSquare, Eye, EyeOff, Send, Loader2, Users, History } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -112,6 +113,12 @@ export function SmsTab({ settings, update }: SmsTabProps) {
             <h3 className="font-semibold text-sm">SMS Notifications</h3>
             <p className="text-xs text-muted-foreground">Send order updates and promotional messages via SMS</p>
           </div>
+          <Link
+            to="/admin/sms-logs"
+            className="ml-auto h-8 px-3 rounded-xl border border-border bg-background text-xs font-medium hover:bg-muted inline-flex items-center gap-1.5"
+          >
+            <History className="h-3.5 w-3.5" /> View History
+          </Link>
         </div>
 
         <div className="p-4 space-y-4">

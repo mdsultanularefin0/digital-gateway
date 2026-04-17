@@ -163,10 +163,31 @@ Deno.serve(async (req) => {
       });
     }
 
+    const triggeredBy = body.order_id ? "order" : (smsType === "marketing" ? "broadcast" : "manual");
     const results: any[] = [];
     for (const recipient of recipients) {
       const r = await sendBrevoSms({ apiKey, sender, recipient, content, type: smsType, tag });
       results.push({ recipient, ...r });
+
+      // Log every send (best-effort, never blocks)
+      try {
+        await supabase.from("sms_logs").insert({
+          recipient,
+          content,
+          type: smsType,
+          tag: tag || "",
+          provider: "brevo",
+          status: r.ok ? "sent" : "failed",
+          message_id: r.body?.messageId || "",
+          error: r.ok ? "" : (r.body?.message || r.body?.code || `HTTP ${r.status}`),
+          remaining_credits: r.body?.remainingCredits ?? null,
+          raw_response: r.body,
+          triggered_by: triggeredBy,
+          order_id: body.order_id || null,
+        });
+      } catch (logErr) {
+        console.error("sms_logs insert failed:", logErr);
+      }
     }
 
     const allOk = results.every((r) => r.ok);
