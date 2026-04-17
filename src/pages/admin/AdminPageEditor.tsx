@@ -288,33 +288,36 @@ export default function AdminPageEditor() {
   const settingsQuery = useSiteSettings();
   const siteName = (settingsQuery as any)?.data?.site_name || "GiftCardVibe";
   const [activeTab, setActiveTab] = useState(pages[0].slug);
-  const [edits, setEdits] = useState<Record<string, Record<string, string>>>({});
+  const [editLang, setEditLang] = useState<"en" | "bn">("en");
+  const [edits, setEdits] = useState<Record<string, Record<string, Record<string, string>>>>({});
+  // edits[lang][pageSlug][sectionKey] = content
 
   const { data: allContents, isLoading } = useQuery({
     queryKey: ["admin-page-contents"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("page_contents" as any)
-        .select("page_slug, section_key, content");
+        .select("page_slug, section_key, content, lang");
       if (error) throw error;
-      const map: Record<string, Record<string, string>> = {};
+      const map: Record<string, Record<string, Record<string, string>>> = { en: {}, bn: {} };
       (data as any[] || []).forEach((row: any) => {
-        if (!map[row.page_slug]) map[row.page_slug] = {};
-        map[row.page_slug][row.section_key] = row.content;
+        const lang = row.lang === "bn" ? "bn" : "en";
+        if (!map[lang][row.page_slug]) map[lang][row.page_slug] = {};
+        map[lang][row.page_slug][row.section_key] = row.content;
       });
       return map;
     },
   });
 
   const saveMutation = useMutation({
-    mutationFn: async ({ pageSlug, sections }: { pageSlug: string; sections: Record<string, string> }) => {
+    mutationFn: async ({ pageSlug, sections, lang }: { pageSlug: string; sections: Record<string, string>; lang: "en" | "bn" }) => {
       const entries = Object.entries(sections);
       for (const [key, content] of entries) {
         const { error } = await supabase
           .from("page_contents" as any)
           .upsert(
-            { page_slug: pageSlug, section_key: key, content } as any,
-            { onConflict: "page_slug,section_key" }
+            { page_slug: pageSlug, section_key: key, content, lang } as any,
+            { onConflict: "page_slug,section_key,lang" }
           );
         if (error) throw error;
       }
@@ -330,8 +333,213 @@ export default function AdminPageEditor() {
   });
 
   const activePage = pages.find((p) => p.slug === activeTab)!;
-  const currentData = { ...(allContents?.[activeTab] || {}), ...(edits[activeTab] || {}) };
+  const baseData = allContents?.[editLang]?.[activeTab] || {};
+  const localEdits = edits[editLang]?.[activeTab] || {};
+  const currentData = { ...baseData, ...localEdits };
 
+  const updateField = (key: string, value: string) => {
+    setEdits((prev) => ({
+      ...prev,
+      [editLang]: {
+        ...(prev[editLang] || {}),
+        [activeTab]: { ...((prev[editLang] || {})[activeTab] || {}), [key]: value },
+      },
+    }));
+  };
+
+  const handleSave = () => {
+    const pageEdits = edits[editLang]?.[activeTab];
+    if (!pageEdits || Object.keys(pageEdits).length === 0) {
+      toast({ title: "No changes to save" });
+      return;
+    }
+    saveMutation.mutate({ pageSlug: activeTab, sections: pageEdits, lang: editLang });
+    setEdits((prev) => {
+      const next = { ...prev };
+      if (next[editLang]) {
+        const langCopy = { ...next[editLang] };
+        delete langCopy[activeTab];
+        next[editLang] = langCopy;
+      }
+      return next;
+    });
+  };
+
+  const translateSection = async (sectionKey: string) => {
+    const enContent = allContents?.en?.[activeTab]?.[sectionKey] || edits.en?.[activeTab]?.[sectionKey] || "";
+    if (!enContent.trim()) {
+      toast({ title: "Nothing to translate", description: "English version is empty.", variant: "destructive" });
+      return;
+    }
+    try {
+      const { data, error } = await supabase.functions.invoke("translate", {
+        body: { text: enContent, target: "bn", context: "page" },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      updateField(sectionKey, (data?.translated || "").trim());
+      toast({ title: "Translated section to Bangla" });
+    } catch (err: any) {
+      toast({ title: "Translation failed", description: err?.message || String(err), variant: "destructive" });
+    }
+  };
+
+  return (
+    <AdminLayout>
+      <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
+        <h2 className="text-xl font-display font-bold">Page Editor</h2>
+        <div className="flex items-center gap-2">
+          <div className="inline-flex items-center rounded-full border border-border bg-background p-0.5 text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setEditLang("en")}
+              className={`px-3 py-1 rounded-full ${editLang === "en" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+            >EN</button>
+            <button
+              type="button"
+              onClick={() => setEditLang("bn")}
+              className={`px-3 py-1 rounded-full ${editLang === "bn" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+            >বাংলা</button>
+          </div>
+          <Button
+            variant="gradient"
+            size="sm"
+            onClick={handleSave}
+            disabled={saveMutation.isPending}
+          >
+            <Save className="h-4 w-4 mr-1" />
+            {saveMutation.isPending ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Tab bar */}
+      <div className="flex flex-wrap gap-1 mb-6 rounded-lg border border-border p-1 bg-muted/30">
+        {pages.map((p) => (
+          <button
+            key={p.slug}
+            onClick={() => setActiveTab(p.slug)}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === p.slug
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            }`}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <div className="text-muted-foreground">Loading...</div>
+      ) : (
+        <div className="max-w-4xl space-y-6">
+          {activeTab === "home" && editLang === "en" && <HeroImageUploader />}
+
+          {activePage.sections.map((section) => {
+            const aiPayload = {
+              pageSlug: activeTab,
+              sectionKey: section.key,
+              sectionLabel: section.label,
+              fieldType: section.type,
+              currentValue: currentData[section.key] || "",
+              repeaterFields: section.fields || [],
+              itemLabel: section.itemLabel || "Item",
+              siteName,
+              language: editLang,
+            };
+            const handleAiResult = (result: string) => {
+              if (section.type === "repeater") {
+                const cleaned = result
+                  .replace(/^```(?:json)?\s*/i, "")
+                  .replace(/\s*```\s*$/i, "")
+                  .trim();
+                try {
+                  const parsed = JSON.parse(cleaned);
+                  if (Array.isArray(parsed)) {
+                    updateField(section.key, JSON.stringify(parsed, null, 2));
+                    return;
+                  }
+                } catch {}
+                toast({
+                  title: "AI returned invalid JSON",
+                  description: "Try again or edit manually.",
+                  variant: "destructive",
+                });
+                return;
+              }
+              updateField(section.key, result.trim());
+            };
+
+            return (
+              <div key={section.key}>
+                <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+                  <label className="text-sm font-medium">
+                    {section.label} <span className="ml-1 text-xs text-muted-foreground">({editLang.toUpperCase()})</span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    {editLang === "bn" && section.type !== "repeater" && (
+                      <Button type="button" variant="outline" size="sm" onClick={() => translateSection(section.key)}>
+                        Translate EN→BN
+                      </Button>
+                    )}
+                    {section.type !== "repeater" && (
+                      <AiGenerateButton
+                        type="page_section"
+                        payload={aiPayload}
+                        onResult={handleAiResult}
+                        label="AI Generate"
+                      />
+                    )}
+                  </div>
+                </div>
+                {section.type === "rich" ? (
+                  <RichTextEditor
+                    value={currentData[section.key] || ""}
+                    onChange={(html) => updateField(section.key, html)}
+                  />
+                ) : section.type === "repeater" ? (
+                  <RepeaterField
+                    value={currentData[section.key] || ""}
+                    onChange={(json) => updateField(section.key, json)}
+                    fields={section.fields || []}
+                    itemLabel={section.itemLabel || "Item"}
+                    toolbar={
+                      <AiGenerateButton
+                        type="page_section"
+                        payload={aiPayload}
+                        onResult={handleAiResult}
+                        label="AI Generate Items"
+                      />
+                    }
+                  />
+                ) : (
+                  <textarea
+                    value={currentData[section.key] || ""}
+                    onChange={(e) => updateField(section.key, e.target.value)}
+                    className="w-full rounded-lg border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]"
+                    placeholder={section.label}
+                  />
+                )}
+              </div>
+            );
+          })}
+
+          <Button
+            variant="gradient"
+            size="lg"
+            onClick={handleSave}
+            disabled={saveMutation.isPending}
+            className="mt-4"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            {saveMutation.isPending ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
+      )}
+    </AdminLayout>
+  );
+}
   const updateField = (key: string, value: string) => {
     setEdits((prev) => ({
       ...prev,

@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { ArrowRight, ShoppingCart } from "lucide-react";
 import { type Product } from "@/data/products";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useProductTranslator } from "@/hooks/use-product-translation";
 
 import { useCart } from "@/contexts/CartContext";
 import { useQuery } from "@tanstack/react-query";
@@ -9,10 +11,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product: rawProduct }: { product: Product }) {
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "৳";
   const { addItem } = useCart();
+  const { t } = useLanguage();
+  const { tr } = useProductTranslator();
+  const product = tr(rawProduct as any) as Product;
 
   const { data: firstImage } = useQuery({
     queryKey: ["product-first-image", product.id],
@@ -77,7 +82,7 @@ export function ProductCard({ product }: { product: Product }) {
         )}
         {!inStock && (
           <span className="absolute top-3 left-3 rounded-xl bg-destructive/90 px-2.5 py-1 text-xs font-semibold text-destructive-foreground backdrop-blur-sm">
-            Out of Stock
+            {t("product.out_of_stock")}
           </span>
         )}
       </div>
@@ -94,7 +99,7 @@ export function ProductCard({ product }: { product: Product }) {
           ))}
           {inStock && (
             <span className="rounded-full bg-success/10 px-2 py-0.5 text-[10px] sm:text-xs font-medium text-success">
-              In Stock
+              {t("product.in_stock")}
             </span>
           )}
         </div>
@@ -116,11 +121,11 @@ export function ProductCard({ product }: { product: Product }) {
                 className="rounded-xl h-8 text-xs px-2.5"
                 onClick={handleAddToCart}
               >
-                <ShoppingCart className="h-3 w-3 mr-1" /> Add
+                <ShoppingCart className="h-3 w-3 mr-1" /> {t("action.add_to_cart")}
               </Button>
             )}
             <span className="hidden sm:flex items-center gap-1 text-sm text-primary font-medium group-hover:gap-2 transition-all">
-              Details <ArrowRight className="h-4 w-4" />
+              {t("action.view_details")} <ArrowRight className="h-4 w-4" />
             </span>
           </div>
         </div>
