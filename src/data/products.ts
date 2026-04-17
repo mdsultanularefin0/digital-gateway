@@ -21,6 +21,10 @@ export interface Product {
   featured: boolean;
   inStock: boolean;
   testimonials: { name: string; role: string; quote: string }[];
+  meta_title?: string;
+  meta_description?: string;
+  meta_keywords?: string;
+  og_image_url?: string;
 }
 
 export interface PricingPlan {
@@ -70,6 +74,10 @@ function mapDBProduct(p: DBProduct): Product {
     featured: p.featured,
     inStock: (p as any).in_stock !== false,
     testimonials: [],
+    meta_title: (p as any).meta_title || "",
+    meta_description: (p as any).meta_description || "",
+    meta_keywords: (p as any).meta_keywords || "",
+    og_image_url: (p as any).og_image_url || "",
   };
 }
 
