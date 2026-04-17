@@ -654,7 +654,7 @@ export default function AdminPostGenerator() {
           </div>
           <div className="flex gap-2">
             <Button onClick={sendToSocialPoster} variant="outline" disabled={publishing} className="gap-2 rounded-xl">
-              {publishing ? "Uploading…" : "PUBLISH TO META"}
+              {publishing ? "Uploading…" : "Send to Social Poster"}
             </Button>
             <Button onClick={downloadImage} variant="default" className="gap-2 rounded-xl">
               <Download className="h-4 w-4" /> EXPORT PNG
