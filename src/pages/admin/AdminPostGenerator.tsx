@@ -619,6 +619,27 @@ export default function AdminPostGenerator() {
     toast({ title: "Image downloaded!" });
   };
 
+  const [publishing, setPublishing] = useState(false);
+  const sendToSocialPoster = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    setPublishing(true);
+    try {
+      const { uploadToStorage } = await import("@/lib/storage");
+      const blob: Blob = await new Promise((resolve, reject) =>
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Export failed"))), "image/png")
+      );
+      const file = new File([blob], `post-${Date.now()}.png`, { type: "image/png" });
+      const result = await uploadToStorage(file, "social");
+      const caption = encodeURIComponent(`${data.productName || ""}\n\n${data.tagline || ""}`.trim());
+      window.location.href = `/admin/social-poster?mediaUrl=${encodeURIComponent(result.url)}&caption=${caption}`;
+    } catch (err: any) {
+      toast({ title: "Failed to send", description: err.message, variant: "destructive" });
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   // ── Render ──────────────────────────────────────────────────────────
   return (
     <AdminLayout>
@@ -631,9 +652,14 @@ export default function AdminPostGenerator() {
               Create editorial-grade social media images
             </p>
           </div>
-          <Button onClick={downloadImage} variant="default" className="gap-2 rounded-xl">
-            <Download className="h-4 w-4" /> EXPORT PNG
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={sendToSocialPoster} variant="outline" disabled={publishing} className="gap-2 rounded-xl">
+              {publishing ? "Uploading…" : "PUBLISH TO META"}
+            </Button>
+            <Button onClick={downloadImage} variant="default" className="gap-2 rounded-xl">
+              <Download className="h-4 w-4" /> EXPORT PNG
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[340px,1fr]">
