@@ -91,12 +91,8 @@ export default function AdminIntegrations() {
           </Button>
         </div>
 
-        <Tabs defaultValue="payment" className="w-full">
-          <TabsList className="w-full grid grid-cols-7">
-            <TabsTrigger value="payment" className="gap-1.5 text-xs sm:text-sm">
-              <CreditCard className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Payment</span>
-            </TabsTrigger>
+        <Tabs defaultValue="mail" className="w-full">
+          <TabsList className="w-full grid grid-cols-6">
             <TabsTrigger value="mail" className="gap-1.5 text-xs sm:text-sm">
               <Mail className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Mail</span>
