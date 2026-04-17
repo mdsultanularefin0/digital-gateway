@@ -28,40 +28,58 @@ const isGroup = (entry: NavEntry): entry is NavGroup => "items" in entry;
 const navStructure: NavEntry[] = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard },
   {
-    label: "Commerce",
-    icon: ShoppingCart,
+    label: "Catalog",
+    icon: Package,
     items: [
       { label: "Products", to: "/admin/products", icon: Package },
       { label: "Inventory", to: "/admin/inventory", icon: Boxes },
-      { label: "Orders", to: "/admin/orders", icon: ShoppingCart },
-      { label: "Customers", to: "/admin/customers", icon: Users },
-      { label: "Sales", to: "/admin/sales", icon: BarChart3 },
       { label: "Coupons", to: "/admin/coupons", icon: Tag },
       { label: "Reviews", to: "/admin/reviews", icon: MessageSquare },
+    ],
+  },
+  {
+    label: "Sales",
+    icon: ShoppingCart,
+    items: [
+      { label: "Orders", to: "/admin/orders", icon: ShoppingCart },
+      { label: "Customers", to: "/admin/customers", icon: Users },
+      { label: "Sales Report", to: "/admin/sales", icon: BarChart3 },
     ],
   },
   {
     label: "Payments",
     icon: CreditCard,
     items: [
-      { label: "Payment Settings", to: "/admin/payment-settings", icon: CreditCard },
       { label: "Transactions", to: "/admin/transactions", icon: CreditCard },
-      { label: "MFS Verifications", to: "/admin/mfs-verifications", icon: ShieldCheck },
       { label: "bKash PGW", to: "/admin/bkash-transactions", icon: CreditCard },
+      { label: "MFS Verifications", to: "/admin/mfs-verifications", icon: ShieldCheck },
+      { label: "Payment Settings", to: "/admin/payment-settings", icon: CreditCard },
     ],
   },
   {
     label: "Content",
     icon: FileText,
     items: [
-      { label: "Page Editor", to: "/admin/page-editor", icon: FileEdit },
-      { label: "Email Templates", to: "/admin/email-templates", icon: Mail },
-      { label: "Email Logs", to: "/admin/email-logs", icon: Mail },
+      { label: "Pages", to: "/admin/page-editor", icon: FileEdit },
       { label: "Landing Pages", to: "/admin/landing-pages", icon: PanelTop },
       { label: "Blog", to: "/admin/blog", icon: FileText },
-      { label: "Post Generator", to: "/admin/post-generator", icon: ImageIcon },
-      { label: "Social Poster", to: "/admin/social-poster", icon: Newspaper },
+    ],
+  },
+  {
+    label: "Marketing",
+    icon: Newspaper,
+    items: [
       { label: "Newsletter", to: "/admin/newsletter", icon: Newspaper },
+      { label: "Social Poster", to: "/admin/social-poster", icon: Newspaper },
+      { label: "Post Generator", to: "/admin/post-generator", icon: ImageIcon },
+    ],
+  },
+  {
+    label: "Email",
+    icon: Mail,
+    items: [
+      { label: "Templates", to: "/admin/email-templates", icon: Mail },
+      { label: "Logs", to: "/admin/email-logs", icon: Mail },
     ],
   },
   {
