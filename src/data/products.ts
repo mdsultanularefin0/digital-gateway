@@ -137,6 +137,13 @@ export interface BlogPostRaw extends BlogPost {
   title_bn?: string | null;
   excerpt_bn?: string | null;
   content_bn?: string | null;
+  meta_title?: string;
+  meta_description?: string;
+  meta_keywords?: string;
+  meta_title_bn?: string;
+  meta_description_bn?: string;
+  meta_keywords_bn?: string;
+  og_image_url?: string;
 }
 
 export function useBlogPosts() {
@@ -162,18 +169,37 @@ export function useBlogPosts() {
         title_bn: p.title_bn,
         excerpt_bn: p.excerpt_bn,
         content_bn: p.content_bn,
+        meta_title: p.meta_title,
+        meta_description: p.meta_description,
+        meta_keywords: p.meta_keywords,
+        meta_title_bn: p.meta_title_bn,
+        meta_description_bn: p.meta_description_bn,
+        meta_keywords_bn: p.meta_keywords_bn,
+        og_image_url: p.og_image_url,
       }));
     },
   });
 }
 
 /** Pick the right blog field based on language, with EN fallback. */
-export function pickBlog<T extends { title: string; excerpt: string; content?: string; title_bn?: string | null; excerpt_bn?: string | null; content_bn?: string | null }>(p: T, lang: "en" | "bn") {
-  if (lang === "en") return { title: p.title, excerpt: p.excerpt, content: p.content || "" };
+export function pickBlog<T extends { title: string; excerpt: string; content?: string; title_bn?: string | null; excerpt_bn?: string | null; content_bn?: string | null; meta_title?: string; meta_description?: string; meta_keywords?: string; meta_title_bn?: string; meta_description_bn?: string; meta_keywords_bn?: string }>(p: T, lang: "en" | "bn") {
+  if (lang === "en") {
+    return {
+      title: p.title,
+      excerpt: p.excerpt,
+      content: p.content || "",
+      meta_title: p.meta_title || "",
+      meta_description: p.meta_description || "",
+      meta_keywords: p.meta_keywords || "",
+    };
+  }
   return {
     title: p.title_bn?.trim() || p.title,
     excerpt: p.excerpt_bn?.trim() || p.excerpt,
     content: p.content_bn?.trim() || p.content || "",
+    meta_title: p.meta_title_bn?.trim() || p.meta_title || "",
+    meta_description: p.meta_description_bn?.trim() || p.meta_description || "",
+    meta_keywords: p.meta_keywords_bn?.trim() || p.meta_keywords || "",
   };
 }
 
