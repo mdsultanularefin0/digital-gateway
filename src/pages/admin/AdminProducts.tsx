@@ -681,6 +681,7 @@ export default function AdminProducts() {
             {saveMutation.isPending ? "Saving..." : "Save Product"}
           </Button>
         </form>
+        )}
       </AdminLayout>
     );
   }
