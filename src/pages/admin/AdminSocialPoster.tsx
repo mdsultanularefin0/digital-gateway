@@ -97,6 +97,22 @@ export default function AdminSocialPoster() {
     onError: (err: any) => toast.error("Publish failed", { description: err.message }),
   });
 
+  const cancelMutation = useMutation({
+    mutationFn: async (rowId: string) => {
+      const { data, error } = await supabase.functions.invoke("social-media-poster", {
+        body: { action: "cancel", rowId },
+      });
+      if (error) throw error;
+      if (data?.errors?.length && !data?.success) throw new Error(data.errors.join(" | "));
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Scheduled post cancelled");
+      qc.invalidateQueries({ queryKey: ["social-posts"] });
+    },
+    onError: (err: any) => toast.error("Cancel failed", { description: err.message }),
+  });
+
   const canSubmit = mediaUrl && caption && !publishMutation.isPending;
 
   return (
