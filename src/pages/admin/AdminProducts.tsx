@@ -13,7 +13,7 @@ import BulkProductImport from "@/components/admin/BulkProductImport";
 import DigitalFilesEditor, { type DigitalFile } from "@/components/admin/DigitalFilesEditor";
 import CodePoolManager from "@/components/admin/CodePoolManager";
 import { TranslateButton } from "@/components/admin/TranslateButton";
-import { MetaSeoFields, type MetaSeoValues } from "@/components/admin/MetaSeoFields";
+import { MetaSeoFields } from "@/components/admin/MetaSeoFields";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
@@ -464,6 +464,31 @@ export default function AdminProducts() {
               </div>
               <textarea value={bnFeaturesInput} onChange={(e) => setBnFeaturesInput(e.target.value)} className="w-full rounded-xl border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[120px]" placeholder="বৈশিষ্ট্য ১&#10;বৈশিষ্ট্য ২" />
             </div>
+
+            {/* SEO Meta — Bangla (saved to product_translations.meta_*) */}
+            <MetaSeoFields
+              values={{
+                meta_title: bn.meta_title,
+                meta_description: bn.meta_description,
+                meta_keywords: bn.meta_keywords,
+              }}
+              onChange={(v) => setBn({
+                ...bn,
+                meta_title: v.meta_title,
+                meta_description: v.meta_description,
+                meta_keywords: v.meta_keywords,
+              })}
+              aiType="seo_meta"
+              aiPayload={{
+                productName: bn.name || editing.name,
+                tagline: bn.tagline || editing.tagline,
+                description: bn.description || editing.description,
+                category: editing.category,
+              }}
+              showOgImage={false}
+              langLabel="বাংলা"
+            />
+
             <Button variant="gradient" size="lg" type="submit" disabled={saveMutation.isPending || isNew}>
               {saveMutation.isPending ? "Saving..." : "Save Bangla Translation"}
             </Button>
