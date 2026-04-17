@@ -1,11 +1,141 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
-import { Save } from "lucide-react";
+import { uploadToStorage } from "@/lib/storage";
+import { Save, Upload, X, Loader2 } from "lucide-react";
+
+function HeroImageUploader() {
+  const queryClient = useQueryClient();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [urlInput, setUrlInput] = useState<string | null>(null);
+
+  const { data: currentUrl = "", isLoading } = useQuery({
+    queryKey: ["site-setting", "hero_image_url"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("site_settings")
+        .select("value")
+        .eq("key", "hero_image_url")
+        .maybeSingle();
+      return (data?.value as string) || "";
+    },
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: async (value: string) => {
+      const { error } = await supabase
+        .from("site_settings")
+        .upsert({ key: "hero_image_url", value }, { onConflict: "key" });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["site-setting", "hero_image_url"] });
+      queryClient.invalidateQueries({ queryKey: ["site-settings"] });
+      setUrlInput(null);
+      toast({ title: "Hero image updated" });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Save failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const handleFile = async (file: File) => {
+    setUploading(true);
+    try {
+      const { url } = await uploadToStorage(file, "assets");
+      saveMutation.mutate(url);
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const displayUrl = urlInput ?? currentUrl;
+
+  return (
+    <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-3">
+      <label className="text-sm font-medium block">Hero Image</label>
+      <p className="text-xs text-muted-foreground -mt-2">
+        Shown on the right side of the homepage hero (desktop only). Recommended: square PNG with transparent background, ~1080×1080.
+      </p>
+
+      {isLoading ? (
+        <div className="text-sm text-muted-foreground">Loading...</div>
+      ) : (
+        <>
+          {currentUrl && (
+            <div className="relative inline-block">
+              <img
+                src={currentUrl}
+                alt="Current hero"
+                className="h-32 w-32 object-contain rounded-md border border-border bg-background"
+              />
+              <button
+                onClick={() => saveMutation.mutate("")}
+                className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center hover:opacity-90"
+                title="Remove hero image (uses default)"
+                type="button"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleFile(file);
+                e.target.value = "";
+              }}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading || saveMutation.isPending}
+            >
+              {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+              {uploading ? "Uploading..." : "Upload Image"}
+            </Button>
+
+            <div className="flex flex-1 gap-2">
+              <Input
+                value={displayUrl}
+                onChange={(e) => setUrlInput(e.target.value)}
+                placeholder="Or paste image URL..."
+                className="flex-1"
+              />
+              {urlInput !== null && urlInput !== currentUrl && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="gradient"
+                  onClick={() => saveMutation.mutate(urlInput)}
+                  disabled={saveMutation.isPending}
+                >
+                  Save URL
+                </Button>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 interface PageConfig {
   slug: string;
