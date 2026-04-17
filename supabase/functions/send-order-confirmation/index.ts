@@ -333,6 +333,30 @@ Deno.serve(async (req) => {
     await sendEmail(conn, mailCfg, siteName, order.customer_email, emailSubject, emailHtml);
     conn.close();
 
+    // ── TRIGGER SMS (best-effort, non-blocking) ──
+    try {
+      const smsEnabled =
+        (emailType === "order_confirmation" && settings.sms_on_order === "true") ||
+        (emailType === "payment_verified" && settings.sms_on_payment_verified === "true");
+      if (smsEnabled && order.customer_phone) {
+        const fnUrl = `${supabaseUrl}/functions/v1/send-sms`;
+        fetch(fnUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${serviceKey}`,
+          },
+          body: JSON.stringify({
+            order_id: order.id,
+            template: emailType === "payment_verified" ? "payment_verified" : "order_confirmation",
+            type: "transactional",
+          }),
+        }).catch((e) => console.error("SMS trigger failed:", e));
+      }
+    } catch (smsErr) {
+      console.error("SMS trigger failed:", smsErr);
+    }
+
     return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     console.error("send-order-confirmation error:", err);
