@@ -6,6 +6,41 @@ import { toast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 
+const CONTEXT_PRESETS: { label: string; value: string }[] = [
+  {
+    label: "Friendly & casual",
+    value: "Use a friendly, casual, conversational tone. Write like you're talking to a friend. Keep it warm, approachable, and easy to read. Avoid jargon.",
+  },
+  {
+    label: "Professional B2B",
+    value: "Use a professional, authoritative B2B tone. Focus on ROI, efficiency, and business outcomes. Be concise, data-driven, and avoid hype or slang.",
+  },
+  {
+    label: "Urgent sale",
+    value: "Create urgency and excitement. Highlight scarcity, limited-time offers, and immediate benefits. Use strong action verbs and persuasive language. Push the reader to act now.",
+  },
+  {
+    label: "Luxury & premium",
+    value: "Use a refined, elegant, premium tone. Emphasize craftsmanship, exclusivity, and quality. Use sophisticated vocabulary. Avoid discounts or aggressive sales language.",
+  },
+  {
+    label: "Playful & fun",
+    value: "Use a playful, witty, and fun tone. Add light humor and personality. Keep it energetic and memorable. Use emojis sparingly where appropriate.",
+  },
+  {
+    label: "Minimal & direct",
+    value: "Be extremely concise and direct. No fluff, no filler. Short sentences. Get to the point immediately. Maximum clarity, minimum words.",
+  },
+  {
+    label: "Storytelling",
+    value: "Use a narrative, storytelling approach. Paint a picture, evoke emotion, and connect with the reader through vivid scenarios and relatable moments.",
+  },
+  {
+    label: "Bengali audience",
+    value: "Write for a Bangladeshi audience. Use culturally relevant references, local examples, and a tone that resonates with Bengali readers. Mix in light Banglish where it feels natural.",
+  },
+];
+
 interface AiGenerateButtonProps {
   type: string;
   payload: Record<string, any>;
