@@ -12,6 +12,7 @@ import { landingTemplates, type SectionsData, type SectionContent } from "@/data
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { toast } from "@/hooks/use-toast";
 import { DownloadLinks } from "@/components/DownloadLinks";
+import { OrderSuccessInstructions } from "@/components/OrderSuccessInstructions";
 import paymentBkash from "@/assets/payment-bkash.png";
 import paymentNagad from "@/assets/payment-nagad.png";
 import paymentCod from "@/assets/payment-cod.png";
@@ -822,7 +823,7 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
                 <p className="text-lg font-mono font-bold text-primary">{orderPlaced}</p>
               </div>
               {placedOrderId && linkedProductId && <DownloadLinks orderId={placedOrderId} />}
-              <p className="text-xs text-muted-foreground mt-6">A confirmation email has been sent to your inbox.</p>
+              <OrderSuccessInstructions defaultLang="bn" />
             </div>
           </motion.div>
         </div>
