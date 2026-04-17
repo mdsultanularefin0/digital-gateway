@@ -189,7 +189,7 @@ Make it persuasive and conversion-focused. Use urgency, social proof, and clear 
       body: JSON.stringify({
         model,
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: systemPrompt + contextInstruction },
           { role: "user", content: userPrompt },
         ],
       }),
