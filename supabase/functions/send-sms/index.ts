@@ -42,7 +42,7 @@ async function sendBrevoSms(opts: {
   type: SmsType;
   tag?: string;
 }) {
-  const res = await fetch("https://api.brevo.com/v3/transactionalSMS/sms", {
+  const res = await fetch("https://api.brevo.com/v3/transactionalSMS/send", {
     method: "POST",
     headers: {
       "api-key": opts.apiKey,
