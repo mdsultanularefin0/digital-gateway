@@ -137,10 +137,20 @@ function HeroImageUploader() {
   );
 }
 
+type SectionType = "rich" | "text" | "repeater";
+
+interface SectionConfig {
+  key: string;
+  label: string;
+  type: SectionType;
+  itemLabel?: string;
+  fields?: RepeaterFieldDef[];
+}
+
 interface PageConfig {
   slug: string;
   label: string;
-  sections: { key: string; label: string; type: "rich" | "text" | "stats" }[];
+  sections: SectionConfig[];
 }
 
 const pages: PageConfig[] = [
@@ -153,7 +163,16 @@ const pages: PageConfig[] = [
       { key: "hero_description", label: "Hero Description", type: "text" },
       { key: "hero_cta_primary", label: "Primary CTA Text", type: "text" },
       { key: "hero_cta_secondary", label: "Secondary CTA Text", type: "text" },
-      { key: "stats", label: "Stats Section (JSON: [{value, label}])", type: "text" },
+      {
+        key: "stats",
+        label: "Stats Section",
+        type: "repeater",
+        itemLabel: "Stat",
+        fields: [
+          { key: "value", label: "Value", placeholder: "e.g. 50K+" },
+          { key: "label", label: "Label", placeholder: "e.g. Active Users" },
+        ],
+      },
       { key: "featured_heading", label: "Featured Section Heading", type: "text" },
       { key: "featured_badge", label: "Featured Section Badge", type: "text" },
     ],
@@ -165,7 +184,17 @@ const pages: PageConfig[] = [
       { key: "heading", label: "Page Heading", type: "text" },
       { key: "subheading", label: "Subheading", type: "text" },
       { key: "body", label: "Body Content", type: "rich" },
-      { key: "values", label: "Values (JSON: [{title, desc, icon}])", type: "text" },
+      {
+        key: "values",
+        label: "Values",
+        type: "repeater",
+        itemLabel: "Value",
+        fields: [
+          { key: "title", label: "Title", placeholder: "e.g. Quality First" },
+          { key: "icon", label: "Icon name (optional)", placeholder: "e.g. Star" },
+          { key: "desc", label: "Description", placeholder: "Short description", type: "textarea" },
+        ],
+      },
     ],
   },
   {
@@ -199,7 +228,16 @@ const pages: PageConfig[] = [
     sections: [
       { key: "heading", label: "Page Heading", type: "text" },
       { key: "subheading", label: "Subheading", type: "text" },
-      { key: "items", label: "FAQ Items (JSON: [{question, answer}])", type: "text" },
+      {
+        key: "items",
+        label: "FAQ Items",
+        type: "repeater",
+        itemLabel: "FAQ",
+        fields: [
+          { key: "question", label: "Question", placeholder: "e.g. How do I get my download?" },
+          { key: "answer", label: "Answer", placeholder: "Write the answer here…", type: "textarea" },
+        ],
+      },
     ],
   },
   {
@@ -208,9 +246,36 @@ const pages: PageConfig[] = [
     sections: [
       { key: "tagline", label: "Footer Tagline", type: "text" },
       { key: "footer_text", label: "Copyright / Bottom Text", type: "text" },
-      { key: "product_links", label: 'Product Links (JSON: [{"label":"...", "to":"..."}])', type: "text" },
-      { key: "company_links", label: 'Company Links (JSON: [{"label":"...", "to":"..."}])', type: "text" },
-      { key: "legal_links", label: 'Legal Links (JSON: [{"label":"...", "to":"..."}])', type: "text" },
+      {
+        key: "product_links",
+        label: "Product Links",
+        type: "repeater",
+        itemLabel: "Link",
+        fields: [
+          { key: "label", label: "Label", placeholder: "e.g. All Products" },
+          { key: "to", label: "URL / Path", placeholder: "/products" },
+        ],
+      },
+      {
+        key: "company_links",
+        label: "Company Links",
+        type: "repeater",
+        itemLabel: "Link",
+        fields: [
+          { key: "label", label: "Label", placeholder: "e.g. About" },
+          { key: "to", label: "URL / Path", placeholder: "/about" },
+        ],
+      },
+      {
+        key: "legal_links",
+        label: "Legal Links",
+        type: "repeater",
+        itemLabel: "Link",
+        fields: [
+          { key: "label", label: "Label", placeholder: "e.g. Privacy" },
+          { key: "to", label: "URL / Path", placeholder: "/privacy" },
+        ],
+      },
     ],
   },
 ];
