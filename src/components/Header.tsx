@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useCart } from "@/contexts/CartContext";
 import { SearchOverlay } from "@/components/SearchOverlay";
-
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -16,13 +17,13 @@ export function Header() {
   const location = useLocation();
   const { data: settings } = useSiteSettings();
   const { itemCount, setIsOpen } = useCart();
-  
+  const { t } = useLanguage();
 
   const navLinks = [
-    { label: "Products", to: "/products" },
-    { label: "Blog", to: "/blog" },
-    { label: "About", to: "/about" },
-    { label: "Contact", to: "/contact" },
+    { label: t("nav.products"), to: "/products" },
+    { label: t("nav.blog"), to: "/blog" },
+    { label: t("nav.about"), to: "/about" },
+    { label: t("nav.contact"), to: "/contact" },
   ];
 
   useEffect(() => {
@@ -81,6 +82,7 @@ export function Header() {
         </nav>
 
         <div className="hidden items-center gap-1 md:flex">
+          <LanguageToggle compact />
           <ThemeToggle />
           <button
             onClick={() => setSearchOpen(true)}
@@ -110,6 +112,7 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-1 md:hidden">
+          <LanguageToggle compact />
           <ThemeToggle />
           <button
             onClick={() => setSearchOpen(true)}
