@@ -79,42 +79,51 @@ export type Database = {
           author: string
           category: string
           content: string
+          content_bn: string | null
           created_at: string
           excerpt: string
+          excerpt_bn: string | null
           id: string
           image_url: string | null
           published: boolean
           published_at: string | null
           slug: string
           title: string
+          title_bn: string | null
           updated_at: string
         }
         Insert: {
           author?: string
           category?: string
           content?: string
+          content_bn?: string | null
           created_at?: string
           excerpt?: string
+          excerpt_bn?: string | null
           id?: string
           image_url?: string | null
           published?: boolean
           published_at?: string | null
           slug: string
           title: string
+          title_bn?: string | null
           updated_at?: string
         }
         Update: {
           author?: string
           category?: string
           content?: string
+          content_bn?: string | null
           created_at?: string
           excerpt?: string
+          excerpt_bn?: string | null
           id?: string
           image_url?: string | null
           published?: boolean
           published_at?: string | null
           slug?: string
           title?: string
+          title_bn?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -611,6 +620,7 @@ export type Database = {
         Row: {
           content: string
           id: string
+          lang: string
           page_slug: string
           section_key: string
           updated_at: string
@@ -618,6 +628,7 @@ export type Database = {
         Insert: {
           content?: string
           id?: string
+          lang?: string
           page_slug: string
           section_key: string
           updated_at?: string
@@ -625,6 +636,7 @@ export type Database = {
         Update: {
           content?: string
           id?: string
+          lang?: string
           page_slug?: string
           section_key?: string
           updated_at?: string
@@ -832,6 +844,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "product_tiers_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_translations: {
+        Row: {
+          created_at: string
+          description: string
+          features: string[]
+          id: string
+          lang: string
+          name: string
+          product_id: string
+          tagline: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          features?: string[]
+          id?: string
+          lang?: string
+          name?: string
+          product_id: string
+          tagline?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          features?: string[]
+          id?: string
+          lang?: string
+          name?: string
+          product_id?: string
+          tagline?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_translations_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
