@@ -9,6 +9,8 @@ import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { uploadToStorage } from "@/lib/storage";
 import { Save, Upload, X, Loader2 } from "lucide-react";
 import { RepeaterField, type RepeaterFieldDef } from "@/components/admin/RepeaterField";
+import { AiGenerateButton } from "@/components/admin/AiGenerateButton";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 function HeroImageUploader() {
   const queryClient = useQueryClient();
@@ -283,6 +285,8 @@ const pages: PageConfig[] = [
 
 export default function AdminPageEditor() {
   const queryClient = useQueryClient();
+  const settings = useSiteSettings();
+  const siteName = settings?.site_name || "GiftCardVibe";
   const [activeTab, setActiveTab] = useState(pages[0].slug);
   const [edits, setEdits] = useState<Record<string, Record<string, string>>>({});
 
