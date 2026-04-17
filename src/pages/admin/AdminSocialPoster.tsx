@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Upload, Loader2, Send, Image as ImageIcon, Video, Calendar, Facebook, Instagram } from "lucide-react";
 import { uploadToStorage } from "@/lib/storage";
 import { format } from "date-fns";
+import { AiGenerateButton } from "@/components/admin/AiGenerateButton";
 
 type Target = "facebook" | "instagram" | "both";
 type Mode = "now" | "schedule";
@@ -115,12 +116,25 @@ export default function AdminSocialPoster() {
           <TabsContent value="compose" className="space-y-4">
             <Card className="p-6 space-y-5">
               <div className="space-y-2">
-                <Label>Caption</Label>
+                <div className="flex items-center justify-between gap-2">
+                  <Label>Caption</Label>
+                  <AiGenerateButton
+                    type="social_caption"
+                    payload={{
+                      platform: target,
+                      target,
+                      mediaType,
+                      topic: caption.trim() || undefined,
+                    }}
+                    onResult={(result) => setCaption(result.replace(/^```[a-z]*\n?|\n?```$/g, "").trim())}
+                    label="Generate caption"
+                  />
+                </div>
                 <Textarea
                   rows={5}
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  placeholder="Write your post caption..."
+                  placeholder="Write your post caption... (or type a brief topic and click Generate)"
                 />
               </div>
 

@@ -207,6 +207,32 @@ Features: ${(features || []).join(", ")}
 
 Make it persuasive and conversion-focused. Use urgency, social proof, and clear CTAs.`;
 
+    } else if (type === "social_caption") {
+      const { platform, mediaType, target, topic, productName, tone } = body;
+      const plat = platform || target || "facebook";
+      const isReel = mediaType === "video";
+
+      const platformGuide: Record<string, string> = {
+        facebook: "Write for a Facebook Page post. Conversational and engaging. 2-3 short paragraphs. Use 1-2 emojis sparingly. End with a soft CTA. Add 3-5 relevant hashtags on the last line.",
+        instagram: isReel
+          ? "Write for an Instagram Reel. Strong hook in the first line (stop-the-scroll). Short punchy lines, line breaks for rhythm. Use trending-style phrasing. End with a CTA (comment / save / share). Add 15-20 relevant hashtags on the last line."
+          : "Write for an Instagram feed post. Hook line first, then 2-3 short value lines with emojis. Strong CTA. Add 15-20 relevant hashtags on the last line.",
+        both: "Write a caption that works for BOTH Facebook and Instagram. Engaging hook, 2-3 short paragraphs, 1-2 emojis, soft CTA. Add 8-12 relevant hashtags on the last line.",
+      };
+
+      const guide = platformGuide[plat] || platformGuide.facebook;
+
+      systemPrompt = `You are an expert social media copywriter. You write high-converting captions that drive engagement and sales. Output ONLY the caption text — no preamble, no quotes, no markdown code fences. ${langInstruction}`;
+
+      userPrompt = `Generate a social media caption.
+
+Platform: ${plat}${isReel ? " (Reel / short video)" : ""}
+${topic ? `Topic / message: ${topic}` : ""}
+${productName ? `Product: ${productName}` : ""}
+${tone ? `Tone: ${tone}` : ""}
+
+${guide}`;
+
     } else {
       return new Response(
         JSON.stringify({ error: "Invalid type." }),
