@@ -54,6 +54,7 @@ const AdminMfsVerifications = lazyRetry(() => import("./pages/admin/AdminMfsVeri
 const AdminPageEditor = lazyRetry(() => import("./pages/admin/AdminPageEditor"));
 const AdminEmailTemplates = lazyRetry(() => import("./pages/admin/AdminEmailTemplates"));
 const AdminStorage = lazyRetry(() => import("./pages/admin/AdminStorage"));
+const AdminSocialPoster = lazyRetry(() => import("./pages/admin/AdminSocialPoster"));
 const NotFound = lazyRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -119,6 +120,7 @@ const App = () => (
                       <Route path="/admin/page-editor" element={<AdminGuard><AdminPageEditor /></AdminGuard>} />
                       <Route path="/admin/email-templates" element={<AdminGuard><AdminEmailTemplates /></AdminGuard>} />
                       <Route path="/admin/storage" element={<AdminGuard><AdminStorage /></AdminGuard>} />
+                      <Route path="/admin/social-poster" element={<AdminGuard><AdminSocialPoster /></AdminGuard>} />
                       <Route path="/p/:slug" element={<LandingPage />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>

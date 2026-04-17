@@ -940,6 +940,60 @@ export type Database = {
         }
         Relationships: []
       }
+      social_posts: {
+        Row: {
+          caption: string
+          created_at: string
+          created_by: string | null
+          error: string
+          fb_post_id: string
+          id: string
+          ig_post_id: string
+          media_type: string
+          media_url: string
+          mode: string
+          raw_response: Json | null
+          scheduled_at: string | null
+          status: string
+          target: string
+          updated_at: string
+        }
+        Insert: {
+          caption?: string
+          created_at?: string
+          created_by?: string | null
+          error?: string
+          fb_post_id?: string
+          id?: string
+          ig_post_id?: string
+          media_type?: string
+          media_url?: string
+          mode?: string
+          raw_response?: Json | null
+          scheduled_at?: string | null
+          status?: string
+          target?: string
+          updated_at?: string
+        }
+        Update: {
+          caption?: string
+          created_at?: string
+          created_by?: string | null
+          error?: string
+          fb_post_id?: string
+          id?: string
+          ig_post_id?: string
+          media_type?: string
+          media_url?: string
+          mode?: string
+          raw_response?: Json | null
+          scheduled_at?: string | null
+          status?: string
+          target?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
