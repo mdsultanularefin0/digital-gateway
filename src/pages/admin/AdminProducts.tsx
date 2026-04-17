@@ -110,6 +110,28 @@ export default function AdminProducts() {
       .then(({ data }) => {
         if (data) setDigitalFiles(data.map((f: any) => ({ id: f.id, file_url: f.file_url, filename: f.filename, file_type: f.file_type, file_size: Number(f.file_size) })));
       });
+    // Load BN translation
+    supabase
+      .from("product_translations")
+      .select("*")
+      .eq("product_id", editingId)
+      .eq("lang", "bn")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          const next = {
+            name: data.name || "",
+            tagline: data.tagline || "",
+            description: data.description || "",
+            features: data.features || [],
+          };
+          setBn(next);
+          setBnFeaturesInput(next.features.join("\n"));
+        } else {
+          setBn(emptyBn);
+          setBnFeaturesInput("");
+        }
+      });
   }, [editingId]);
 
   const saveMutation = useMutation({
