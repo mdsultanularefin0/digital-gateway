@@ -528,6 +528,8 @@ function LandingAiToolbar({ editing, setEditing, activeLang, tmpl, products }: a
 // ── Section editor wrapped with per-section AI ───────────────────────
 function SectionEditorWithAi({ section, content, lang, onChange, productName }: any) {
   const [loading, setLoading] = useState(false);
+  const [userContext, setUserContext] = useState("");
+  const [showContext, setShowContext] = useState(false);
 
   const generateSection = async (action: "fill" | "rewrite" | "recreate") => {
     setLoading(true);
@@ -536,6 +538,7 @@ function SectionEditorWithAi({ section, content, lang, onChange, productName }: 
         body: {
           type: "landing_section",
           language: lang,
+          userContext,
           sectionType: section.type,
           productName: productName || "Digital Product",
           existingContent: action !== "recreate" ? content : undefined,
@@ -571,11 +574,23 @@ function SectionEditorWithAi({ section, content, lang, onChange, productName }: 
 
   return (
     <div className="relative">
-      <div className="absolute top-3 right-3 z-10 flex gap-1">
+      <div className="absolute top-3 right-3 z-10 flex gap-1 items-start">
         {loading ? (
           <span className="text-xs text-muted-foreground flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Generating...</span>
         ) : (
           <>
+            <button
+              type="button"
+              onClick={() => setShowContext((v) => !v)}
+              className={`text-[10px] font-medium px-2 h-6 rounded-md border transition-colors flex items-center gap-1 ${
+                userContext.trim() || showContext
+                  ? "border-primary/40 text-primary bg-primary/10"
+                  : "border-border/60 text-muted-foreground hover:text-foreground"
+              }`}
+              title="Add custom instructions"
+            >
+              + Context{userContext.trim() ? " ✓" : ""}
+            </button>
             <Button type="button" variant="ghost" size="sm" className="h-6 text-[10px] gap-1" onClick={() => generateSection("fill")}>
               <Sparkles className="h-3 w-3" /> Fill
             </Button>
@@ -588,6 +603,17 @@ function SectionEditorWithAi({ section, content, lang, onChange, productName }: 
           </>
         )}
       </div>
+      {showContext && (
+        <div className="mb-2 mt-10 rounded-lg border border-primary/20 bg-primary/5 p-2 space-y-1">
+          <p className="text-[10px] font-semibold text-primary uppercase tracking-widest">Section AI Context</p>
+          <textarea
+            value={userContext}
+            onChange={(e) => setUserContext(e.target.value)}
+            placeholder="e.g. Focus on the time-saving benefit. Use bullet-point style. Mention bKash payment."
+            className="w-full text-xs rounded-md border border-border/60 bg-background p-2 min-h-[50px] resize-y"
+          />
+        </div>
+      )}
       <SectionEditor section={section} content={content} lang={lang} onChange={onChange} />
     </div>
   );
