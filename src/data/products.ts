@@ -125,6 +125,12 @@ export function useProductBySlug(slug: string) {
   });
 }
 
+export interface BlogPostRaw extends BlogPost {
+  title_bn?: string | null;
+  excerpt_bn?: string | null;
+  content_bn?: string | null;
+}
+
 export function useBlogPosts() {
   return useQuery({
     queryKey: ["public-blog-posts"],
@@ -135,7 +141,7 @@ export function useBlogPosts() {
         .eq("published", true)
         .order("published_at", { ascending: false });
       if (error) throw error;
-      return (data || []).map((p): BlogPost => ({
+      return (data || []).map((p: any): BlogPostRaw => ({
         id: p.id,
         title: p.title,
         excerpt: p.excerpt,
@@ -145,9 +151,22 @@ export function useBlogPosts() {
         image: p.image_url || "/placeholder.svg",
         slug: p.slug,
         content: p.content,
+        title_bn: p.title_bn,
+        excerpt_bn: p.excerpt_bn,
+        content_bn: p.content_bn,
       }));
     },
   });
+}
+
+/** Pick the right blog field based on language, with EN fallback. */
+export function pickBlog<T extends { title: string; excerpt: string; content?: string; title_bn?: string | null; excerpt_bn?: string | null; content_bn?: string | null }>(p: T, lang: "en" | "bn") {
+  if (lang === "en") return { title: p.title, excerpt: p.excerpt, content: p.content || "" };
+  return {
+    title: p.title_bn?.trim() || p.title,
+    excerpt: p.excerpt_bn?.trim() || p.excerpt,
+    content: p.content_bn?.trim() || p.content || "",
+  };
 }
 
 // Static data kept for pricing and FAQs (not in DB)

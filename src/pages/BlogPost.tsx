@@ -4,9 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Calendar, User, Share2 } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { SEOHead } from "@/components/SEOHead";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { pickBlog } from "@/data/products";
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
+  const { lang } = useLanguage();
 
   const { data: post, isLoading } = useQuery({
     queryKey: ["blog-post", slug],
@@ -41,46 +44,48 @@ export default function BlogPost() {
     return (
       <Layout>
         <div className="container max-w-3xl mx-auto px-4 py-24 text-center">
-          <h1 className="text-2xl font-bold mb-4">Post not found</h1>
+          <h1 className="text-2xl font-bold mb-4">{lang === "bn" ? "পোস্ট পাওয়া যায়নি" : "Post not found"}</h1>
           <Link to="/blog" className="text-primary hover:underline inline-flex items-center gap-1">
-            <ArrowLeft className="h-4 w-4" /> Back to Blog
+            <ArrowLeft className="h-4 w-4" /> {lang === "bn" ? "ব্লগে ফিরে যান" : "Back to Blog"}
           </Link>
         </div>
       </Layout>
     );
   }
 
+  const tr = pickBlog(post as any, lang);
+
   return (
     <Layout>
-      <SEOHead title={post.title} description={post.excerpt} />
+      <SEOHead title={tr.title} description={tr.excerpt} />
       <article className="py-16 md:py-24">
         <div className="container max-w-3xl mx-auto px-4">
           <Link to="/blog" className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-1 mb-8">
-            <ArrowLeft className="h-4 w-4" /> Back to Blog
+            <ArrowLeft className="h-4 w-4" /> {lang === "bn" ? "ব্লগে ফিরে যান" : "Back to Blog"}
           </Link>
 
           <span className="text-xs font-medium text-primary bg-primary/10 rounded-full px-2.5 py-0.5">{post.category}</span>
-          <h1 className="text-3xl md:text-4xl font-display font-bold mt-3 mb-4">{post.title}</h1>
+          <h1 className="text-3xl md:text-4xl font-display font-bold mt-3 mb-4">{tr.title}</h1>
 
           <div className="flex items-center gap-4 text-sm text-muted-foreground mb-8">
             <span className="flex items-center gap-1"><User className="h-4 w-4" />{post.author}</span>
-            <span className="flex items-center gap-1"><Calendar className="h-4 w-4" />{new Date(post.published_at ?? post.created_at).toLocaleDateString()}</span>
+            <span className="flex items-center gap-1"><Calendar className="h-4 w-4" />{new Date(post.published_at ?? post.created_at).toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US")}</span>
           </div>
 
           {post.image_url && (
-            <img src={post.image_url} alt={post.title} className="w-full rounded-2xl mb-10 aspect-video object-cover" />
+            <img src={post.image_url} alt={tr.title} className="w-full rounded-2xl mb-10 aspect-video object-cover" />
           )}
 
           <div className="prose prose-lg dark:prose-invert max-w-none whitespace-pre-wrap">
-            {post.content}
+            {tr.content}
           </div>
 
           <div className="mt-12 pt-8 border-t border-border">
             <div className="flex items-center gap-3">
               <Share2 className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-muted-foreground">Share</span>
+              <span className="text-sm font-medium text-muted-foreground">{lang === "bn" ? "শেয়ার" : "Share"}</span>
               <a
-                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(window.location.href)}`}
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(tr.title)}&url=${encodeURIComponent(window.location.href)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-muted hover:bg-primary/10 hover:text-primary transition-colors"
@@ -98,7 +103,7 @@ export default function BlogPost() {
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
               </a>
               <a
-                href={`https://wa.me/?text=${encodeURIComponent(post.title + " " + window.location.href)}`}
+                href={`https://wa.me/?text=${encodeURIComponent(tr.title + " " + window.location.href)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-muted hover:bg-primary/10 hover:text-primary transition-colors"
