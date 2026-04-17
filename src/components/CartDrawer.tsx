@@ -3,16 +3,17 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 
 export function CartDrawer() {
   const { items, removeItem, updateQuantity, itemCount, subtotal, isOpen, setIsOpen } = useCart();
   const { data: settings } = useSiteSettings();
+  const { t } = useLanguage();
   const sym = settings?.currency_symbol || "৳";
 
   const handleNavigate = (path: string) => {
     setIsOpen(false);
-    // Use setTimeout to let the sheet close animation start before navigating
     setTimeout(() => {
       window.location.href = path;
     }, 100);
@@ -22,15 +23,15 @@ export function CartDrawer() {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetContent className="flex flex-col w-full sm:max-w-md">
         <SheetHeader>
-          <SheetTitle className="font-display">Cart ({itemCount})</SheetTitle>
+          <SheetTitle className="font-display">{t("cart.title")} ({itemCount})</SheetTitle>
         </SheetHeader>
 
         {items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-3">
             <ShoppingBag className="h-12 w-12 text-muted-foreground/30" />
-            <p className="text-muted-foreground text-sm">Your cart is empty</p>
+            <p className="text-muted-foreground text-sm">{t("cart.empty")}</p>
             <Button variant="outline" size="sm" onClick={() => handleNavigate("/products")}>
-              Browse Products
+              {t("product.all_products")}
             </Button>
           </div>
         ) : (
@@ -72,14 +73,14 @@ export function CartDrawer() {
 
             <div className="border-t border-border pt-4 space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
+                <span className="text-muted-foreground">{t("cart.subtotal")}</span>
                 <span className="font-bold">{sym}{subtotal.toFixed(2)}</span>
               </div>
               <Button variant="gradient" size="lg" className="w-full" onClick={() => handleNavigate("/checkout")}>
-                Proceed to Checkout
+                {t("action.checkout")}
               </Button>
               <Button variant="ghost" size="sm" className="w-full" onClick={() => setIsOpen(false)}>
-                Continue Shopping
+                {t("action.continue_shopping")}
               </Button>
             </div>
           </>
