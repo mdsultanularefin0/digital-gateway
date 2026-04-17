@@ -266,6 +266,40 @@ export default function AdminBlog() {
                 </div>
                 <textarea value={(editing as any).content_bn ?? ""} onChange={(e) => setEditing({ ...editing, content_bn: e.target.value } as any)} className="w-full rounded-lg border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[200px]" placeholder="Bangla content" />
               </div>
+              <MetaSeoFields
+                values={{
+                  meta_title: (editing as any).meta_title_bn ?? "",
+                  meta_description: (editing as any).meta_description_bn ?? "",
+                  meta_keywords: (editing as any).meta_keywords_bn ?? "",
+                }}
+                onChange={(next) => setEditing({
+                  ...editing,
+                  meta_title_bn: next.meta_title,
+                  meta_description_bn: next.meta_description,
+                  meta_keywords_bn: next.meta_keywords,
+                } as any)}
+                aiType="blog_seo"
+                aiPayload={{ title: (editing as any).title_bn || editing.title, content: (editing as any).content_bn || editing.content, category: editing.category, language: "bn" }}
+                showOgImage={false}
+                langLabel="বাংলা"
+                translateAction={
+                  <TranslateButton
+                    sourceText={`${(editing as any).meta_title || ""}\n---\n${(editing as any).meta_description || ""}\n---\n${(editing as any).meta_keywords || ""}`}
+                    context="blog"
+                    size="xs"
+                    label="From EN"
+                    onTranslated={(t) => {
+                      const [mt, md, mk] = (t || "").split(/\n---\n/);
+                      setEditing({
+                        ...editing,
+                        meta_title_bn: (mt || "").trim(),
+                        meta_description_bn: (md || "").trim(),
+                        meta_keywords_bn: (mk || "").trim(),
+                      } as any);
+                    }}
+                  />
+                }
+              />
             </>
           )}
           <label className="flex items-center gap-2 text-sm">
