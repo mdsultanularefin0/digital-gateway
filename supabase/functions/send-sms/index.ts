@@ -95,13 +95,13 @@ Deno.serve(async (req) => {
     const sender = body.sender || settings.brevo_sender_id || settings.sms_sender_id || "";
 
     if (!apiKey) {
-      return new Response(JSON.stringify({ success: false, error: "Brevo API key not configured" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      return new Response(JSON.stringify({ success: false, error: "Brevo API key not configured. Open Admin → Integrations → SMS, paste your Brevo API key, and click Save All." }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (!sender) {
-      return new Response(JSON.stringify({ success: false, error: "Brevo sender ID not configured" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      return new Response(JSON.stringify({ success: false, error: "Brevo sender ID not configured. Add a sender ID (max 11 chars, alphanumeric) in Admin → Integrations → SMS." }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
