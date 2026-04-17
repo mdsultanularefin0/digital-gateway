@@ -33,11 +33,15 @@ serve(async (req) => {
     const model = cfg.openrouter_custom_model || cfg.openrouter_model || "google/gemini-2.5-flash";
 
     const body = await req.json();
-    const { type, language } = body;
+    const { type, language, userContext } = body;
     const lang = language === "bn" ? "bn" : "en";
     const langInstruction = lang === "bn"
       ? "IMPORTANT: Write the ENTIRE response in Bengali (বাংলা). Use Bengali script throughout."
       : "Write the response in English.";
+
+    const contextInstruction = (userContext && typeof userContext === "string" && userContext.trim())
+      ? `\n\nADDITIONAL USER INSTRUCTIONS (highest priority — follow these carefully):\n${userContext.trim()}`
+      : "";
 
     let systemPrompt = "";
     let userPrompt = "";
