@@ -238,6 +238,12 @@ Deno.serve(async (req) => {
     }
 
     // ── BUILD ORDER EMAIL ──
+    // Fetch deliveries (codes/accounts/service notes) so we can include them in the email
+    const { data: deliveries } = await supabase
+      .from("order_deliveries")
+      .select("delivery_type, payload, status")
+      .eq("order_id", order_id);
+
     const templateVars: Record<string, string> = {
       customer_name: order.customer_name,
       order_number: order.order_number,
@@ -279,6 +285,46 @@ Deno.serve(async (req) => {
           ${Number(order.discount) > 0 ? `<p style="margin:4px 0;font-size:14px;color:#22c55e;">Discount: -${currencySymbol}${Number(order.discount).toFixed(2)}</p>` : ''}
           <p style="margin:4px 0;font-size:18px;font-weight:bold;color:#1a1a2e;">Total: ${currencySymbol}${Number(order.total).toFixed(2)}</p>
         </div>`;
+
+      // Build deliverables block (codes / accounts / service notes / pending notices)
+      let deliverablesHtml = "";
+      if (deliveries && deliveries.length > 0) {
+        const blocks = deliveries.map((d: any) => {
+          const productName = d.payload?.product_name || "Item";
+          if (d.status === "pending") {
+            return `
+              <div style="background:#fef9c3;border-radius:8px;padding:14px 16px;margin-top:12px;border-left:4px solid #ca8a04;">
+                <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:#713f12;">${productName}</p>
+                <p style="margin:0;font-size:13px;color:#713f12;">Your order is being processed. We'll send another email as soon as it's ready.</p>
+              </div>`;
+          }
+          if ((d.delivery_type === "code" || d.delivery_type === "account") && d.payload?.code) {
+            return `
+              <div style="background:#f0fdf4;border-radius:8px;padding:14px 16px;margin-top:12px;border-left:4px solid #22c55e;">
+                <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#14532d;">${productName}</p>
+                <div style="background:#fff;border:1px solid #d1fae5;border-radius:6px;padding:10px 12px;font-family:monospace;font-size:13px;color:#1a1a2e;">
+                  <div><strong>${d.delivery_type === "account" ? "Username" : "Code"}:</strong> ${d.payload.code}</div>
+                  ${d.payload.credential_extra ? `<div style="margin-top:4px;"><strong>Password:</strong> ${d.payload.credential_extra}</div>` : ""}
+                </div>
+              </div>`;
+          }
+          if (d.delivery_type === "service" && d.status === "delivered") {
+            return `
+              <div style="background:#f0fdf4;border-radius:8px;padding:14px 16px;margin-top:12px;border-left:4px solid #22c55e;">
+                <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:#14532d;">${productName}</p>
+                <p style="margin:0;font-size:13px;color:#14532d;">✅ Service fulfilled successfully.</p>
+              </div>`;
+          }
+          return "";
+        }).join("");
+        if (blocks) {
+          deliverablesHtml = `
+            <div style="margin-top:24px;">
+              <h3 style="margin:0 0 12px;font-size:15px;color:#1a1a2e;">🎁 Your delivery</h3>
+              ${blocks}
+            </div>`;
+        }
+      }
 
       // Build post-purchase product sections
       let productEmailSections = "";
