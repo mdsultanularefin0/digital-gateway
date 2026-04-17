@@ -285,8 +285,8 @@ const pages: PageConfig[] = [
 
 export default function AdminPageEditor() {
   const queryClient = useQueryClient();
-  const settings = useSiteSettings();
-  const siteName = settings?.site_name || "GiftCardVibe";
+  const settingsQuery = useSiteSettings();
+  const siteName = (settingsQuery as any)?.data?.site_name || "GiftCardVibe";
   const [activeTab, setActiveTab] = useState(pages[0].slug);
   const [edits, setEdits] = useState<Record<string, Record<string, string>>>({});
 
