@@ -39,6 +39,14 @@ export default function AdminSocialPoster() {
   const [scheduledAt, setScheduledAt] = useState(minScheduleLocal());
   const [uploading, setUploading] = useState(false);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const u = params.get("mediaUrl");
+    const c = params.get("caption");
+    if (u) { setMediaUrl(u); setMediaType(/\.(mp4|mov|webm)$/i.test(u) ? "video" : "image"); }
+    if (c) setCaption(c);
+  }, []);
+
   const { data: history } = useQuery({
     queryKey: ["social-posts"],
     queryFn: async () => {
