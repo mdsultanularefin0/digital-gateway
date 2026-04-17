@@ -540,7 +540,7 @@ export default function AdminPageEditor() {
     </AdminLayout>
   );
 }
-  const updateField = (key: string, value: string) => {
+
     setEdits((prev) => ({
       ...prev,
       [activeTab]: { ...(prev[activeTab] || {}), [key]: value },
