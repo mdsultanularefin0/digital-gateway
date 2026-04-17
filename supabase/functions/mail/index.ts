@@ -183,7 +183,21 @@ Deno.serve(async (req) => {
         // Override "from" based on purpose
         const fromOverride = resolveFrom(cfg, purpose);
         const cfgWithFrom = { ...cfg, smtp_from: fromOverride };
-        return json({ success: true, result: await smtpSend(cfgWithFrom, to, subject, body) });
+        try {
+          const result = await smtpSend(cfgWithFrom, to, subject, body);
+          await svc.from("email_logs").insert({
+            recipient: to, sender: fromOverride, subject, purpose: purpose || "",
+            status: "sent", triggered_by: user.email || "admin",
+          });
+          return json({ success: true, result });
+        } catch (sendErr: any) {
+          await svc.from("email_logs").insert({
+            recipient: to, sender: fromOverride, subject, purpose: purpose || "",
+            status: "failed", error: sendErr.message || String(sendErr),
+            triggered_by: user.email || "admin",
+          });
+          throw sendErr;
+        }
       }
 
       default:
