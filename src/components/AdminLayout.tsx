@@ -58,6 +58,7 @@ const navStructure: NavEntry[] = [
       { label: "Landing Pages", to: "/admin/landing-pages", icon: PanelTop },
       { label: "Blog", to: "/admin/blog", icon: FileText },
       { label: "Post Generator", to: "/admin/post-generator", icon: ImageIcon },
+      { label: "Social Poster", to: "/admin/social-poster", icon: Newspaper },
       { label: "Newsletter", to: "/admin/newsletter", icon: Newspaper },
     ],
   },

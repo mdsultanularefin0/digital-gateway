@@ -5,13 +5,14 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { Save, CreditCard, Mail, MessageSquare, Webhook, HardDrive, Brain } from "lucide-react";
+import { Save, CreditCard, Mail, MessageSquare, Webhook, HardDrive, Brain, Share2 } from "lucide-react";
 import { PaymentTab } from "@/components/admin/integrations/PaymentTab";
 import { WebhookTab } from "@/components/admin/integrations/WebhookTab";
 import { MailTab } from "@/components/admin/integrations/MailTab";
 import { SmsTab } from "@/components/admin/integrations/SmsTab";
 import { StorageTab } from "@/components/admin/integrations/StorageTab";
 import { AiTab } from "@/components/admin/integrations/AiTab";
+import { SocialMetaTab } from "@/components/admin/integrations/SocialMetaTab";
 
 interface SettingsMap {
   [key: string]: string;
@@ -92,7 +93,7 @@ export default function AdminIntegrations() {
         </div>
 
         <Tabs defaultValue="payment" className="w-full">
-          <TabsList className="w-full grid grid-cols-6">
+          <TabsList className="w-full grid grid-cols-7">
             <TabsTrigger value="payment" className="gap-1.5 text-xs sm:text-sm">
               <CreditCard className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Payment</span>
@@ -116,6 +117,10 @@ export default function AdminIntegrations() {
             <TabsTrigger value="ai" className="gap-1.5 text-xs sm:text-sm">
               <Brain className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">AI</span>
+            </TabsTrigger>
+            <TabsTrigger value="social" className="gap-1.5 text-xs sm:text-sm">
+              <Share2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Social</span>
             </TabsTrigger>
           </TabsList>
 
@@ -141,6 +146,10 @@ export default function AdminIntegrations() {
 
           <TabsContent value="ai">
             <AiTab settings={settings} update={update} />
+          </TabsContent>
+
+          <TabsContent value="social">
+            <SocialMetaTab settings={settings} update={update} />
           </TabsContent>
         </Tabs>
       </div>
