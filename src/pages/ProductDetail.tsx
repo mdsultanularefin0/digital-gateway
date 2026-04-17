@@ -187,10 +187,11 @@ export default function ProductDetailPage() {
   return (
     <Layout>
       <SEOHead
-        title={`${product.name} — GiftCardVibe`}
-        description={product.tagline || product.description.slice(0, 155)}
+        title={(product as any).meta_title?.trim() || `${product.name} — GiftCardVibe`}
+        description={(product as any).meta_description?.trim() || product.tagline || product.description.slice(0, 155)}
+        keywords={(product as any).meta_keywords?.trim() || undefined}
         canonical={canonicalUrl}
-        ogImage={product.image !== "/placeholder.svg" ? product.image : undefined}
+        ogImage={(product as any).og_image_url?.trim() || (product.image !== "/placeholder.svg" ? product.image : undefined)}
         type="product"
         jsonLd={productJsonLd}
       />
