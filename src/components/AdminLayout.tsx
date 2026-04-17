@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, Users, BarChart3, Tag,
   MessageSquare, Settings, LogOut, Menu, X, Zap, ChevronLeft, Plug,
   ImageIcon, Mail, Clock, Newspaper, CreditCard, FileText,
-  PanelTop, ChevronDown, FileEdit, ShieldCheck, HardDrive,
+  PanelTop, ChevronDown, FileEdit, ShieldCheck, HardDrive, Boxes,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ const navStructure: NavEntry[] = [
     icon: ShoppingCart,
     items: [
       { label: "Products", to: "/admin/products", icon: Package },
+      { label: "Inventory", to: "/admin/inventory", icon: Boxes },
       { label: "Orders", to: "/admin/orders", icon: ShoppingCart },
       { label: "Customers", to: "/admin/customers", icon: Users },
       { label: "Sales", to: "/admin/sales", icon: BarChart3 },

@@ -56,6 +56,7 @@ const AdminEmailTemplates = lazyRetry(() => import("./pages/admin/AdminEmailTemp
 const AdminStorage = lazyRetry(() => import("./pages/admin/AdminStorage"));
 const AdminSocialPoster = lazyRetry(() => import("./pages/admin/AdminSocialPoster"));
 const AdminEmailLogs = lazyRetry(() => import("./pages/admin/AdminEmailLogs"));
+const AdminInventory = lazyRetry(() => import("./pages/admin/AdminInventory"));
 const NotFound = lazyRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -123,6 +124,7 @@ const App = () => (
                       <Route path="/admin/storage" element={<AdminGuard><AdminStorage /></AdminGuard>} />
                       <Route path="/admin/social-poster" element={<AdminGuard><AdminSocialPoster /></AdminGuard>} />
                       <Route path="/admin/email-logs" element={<AdminGuard><AdminEmailLogs /></AdminGuard>} />
+                      <Route path="/admin/inventory" element={<AdminGuard><AdminInventory /></AdminGuard>} />
                       <Route path="/p/:slug" element={<LandingPage />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
