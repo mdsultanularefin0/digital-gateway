@@ -422,6 +422,8 @@ export default function AdminLandingPages() {
 function LandingAiToolbar({ editing, setEditing, activeLang, tmpl, products }: any) {
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState<"en" | "bn">(activeLang);
+  const [userContext, setUserContext] = useState("");
+  const [showContext, setShowContext] = useState(false);
 
   const product = products?.find((p: any) => p.id === editing?.product_id);
 
@@ -437,6 +439,7 @@ function LandingAiToolbar({ editing, setEditing, activeLang, tmpl, products }: a
         body: {
           type: "landing_full",
           language,
+          userContext,
           sections: tmpl.sections,
           productName: product.name,
           tagline: "",
@@ -472,26 +475,52 @@ function LandingAiToolbar({ editing, setEditing, activeLang, tmpl, products }: a
   };
 
   return (
-    <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <Sparkles className="h-4 w-4 text-primary" />
-        <span className="text-sm font-medium">AI Content Generator</span>
-        <span className="text-xs text-muted-foreground">Generate all sections at once</span>
+    <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4 space-y-3">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">AI Content Generator</span>
+          <span className="text-xs text-muted-foreground hidden sm:inline">Generate all sections at once</span>
+        </div>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setLanguage(language === "en" ? "bn" : "en")}
+            className="text-[10px] font-medium px-2 py-1 rounded-lg border border-border/60 text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+          >
+            <Globe className="h-3 w-3" />
+            {language === "en" ? "EN" : "বা"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowContext((v) => !v)}
+            className={`text-[10px] font-medium px-2 py-1 rounded-lg border transition-colors flex items-center gap-1 ${
+              userContext.trim() || showContext
+                ? "border-primary/40 text-primary bg-primary/10"
+                : "border-border/60 text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            + Context{userContext.trim() ? " ✓" : ""}
+          </button>
+          <Button type="button" variant="outline" size="sm" onClick={generateAll} disabled={loading} className="gap-1.5 text-xs">
+            {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+            {loading ? "Generating All..." : "Generate All Sections"}
+          </Button>
+        </div>
       </div>
-      <div className="flex items-center gap-1.5">
-        <button
-          type="button"
-          onClick={() => setLanguage(language === "en" ? "bn" : "en")}
-          className="text-[10px] font-medium px-2 py-1 rounded-lg border border-border/60 text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-        >
-          <Globe className="h-3 w-3" />
-          {language === "en" ? "EN" : "বা"}
-        </button>
-        <Button type="button" variant="outline" size="sm" onClick={generateAll} disabled={loading} className="gap-1.5 text-xs">
-          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-          {loading ? "Generating All..." : "Generate All Sections"}
-        </Button>
-      </div>
+      {showContext && (
+        <div className="space-y-1">
+          <p className="text-[11px] text-muted-foreground">
+            Custom instructions for the AI — tone, audience, key points, things to include or avoid.
+          </p>
+          <textarea
+            value={userContext}
+            onChange={(e) => setUserContext(e.target.value)}
+            placeholder="e.g. Target audience is freelance designers in Bangladesh. Emphasize lifetime access and instant download. Use a friendly conversational tone with light humor."
+            className="w-full text-xs rounded-lg border border-border/60 bg-background p-2 min-h-[70px] resize-y"
+          />
+        </div>
+      )}
     </div>
   );
 }
