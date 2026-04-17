@@ -153,13 +153,13 @@ Deno.serve(async (req) => {
     ));
 
     if (recipients.length === 0) {
-      return new Response(JSON.stringify({ success: false, error: "No valid recipients" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      return new Response(JSON.stringify({ success: false, error: "No valid recipients. Use format +8801XXXXXXXXX (E.164)." }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (!content.trim()) {
       return new Response(JSON.stringify({ success: false, error: "SMS content is empty" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
