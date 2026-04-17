@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, X, Upload, ImageIcon } from "lucide-react";
 import { AiGenerateButton } from "@/components/admin/AiGenerateButton";
 import { TranslateButton } from "@/components/admin/TranslateButton";
+import { MetaSeoFields } from "@/components/admin/MetaSeoFields";
 import type { Database } from "@/integrations/supabase/types";
 
 type BlogPost = Database["public"]["Tables"]["blog_posts"]["Row"];
