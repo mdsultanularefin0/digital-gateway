@@ -272,6 +272,42 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          created_at: string
+          error: string
+          id: string
+          purpose: string
+          recipient: string
+          sender: string
+          status: string
+          subject: string
+          triggered_by: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string
+          id?: string
+          purpose?: string
+          recipient?: string
+          sender?: string
+          status?: string
+          subject?: string
+          triggered_by?: string
+        }
+        Update: {
+          created_at?: string
+          error?: string
+          id?: string
+          purpose?: string
+          recipient?: string
+          sender?: string
+          status?: string
+          subject?: string
+          triggered_by?: string
+        }
+        Relationships: []
+      }
       landing_pages: {
         Row: {
           created_at: string
