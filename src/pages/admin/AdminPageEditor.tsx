@@ -10,6 +10,7 @@ import { uploadToStorage } from "@/lib/storage";
 import { Save, Upload, X, Loader2 } from "lucide-react";
 import { RepeaterField, type RepeaterFieldDef } from "@/components/admin/RepeaterField";
 import { AiGenerateButton } from "@/components/admin/AiGenerateButton";
+import { MetaSeoFields } from "@/components/admin/MetaSeoFields";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
 function HeroImageUploader() {
