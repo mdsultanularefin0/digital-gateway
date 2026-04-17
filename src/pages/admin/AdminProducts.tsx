@@ -13,6 +13,7 @@ import BulkProductImport from "@/components/admin/BulkProductImport";
 import DigitalFilesEditor, { type DigitalFile } from "@/components/admin/DigitalFilesEditor";
 import CodePoolManager from "@/components/admin/CodePoolManager";
 import { TranslateButton } from "@/components/admin/TranslateButton";
+import { MetaSeoFields, type MetaSeoValues } from "@/components/admin/MetaSeoFields";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
@@ -22,8 +23,14 @@ interface BnTranslation {
   tagline: string;
   description: string;
   features: string[];
+  meta_title: string;
+  meta_description: string;
+  meta_keywords: string;
 }
-const emptyBn: BnTranslation = { name: "", tagline: "", description: "", features: [] };
+const emptyBn: BnTranslation = {
+  name: "", tagline: "", description: "", features: [],
+  meta_title: "", meta_description: "", meta_keywords: "",
+};
 
 interface Tier {
   id?: string;
@@ -119,11 +126,14 @@ export default function AdminProducts() {
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
-          const next = {
+          const next: BnTranslation = {
             name: data.name || "",
             tagline: data.tagline || "",
             description: data.description || "",
             features: data.features || [],
+            meta_title: (data as any).meta_title || "",
+            meta_description: (data as any).meta_description || "",
+            meta_keywords: (data as any).meta_keywords || "",
           };
           setBn(next);
           setBnFeaturesInput(next.features.join("\n"));
@@ -204,7 +214,9 @@ export default function AdminProducts() {
 
         // Save BN translation (upsert)
         const bnFeatures = bnFeaturesInput.split("\n").map((f) => f.trim()).filter(Boolean);
-        const hasBnContent = bn.name.trim() || bn.tagline.trim() || bn.description.trim() || bnFeatures.length > 0;
+        const hasBnContent =
+          bn.name.trim() || bn.tagline.trim() || bn.description.trim() || bnFeatures.length > 0 ||
+          bn.meta_title.trim() || bn.meta_description.trim() || bn.meta_keywords.trim();
         if (hasBnContent) {
           const { error: bnErr } = await supabase
             .from("product_translations")
@@ -216,7 +228,10 @@ export default function AdminProducts() {
                 tagline: bn.tagline.trim(),
                 description: bn.description.trim(),
                 features: bnFeatures,
-              },
+                meta_title: bn.meta_title.trim(),
+                meta_description: bn.meta_description.trim(),
+                meta_keywords: bn.meta_keywords.trim(),
+              } as any,
               { onConflict: "product_id,lang" }
             );
           if (bnErr) throw bnErr;
