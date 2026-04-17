@@ -422,6 +422,8 @@ export default function AdminLandingPages() {
 function LandingAiToolbar({ editing, setEditing, activeLang, tmpl, products }: any) {
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState<"en" | "bn">(activeLang);
+  const [userContext, setUserContext] = useState("");
+  const [showContext, setShowContext] = useState(false);
 
   const product = products?.find((p: any) => p.id === editing?.product_id);
 
@@ -437,6 +439,7 @@ function LandingAiToolbar({ editing, setEditing, activeLang, tmpl, products }: a
         body: {
           type: "landing_full",
           language,
+          userContext,
           sections: tmpl.sections,
           productName: product.name,
           tagline: "",
@@ -472,26 +475,52 @@ function LandingAiToolbar({ editing, setEditing, activeLang, tmpl, products }: a
   };
 
   return (
-    <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <Sparkles className="h-4 w-4 text-primary" />
-        <span className="text-sm font-medium">AI Content Generator</span>
-        <span className="text-xs text-muted-foreground">Generate all sections at once</span>
+    <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4 space-y-3">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">AI Content Generator</span>
+          <span className="text-xs text-muted-foreground hidden sm:inline">Generate all sections at once</span>
+        </div>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setLanguage(language === "en" ? "bn" : "en")}
+            className="text-[10px] font-medium px-2 py-1 rounded-lg border border-border/60 text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+          >
+            <Globe className="h-3 w-3" />
+            {language === "en" ? "EN" : "বা"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowContext((v) => !v)}
+            className={`text-[10px] font-medium px-2 py-1 rounded-lg border transition-colors flex items-center gap-1 ${
+              userContext.trim() || showContext
+                ? "border-primary/40 text-primary bg-primary/10"
+                : "border-border/60 text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            + Context{userContext.trim() ? " ✓" : ""}
+          </button>
+          <Button type="button" variant="outline" size="sm" onClick={generateAll} disabled={loading} className="gap-1.5 text-xs">
+            {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+            {loading ? "Generating All..." : "Generate All Sections"}
+          </Button>
+        </div>
       </div>
-      <div className="flex items-center gap-1.5">
-        <button
-          type="button"
-          onClick={() => setLanguage(language === "en" ? "bn" : "en")}
-          className="text-[10px] font-medium px-2 py-1 rounded-lg border border-border/60 text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-        >
-          <Globe className="h-3 w-3" />
-          {language === "en" ? "EN" : "বা"}
-        </button>
-        <Button type="button" variant="outline" size="sm" onClick={generateAll} disabled={loading} className="gap-1.5 text-xs">
-          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-          {loading ? "Generating All..." : "Generate All Sections"}
-        </Button>
-      </div>
+      {showContext && (
+        <div className="space-y-1">
+          <p className="text-[11px] text-muted-foreground">
+            Custom instructions for the AI — tone, audience, key points, things to include or avoid.
+          </p>
+          <textarea
+            value={userContext}
+            onChange={(e) => setUserContext(e.target.value)}
+            placeholder="e.g. Target audience is freelance designers in Bangladesh. Emphasize lifetime access and instant download. Use a friendly conversational tone with light humor."
+            className="w-full text-xs rounded-lg border border-border/60 bg-background p-2 min-h-[70px] resize-y"
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -499,6 +528,8 @@ function LandingAiToolbar({ editing, setEditing, activeLang, tmpl, products }: a
 // ── Section editor wrapped with per-section AI ───────────────────────
 function SectionEditorWithAi({ section, content, lang, onChange, productName }: any) {
   const [loading, setLoading] = useState(false);
+  const [userContext, setUserContext] = useState("");
+  const [showContext, setShowContext] = useState(false);
 
   const generateSection = async (action: "fill" | "rewrite" | "recreate") => {
     setLoading(true);
@@ -507,6 +538,7 @@ function SectionEditorWithAi({ section, content, lang, onChange, productName }: 
         body: {
           type: "landing_section",
           language: lang,
+          userContext,
           sectionType: section.type,
           productName: productName || "Digital Product",
           existingContent: action !== "recreate" ? content : undefined,
@@ -542,11 +574,23 @@ function SectionEditorWithAi({ section, content, lang, onChange, productName }: 
 
   return (
     <div className="relative">
-      <div className="absolute top-3 right-3 z-10 flex gap-1">
+      <div className="absolute top-3 right-3 z-10 flex gap-1 items-start">
         {loading ? (
           <span className="text-xs text-muted-foreground flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Generating...</span>
         ) : (
           <>
+            <button
+              type="button"
+              onClick={() => setShowContext((v) => !v)}
+              className={`text-[10px] font-medium px-2 h-6 rounded-md border transition-colors flex items-center gap-1 ${
+                userContext.trim() || showContext
+                  ? "border-primary/40 text-primary bg-primary/10"
+                  : "border-border/60 text-muted-foreground hover:text-foreground"
+              }`}
+              title="Add custom instructions"
+            >
+              + Context{userContext.trim() ? " ✓" : ""}
+            </button>
             <Button type="button" variant="ghost" size="sm" className="h-6 text-[10px] gap-1" onClick={() => generateSection("fill")}>
               <Sparkles className="h-3 w-3" /> Fill
             </Button>
@@ -559,6 +603,17 @@ function SectionEditorWithAi({ section, content, lang, onChange, productName }: 
           </>
         )}
       </div>
+      {showContext && (
+        <div className="mb-2 mt-10 rounded-lg border border-primary/20 bg-primary/5 p-2 space-y-1">
+          <p className="text-[10px] font-semibold text-primary uppercase tracking-widest">Section AI Context</p>
+          <textarea
+            value={userContext}
+            onChange={(e) => setUserContext(e.target.value)}
+            placeholder="e.g. Focus on the time-saving benefit. Use bullet-point style. Mention bKash payment."
+            className="w-full text-xs rounded-md border border-border/60 bg-background p-2 min-h-[50px] resize-y"
+          />
+        </div>
+      )}
       <SectionEditor section={section} content={content} lang={lang} onChange={onChange} />
     </div>
   );

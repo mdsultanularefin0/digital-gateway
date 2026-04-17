@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2, Check, Copy, Globe } from "lucide-react";
+import { Sparkles, Loader2, Check, Copy, Globe, MessageSquarePlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
 
 interface AiGenerateButtonProps {
   type: string;
@@ -15,12 +17,13 @@ interface AiGenerateButtonProps {
 export function AiGenerateButton({ type, payload, onResult, label = "AI Generate", className }: AiGenerateButtonProps) {
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState<"en" | "bn">("en");
+  const [userContext, setUserContext] = useState("");
 
   const generate = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("ai-generate", {
-        body: { type, language, ...payload },
+        body: { type, language, userContext, ...payload },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -46,6 +49,49 @@ export function AiGenerateButton({ type, payload, onResult, label = "AI Generate
         <Globe className="h-3 w-3" />
         {language === "en" ? "EN" : "বা"}
       </button>
+
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className={`text-[10px] font-medium px-2 py-1 rounded-lg border transition-colors flex items-center gap-1 ${
+              userContext.trim()
+                ? "border-primary/40 text-primary bg-primary/5"
+                : "border-border/60 text-muted-foreground hover:text-foreground hover:border-foreground/20"
+            }`}
+            title="Add context / instructions"
+          >
+            <MessageSquarePlus className="h-3 w-3" />
+            Context{userContext.trim() ? " ✓" : ""}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80 p-3" align="end">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold">Custom instructions for the AI</p>
+            <p className="text-[11px] text-muted-foreground">
+              Tell the AI how you want it to write — tone, length, audience, things to include or avoid.
+            </p>
+            <Textarea
+              value={userContext}
+              onChange={(e) => setUserContext(e.target.value)}
+              placeholder="e.g. Use a friendly, casual tone. Focus on small business owners. Avoid technical jargon. Keep it under 150 words."
+              className="text-xs min-h-[100px]"
+            />
+            {userContext.trim() && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-6 text-[10px] w-full"
+                onClick={() => setUserContext("")}
+              >
+                Clear context
+              </Button>
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
+
       <Button
         type="button"
         variant="outline"

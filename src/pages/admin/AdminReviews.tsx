@@ -154,6 +154,8 @@ function ReviewResponseGenerator({ review }: { review: any }) {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [language, setLanguage] = useState<"en" | "bn">("en");
+  const [userContext, setUserContext] = useState("");
+  const [showContext, setShowContext] = useState(false);
 
   const generate = async () => {
     setLoading(true);
@@ -163,6 +165,7 @@ function ReviewResponseGenerator({ review }: { review: any }) {
         body: {
           type: "review_response",
           language,
+          userContext,
           customerName: review.customer_name,
           rating: review.rating,
           reviewTitle: review.title,
@@ -191,19 +194,40 @@ function ReviewResponseGenerator({ review }: { review: any }) {
   return (
     <div className="mt-2">
       {!response ? (
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => setLanguage(language === "en" ? "bn" : "en")}
-            className="text-[10px] font-medium px-2 py-1 rounded-lg border border-border/60 text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-          >
-            <Globe className="h-3 w-3" />
-            {language === "en" ? "EN" : "বা"}
-          </button>
-          <Button variant="ghost" size="sm" onClick={generate} disabled={loading} className="text-xs gap-1.5 h-7 text-muted-foreground hover:text-foreground">
-            {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-            {loading ? "Generating..." : "AI Reply"}
-          </Button>
+        <div className="space-y-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setLanguage(language === "en" ? "bn" : "en")}
+              className="text-[10px] font-medium px-2 py-1 rounded-lg border border-border/60 text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            >
+              <Globe className="h-3 w-3" />
+              {language === "en" ? "EN" : "বা"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowContext((v) => !v)}
+              className={`text-[10px] font-medium px-2 py-1 rounded-lg border transition-colors flex items-center gap-1 ${
+                userContext.trim() || showContext
+                  ? "border-primary/40 text-primary bg-primary/5"
+                  : "border-border/60 text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              + Context{userContext.trim() ? " ✓" : ""}
+            </button>
+            <Button variant="ghost" size="sm" onClick={generate} disabled={loading} className="text-xs gap-1.5 h-7 text-muted-foreground hover:text-foreground">
+              {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+              {loading ? "Generating..." : "AI Reply"}
+            </Button>
+          </div>
+          {showContext && (
+            <textarea
+              value={userContext}
+              onChange={(e) => setUserContext(e.target.value)}
+              placeholder="e.g. Mention our 30-day return policy. Apologize for shipping delay. Keep tone empathetic."
+              className="w-full text-xs rounded-lg border border-border/60 bg-background p-2 min-h-[60px] resize-y"
+            />
+          )}
         </div>
       ) : (
         <div className="rounded-lg border border-border/60 bg-muted/20 p-3 text-xs leading-relaxed relative">
