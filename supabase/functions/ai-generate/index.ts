@@ -143,6 +143,42 @@ Tagline: ${tagline || ""}
 Features: ${(features || []).join(", ")}
 ${existingContent ? `\nExisting content:\n${JSON.stringify(existingContent)}` : ""}`;
 
+    } else if (type === "page_section") {
+      const { pageSlug, sectionKey, sectionLabel, fieldType, currentValue, repeaterFields, itemLabel, siteName } = body;
+
+      if (fieldType === "repeater") {
+        const fieldList = (repeaterFields || [])
+          .map((f: any) => `  - "${f.key}": ${f.label}${f.placeholder ? ` (e.g. ${f.placeholder})` : ""}`)
+          .join("\n");
+        systemPrompt = `You are an expert website copywriter for "${siteName || "this site"}". You generate content for the "${sectionLabel}" section on the "${pageSlug}" page.
+
+Output MUST be a valid JSON array of items. Each item is an object with these fields:
+${fieldList}
+
+Output ONLY the JSON array, no markdown fences, no commentary. Generate 3-6 high-quality items unless the user specifies otherwise. ${langInstruction}`;
+        userPrompt = `Generate items for the "${itemLabel || "Item"}" repeater on page "${pageSlug}", section "${sectionLabel}".
+
+${currentValue ? `Existing items (improve / extend in the same spirit):\n${currentValue}\n` : "No existing items — start fresh."}
+
+Make each item concise, on-brand, and conversion-focused.`;
+      } else if (fieldType === "rich") {
+        systemPrompt = `You are an expert website copywriter for "${siteName || "this site"}". Write content for the "${sectionLabel}" section on the "${pageSlug}" page.
+
+Output clean, semantic HTML using these tags only: <p>, <h2>, <h3>, <ul>, <ol>, <li>, <strong>, <em>, <a>. Do NOT include <html>, <body>, markdown fences, or commentary — output ONLY the HTML body content. ${langInstruction}`;
+        userPrompt = `Write the content for the "${sectionLabel}" section on page "${pageSlug}".
+
+${currentValue ? `Existing content (rewrite & improve, preserve intent):\n${currentValue}\n` : "No existing content — write from scratch."}
+
+Keep paragraphs short and scannable. Use headings sparingly.`;
+      } else {
+        systemPrompt = `You are an expert website copywriter for "${siteName || "this site"}". Write content for the "${sectionLabel}" field on the "${pageSlug}" page.
+
+Output ONLY the plain text for this field — no quotes, no markdown, no commentary, no HTML. Match the field's purpose: a heading should be short and punchy, a description should be 1-2 sentences, a CTA should be 2-4 words. ${langInstruction}`;
+        userPrompt = `Write the value for the "${sectionLabel}" field on page "${pageSlug}".
+
+${currentValue ? `Existing value (rewrite & improve):\n${currentValue}\n` : "No existing value — write from scratch."}`;
+      }
+
     } else if (type === "landing_full") {
       const { sections, productName, tagline, features } = body;
       systemPrompt = `You are an expert landing page copywriter. Generate complete content for ALL sections of a landing page. ${langInstruction}
