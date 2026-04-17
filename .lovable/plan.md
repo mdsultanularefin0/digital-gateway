@@ -1,81 +1,47 @@
 
-Plan based on user answers. 4 product types, dual delivery (auto for verified payments, manual otherwise), with email + account dashboard + success page, plus a "drive-like" download hub for large/many files.
+**Site-wide bilingual (EN/BN) overhaul.** Auto-detect with manual override, persisted in localStorage. Admin can edit content in both languages everywhere; AI translation buttons assist.
 
-## Product Types & Delivery Matrix
+## 1. Language infrastructure
+- **`LanguageContext`** (new) — provides `lang: "en" | "bn"`, `setLang`, `t(en, bn)`. Auto-detects from `navigator.language` on first visit, persists to `localStorage("lang")`.
+- **`LanguageToggle`** component — EN / বাং pill, added to `Header` (desktop + mobile).
+- **`useTranslation` hook** — small UI-strings dictionary in `src/lib/i18n.ts` (header nav, buttons, footer, common labels, checkout labels, account labels). Easy to extend.
 
-```text
-TYPE                    | INVENTORY        | DELIVERY                          | TRIGGER
-------------------------|------------------|-----------------------------------|------------------
-1. Code / License Key   | Code pool OR     | Code shown on success page,       | Auto on paid
-   (gift cards, keys)   | manual entry     | emailed, visible in /account      | (PGW + verified MFS)
-2. Account Credentials  | Account pool OR  | Email+password shown + emailed    | Auto on paid
-   (email + password)   | manual entry     | + visible in /account             | (same)
-3. Downloadable Files   | product_files    | Secure tokens (existing) +        | Auto on paid
-   (ebooks, videos)     | (existing)       | Download Hub page for many files  | (same)
-4. Top-up Service       | none — manual    | Admin marks "fulfilled" + note;   | Manual only
-   (game $, ad credits) |                  | customer sees status in /account  |
-```
+## 2. Database — bilingual content storage
+**New `product_translations` table** (separate, scales clean):
+- `product_id, lang ('en'|'bn'), name, tagline, description, features (text[])`
+- Unique on `(product_id, lang)`. Public read, admin write.
 
-**Manual fallback for all types:** when MFS payment can't be auto-verified, order sits in "awaiting fulfillment" — admin opens it, assigns/pastes the deliverable, clicks "Deliver" → email + dashboard updated.
+**Extend `page_contents`** — already has `(page_slug, section_key, content)`. Add `lang` column with default `'en'`, unique on `(page_slug, section_key, lang)`. Existing rows become `lang='en'`.
 
-## Architecture
+**Extend `blog_posts`** — add `title_bn, excerpt_bn, content_bn` columns (nullable). BN falls back to EN if empty.
 
-**New `delivery_type` column on `products`:** `download | code | account | service`. Drives which fulfillment UI shows in admin and what customer sees.
+## 3. Admin editing
+- **`AdminProducts.tsx` editor** — add "EN | BN" tab switcher inside the product modal. BN tab shows the same fields (name, tagline, description, features). "Translate to Bangla" button per field calls a new `translate` edge function.
+- **`AdminPageEditor.tsx`** — add EN/BN tab on each section, "Translate EN→BN" button per section.
+- **`AdminBlog.tsx`** — add EN/BN tabs, "Translate post to BN" button.
+- **New site-strings CMS section** in `AdminSettings` — admins can override hardcoded UI strings (nav labels, hero CTA, footer text) in BN.
 
-**New tables:**
-- `product_codes` — pool of pre-loaded codes/accounts per product. Columns: `id, product_id, code_value (text, encrypted), credential_extra (text, for password if account type), status (available|assigned|disabled), assigned_order_id, assigned_at`.
-- `order_deliveries` — what was actually given to the customer per order item. Columns: `id, order_id, order_item_id, delivery_type, payload (jsonb: code, username, password, note, file_token_ids), status (pending|delivered|failed), delivered_at, delivered_by`.
-- Keep existing `download_tokens` and `product_files` for type 3.
+## 4. AI translation
+- **New edge function `translate`** — accepts `{ text, target: 'bn'|'en', context?: 'product'|'page'|'blog' }`. Calls Lovable AI (`google/gemini-3-flash-preview`) with a translation system prompt tuned for BD digital commerce. Returns translated text.
+- Reused by all three editors via a shared `<TranslateButton>` component.
 
-**Auto-assignment trigger:** when `orders.payment_status` flips to `paid`, a DB function loops through order items and:
-- type `download` → existing `generate_download_tokens` runs
-- type `code` / `account` → pull next `available` row from `product_codes`, mark assigned, write to `order_deliveries`. If pool empty → mark `pending`, notify admin.
-- type `service` → just create `order_deliveries` row with status `pending` for admin to action
+## 5. Customer-facing rendering
+- `ProductCard`, `ProductDetail`, `Products` page — read translation row matching current `lang`, fall back to base EN columns if BN missing.
+- Static pages (Home, About, Contact, FAQ, Privacy, Terms) — read `page_contents` with current `lang`, fall back to EN.
+- `Blog` / `BlogPost` — same fallback pattern using `_bn` columns.
+- `Checkout`, `Account`, `OrderSuccessInstructions` — already supports BN in instructions; UI labels (form labels, buttons, cart) translated via `t()`.
+- `Header`, `Footer`, `CartDrawer` — translated via `t()`.
 
-**Email:** existing `send-order-confirmation` is extended to read `order_deliveries` and inject the deliverable (code, login, download links list) into the post-purchase email template.
+## 6. Implementation order
+1. **DB migration** — `product_translations` table, `page_contents.lang`, `blog_posts._bn` columns
+2. **`LanguageContext` + `i18n.ts` + `LanguageToggle`** in `Header`
+3. **`translate` edge function** + shared `<TranslateButton>` component
+4. **Admin editors** — Products, Pages, Blog get EN/BN tabs and AI buttons
+5. **Customer pages** — Products, ProductDetail, Blog, BlogPost, static pages read translated content
+6. **UI strings** — Header, Footer, Cart, Checkout, Account use `t()`
 
-## Download Hub (for big/many files)
-
-New customer-facing page `/account/downloads/:orderId` ("Drive-like" view):
-- Folder-style list grouped by product, all files in one place
-- Bulk "Download all as ZIP" (edge function streams a zip on demand)
-- Per-file resumable download via existing `secure-download` tokens with extended expiry (configurable, default 7 days, regenerable on request)
-- Persistent — customer can return anytime as long as order exists; tokens auto-regenerate if expired
-
-Order success page shows a single "Open my Download Hub" button instead of a long file list when 3+ files exist.
-
-## Admin UI changes
-
-**Product editor (`AdminProducts.tsx`):**
-- New "Delivery Type" dropdown
-- When `code` / `account` → show **Code Pool Manager** (paste-list bulk add, CSV import, view stock count, low-stock badge)
-- When `download` → existing `DigitalFilesEditor`
-- When `service` → instructions textarea ("Manual fulfillment — admin will deliver after payment")
-
-**Order detail (`OrderDetail.tsx`):**
-- New "Fulfillment" panel showing `order_deliveries` per item
-- For unfulfilled items: paste-code box / paste-account box / "mark service done" button
-- "Resend delivery email" button
-- Stock warning if a product's pool is empty when order arrives
-
-**New admin page `/admin/inventory`:** quick view of code pool levels per product, with low-stock alerts.
-
-## Customer-facing changes
-
-- `/account` order list shows fulfillment status badge per order
-- Order detail in `/account` shows the deliverable (code revealed with copy button, account credentials, or Download Hub link)
-- "Resend my email" button per order
-
-## Implementation Steps (high-level)
-
-1. **DB migration** — add `delivery_type` column, create `product_codes`, `order_deliveries`, add trigger function for auto-assignment
-2. **Admin Code Pool Manager** component + integration in product editor
-3. **Order fulfillment panel** in `OrderDetail.tsx` + manual delivery flow
-4. **Update `send-order-confirmation`** edge function to render deliverables
-5. **Customer `/account` order detail** — show deliverables
-6. **Download Hub** page + ZIP-streaming edge function
-7. **Admin Inventory** dashboard page
-
-## Open question for after approval
-
-For codes/accounts: should the code pool be **encrypted at rest** (extra security, codes only decrypted on delivery) or stored plain (simpler, relies on RLS)? Default recommendation: plain text with strict admin-only RLS — matches current pattern and keeps complexity low. Can upgrade later.
+## Notes / scope discipline
+- I will NOT touch Landing pages (`/p/:slug`) — they already have full bilingual support.
+- UI string dictionary covers ~60–80 common strings; long-tail strings can be added later.
+- BN font: keep Plus Jakarta Sans — it has decent Bangla rendering; if you want a dedicated BN font (e.g. Hind Siliguri or Noto Sans Bengali) say the word.
+- This is a multi-step build (~20 files). I'll commit DB migration first, then build in passes.
