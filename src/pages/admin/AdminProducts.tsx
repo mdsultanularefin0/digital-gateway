@@ -201,6 +201,26 @@ export default function AdminProducts() {
             if (error) throw error;
           }
         }
+
+        // Save BN translation (upsert)
+        const bnFeatures = bnFeaturesInput.split("\n").map((f) => f.trim()).filter(Boolean);
+        const hasBnContent = bn.name.trim() || bn.tagline.trim() || bn.description.trim() || bnFeatures.length > 0;
+        if (hasBnContent) {
+          const { error: bnErr } = await supabase
+            .from("product_translations")
+            .upsert(
+              {
+                product_id: productId!,
+                lang: "bn",
+                name: bn.name.trim(),
+                tagline: bn.tagline.trim(),
+                description: bn.description.trim(),
+                features: bnFeatures,
+              },
+              { onConflict: "product_id,lang" }
+            );
+          if (bnErr) throw bnErr;
+        }
       }
     },
     onSuccess: () => {
@@ -211,6 +231,9 @@ export default function AdminProducts() {
       setTiers([]);
       setImages([]);
       setDigitalFiles([]);
+      setBn(emptyBn);
+      setBnFeaturesInput("");
+      setActiveLang("en");
       toast({ title: "Product saved" });
     },
     onError: (err: Error) => {
