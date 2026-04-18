@@ -214,8 +214,8 @@ export default function ProductDetailPage() {
                   ))}
                 </div>
               </div>
-              <h1 className="text-3xl font-display font-bold md:text-4xl">{product.name}</h1>
-              <p className="mt-2 text-lg text-muted-foreground">{product.tagline}</p>
+              <h1 className="text-3xl font-display font-bold md:text-4xl break-words">{product.name}</h1>
+              <p className="mt-2 text-lg text-muted-foreground break-words">{product.tagline}</p>
 
               {/* Rating summary */}
               {reviews.length > 0 && (

@@ -173,8 +173,10 @@ export function Header() {
       </AnimatePresence>
     </header>
 
-    <div className="fixed bottom-4 right-4 z-40 md:hidden">
-      <LanguageToggle compact />
+    <div className="fixed bottom-4 right-3 z-40 md:hidden">
+      <div className="rounded-full bg-background/85 backdrop-blur-md shadow-lg border border-border/60">
+        <LanguageToggle compact />
+      </div>
     </div>
 
     <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
