@@ -2,17 +2,26 @@ import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-const THEME_KEYS = [
+const LIGHT_KEYS = [
   "theme_primary",
   "theme_accent",
   "theme_background",
   "theme_foreground",
   "theme_radius",
-  "theme_font_heading",
-  "theme_font_body",
 ] as const;
 
-const COLOR_VAR_MAP: Record<string, string> = {
+const DARK_KEYS = [
+  "theme_dark_primary",
+  "theme_dark_accent",
+  "theme_dark_background",
+  "theme_dark_foreground",
+] as const;
+
+const FONT_KEYS = ["theme_font_heading", "theme_font_body"] as const;
+
+const ALL_KEYS = [...LIGHT_KEYS, ...DARK_KEYS, ...FONT_KEYS] as const;
+
+const LIGHT_VAR_MAP: Record<string, string> = {
   theme_primary: "--primary",
   theme_accent: "--accent",
   theme_background: "--background",
@@ -20,7 +29,15 @@ const COLOR_VAR_MAP: Record<string, string> = {
   theme_radius: "--radius",
 };
 
+const DARK_VAR_MAP: Record<string, string> = {
+  theme_dark_primary: "--primary",
+  theme_dark_accent: "--accent",
+  theme_dark_background: "--background",
+  theme_dark_foreground: "--foreground",
+};
+
 const GOOGLE_FONT_LINK_ID = "theme-google-fonts";
+const DARK_STYLE_ID = "theme-dark-overrides";
 
 function ensureGoogleFontsLoaded(families: string[]) {
   const unique = Array.from(new Set(families.filter(Boolean)));
@@ -41,11 +58,34 @@ function ensureGoogleFontsLoaded(families: string[]) {
   if (link.href !== href) link.href = href;
 }
 
+function applyDarkOverrides(data: Record<string, string>) {
+  const lines: string[] = [];
+  Object.entries(DARK_VAR_MAP).forEach(([k, cssVar]) => {
+    const v = data[k];
+    if (v) lines.push(`  ${cssVar}: ${v};`);
+  });
+  // Mirror primary into ring for focus consistency
+  if (data.theme_dark_primary) {
+    lines.push(`  --ring: ${data.theme_dark_primary};`);
+  }
+
+  let style = document.getElementById(DARK_STYLE_ID) as HTMLStyleElement | null;
+  if (lines.length === 0) {
+    if (style) style.textContent = "";
+    return;
+  }
+  if (!style) {
+    style = document.createElement("style");
+    style.id = DARK_STYLE_ID;
+    document.head.appendChild(style);
+  }
+  style.textContent = `.dark {\n${lines.join("\n")}\n}`;
+}
+
 /**
  * Reads theme overrides from site_settings and applies them to :root as CSS vars.
- * Color values must be HSL triplets (e.g. "210 100% 45%").
- * Radius is a CSS length (e.g. "0.75rem").
- * Fonts are Google Font family names (e.g. "Inter").
+ * Light tokens are written inline on :root. Dark tokens are written into a
+ * scoped <style> block so they activate only when the .dark class is present.
  */
 export function ThemeApplier() {
   const { data } = useQuery({
@@ -54,7 +94,7 @@ export function ThemeApplier() {
       const { data, error } = await supabase
         .from("site_settings")
         .select("key, value")
-        .in("key", THEME_KEYS as unknown as string[]);
+        .in("key", ALL_KEYS as unknown as string[]);
       if (error) throw error;
       const map: Record<string, string> = {};
       (data || []).forEach((r: { key: string; value: string }) => {
@@ -69,23 +109,21 @@ export function ThemeApplier() {
     if (!data) return;
     const root = document.documentElement;
 
-    Object.entries(data).forEach(([k, v]) => {
-      const cssVar = COLOR_VAR_MAP[k];
-      if (cssVar && v) root.style.setProperty(cssVar, v);
+    // Light tokens
+    Object.entries(LIGHT_VAR_MAP).forEach(([k, cssVar]) => {
+      const v = data[k];
+      if (v) root.style.setProperty(cssVar, v);
     });
+    if (data.theme_primary) root.style.setProperty("--ring", data.theme_primary);
 
-    if (data.theme_primary) {
-      root.style.setProperty("--ring", data.theme_primary);
-    }
+    // Dark tokens (scoped via .dark selector)
+    applyDarkOverrides(data);
 
+    // Fonts
     const headingFont = data.theme_font_heading;
     const bodyFont = data.theme_font_body;
-    if (headingFont) {
-      root.style.setProperty("--font-display", `'${headingFont}'`);
-    }
-    if (bodyFont) {
-      root.style.setProperty("--font-body", `'${bodyFont}'`);
-    }
+    if (headingFont) root.style.setProperty("--font-display", `'${headingFont}'`);
+    if (bodyFont) root.style.setProperty("--font-body", `'${bodyFont}'`);
     if (headingFont || bodyFont) {
       ensureGoogleFontsLoaded([headingFont, bodyFont].filter(Boolean) as string[]);
     }
