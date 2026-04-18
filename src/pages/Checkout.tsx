@@ -173,6 +173,7 @@ export default function CheckoutPage() {
 
   return (
     <Layout>
+      <SEOHead title="Checkout" description="Complete your purchase securely." noIndex disableHreflang />
       <section className="py-6 sm:py-12 md:py-20">
         <div className="container px-3 sm:px-5 md:px-8 max-w-5xl">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-bold mb-4 sm:mb-6 md:mb-8">Checkout</h1>
