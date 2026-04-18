@@ -291,6 +291,9 @@ export default function AdminPostGenerator() {
     canvas.height = H;
 
     const scale = Math.min(W, H) / 1080;
+    const displayFont = `"${fontPair.display}", "Plus Jakarta Sans", serif`;
+    const bodyFont = `"${fontPair.body}", "Plus Jakarta Sans", sans-serif`;
+    const hScale = headlineScale;
 
     // ── Helper functions ─────────────────────────────────────
     const drawBg = () => {
