@@ -18,8 +18,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ["'Plus Jakarta Sans'", "system-ui", "sans-serif"],
-        display: ["'Plus Jakarta Sans'", "system-ui", "sans-serif"],
+        body: ["var(--font-body)", "'Plus Jakarta Sans'", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "'Plus Jakarta Sans'", "system-ui", "sans-serif"],
       },
       letterSpacing: {
         "executive": "0.08em",
