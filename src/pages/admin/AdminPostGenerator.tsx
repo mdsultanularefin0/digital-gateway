@@ -315,7 +315,7 @@ export default function AdminPostGenerator() {
     const drawBadge = (x: number, y: number) => {
       if (!data.badge) return y;
       ctx.fillStyle = activeColors.accent;
-      const badgeFont = `800 ${Math.round(15 * scale)}px "Plus Jakarta Sans", sans-serif`;
+      const badgeFont = `800 ${Math.round(15 * scale)}px ${bodyFont}`;
       ctx.font = badgeFont;
       const badgeText = data.badge.toUpperCase();
       const bm = ctx.measureText(badgeText);
@@ -331,7 +331,7 @@ export default function AdminPostGenerator() {
 
     const drawProductName = (x: number, y: number, maxW: number, size: number, align: CanvasTextAlign = "left") => {
       if (!data.productName) return y;
-      ctx.font = `900 ${Math.round(size)}px "Plus Jakarta Sans", serif`;
+      ctx.font = `900 ${Math.round(size * hScale)}px ${displayFont}`;
       ctx.fillStyle = activeColors.text;
       ctx.textBaseline = "top";
       ctx.textAlign = align;
@@ -340,7 +340,7 @@ export default function AdminPostGenerator() {
         const wrapped = wrapText(ctx, rawLine, maxW);
         wrapped.forEach((line) => {
           ctx.fillText(line, x, y);
-          y += size * 1.1;
+          y += size * hScale * 1.1;
         });
       });
       return y + 20 * scale;
@@ -356,7 +356,7 @@ export default function AdminPostGenerator() {
     const drawTagline = (x: number, y: number, maxW: number, align: CanvasTextAlign = "left") => {
       if (!data.tagline) return y;
       const tagSize = 19 * scale;
-      ctx.font = `400 ${Math.round(tagSize)}px "Plus Jakarta Sans", sans-serif`;
+      ctx.font = `400 ${Math.round(tagSize)}px ${bodyFont}`;
       ctx.fillStyle = activeColors.text + "88";
       ctx.textBaseline = "top";
       ctx.textAlign = align;
@@ -375,7 +375,7 @@ export default function AdminPostGenerator() {
         ctx.beginPath();
         ctx.arc(dotX, y + featSize * 0.55, 3.5 * scale, 0, Math.PI * 2);
         ctx.fill();
-        ctx.font = `400 ${Math.round(featSize)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.font = `400 ${Math.round(featSize)}px ${bodyFont}`;
         ctx.fillStyle = activeColors.text + "aa";
         ctx.textBaseline = "top";
         ctx.textAlign = align === "center" ? "left" : "left";
@@ -389,14 +389,14 @@ export default function AdminPostGenerator() {
     const drawPrice = (x: number, y: number, align: CanvasTextAlign, fillColor: string) => {
       if (!data.price) return y;
       const priceSize = 56 * scale;
-      ctx.font = `900 ${Math.round(priceSize)}px "Plus Jakarta Sans", sans-serif`;
+      ctx.font = `900 ${Math.round(priceSize)}px ${displayFont}`;
       ctx.fillStyle = fillColor;
       ctx.textAlign = align;
       ctx.textBaseline = "middle";
       ctx.fillText(data.price, x, y);
       if (data.originalPrice) {
         const origSize = 22 * scale;
-        ctx.font = `400 ${Math.round(origSize)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.font = `400 ${Math.round(origSize)}px ${bodyFont}`;
         ctx.fillStyle = fillColor + "44";
         const origY = y + priceSize * 0.6;
         const origW = ctx.measureText(data.originalPrice).width;
@@ -416,7 +416,7 @@ export default function AdminPostGenerator() {
     const drawCta = (cx: number, y: number) => {
       if (!data.ctaText) return y;
       const ctaFontSize = 22 * scale;
-      ctx.font = `800 ${Math.round(ctaFontSize)}px "Plus Jakarta Sans", sans-serif`;
+      ctx.font = `800 ${Math.round(ctaFontSize)}px ${bodyFont}`;
       const ctaTextW = ctx.measureText(data.ctaText.toUpperCase()).width;
       const ctaPadX = 50 * scale, ctaPadY = 20 * scale;
       const ctaW = ctaTextW + ctaPadX * 2, ctaH = ctaFontSize + ctaPadY * 2;
@@ -435,7 +435,7 @@ export default function AdminPostGenerator() {
     const drawFooter = (cx: number, y: number) => {
       if (!data.footerText) return;
       const footSize = 15 * scale;
-      ctx.font = `500 ${Math.round(footSize)}px "Plus Jakarta Sans", sans-serif`;
+      ctx.font = `500 ${Math.round(footSize)}px ${bodyFont}`;
       ctx.fillStyle = activeColors.text + "44";
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
@@ -505,7 +505,7 @@ export default function AdminPostGenerator() {
       drawCta(cardX + cardW / 2, cardY + cardH * 0.68);
       if (data.footerText) {
         const footSize = 15 * scale;
-        ctx.font = `500 ${Math.round(footSize)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.font = `500 ${Math.round(footSize)}px ${bodyFont}`;
         ctx.fillStyle = activeColors.bg + "44"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
         ctx.fillText(data.footerText, cardX + cardW / 2, cardY + cardH - 22 * scale);
       }
@@ -604,7 +604,7 @@ export default function AdminPostGenerator() {
       // Badge
       if (data.badge) {
         ctx.fillStyle = activeColors.accent;
-        ctx.font = `800 ${Math.round(13 * scale)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.font = `800 ${Math.round(13 * scale)}px ${bodyFont}`;
         const bt = data.badge.toUpperCase();
         const bm = ctx.measureText(bt);
         const bpx = 14 * scale, bpy = 7 * scale;
@@ -624,7 +624,7 @@ export default function AdminPostGenerator() {
       // Tagline
       const tagSize = 16 * scale;
       if (data.tagline) {
-        ctx.font = `400 ${Math.round(tagSize)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.font = `400 ${Math.round(tagSize)}px ${bodyFont}`;
         ctx.fillStyle = activeColors.bg + "66"; ctx.textAlign = "center"; ctx.textBaseline = "top";
         const lines = wrapText(ctx, data.tagline, cardW * 0.75);
         lines.forEach((line) => { ctx.fillText(line, cx, cy); cy += tagSize * 1.5; });
@@ -637,7 +637,7 @@ export default function AdminPostGenerator() {
       // Footer
       if (data.footerText) {
         const fs = 13 * scale;
-        ctx.font = `500 ${Math.round(fs)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.font = `500 ${Math.round(fs)}px ${bodyFont}`;
         ctx.fillStyle = activeColors.bg + "33"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
         ctx.fillText(data.footerText, cx, cardY + cardH - 20 * scale);
       }
