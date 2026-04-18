@@ -55,7 +55,7 @@ export function Header() {
         scrolled ? "glass shadow-card" : "bg-transparent"
       }`}
     >
-      <div className="container flex h-16 items-center justify-between">
+      <div className="flex h-16 items-center justify-between px-3 md:container md:px-4">
         <Link to="/" className="flex items-center gap-2.5 font-display text-xl font-bold tracking-tight">
           {logoUrl ? (
             <img src={logoUrl} alt={siteName} className="h-8 w-8 rounded-xl object-contain" />
