@@ -12,6 +12,13 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /admin
+Disallow: /login
+Disallow: /checkout
+Disallow: /account
+Disallow: /reset-password
+Disallow: /bkash-callback
 
 # Dynamic sitemap (auto-generated from products, blog, landing pages)
 Sitemap: https://hlkjlkjxkmjklrsffvrs.functions.supabase.co/sitemap
