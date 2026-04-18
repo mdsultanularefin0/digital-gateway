@@ -1,39 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/contexts/CartContext";
-import { useSiteSettings } from "@/hooks/use-site-settings";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle, ShoppingBag, Copy, Check } from "lucide-react";
 import { Link } from "react-router-dom";
-import { trackInitiateCheckout, trackPurchase } from "@/lib/meta-pixel";
 import { DownloadLinks } from "@/components/DownloadLinks";
 import { OrderSuccessInstructions } from "@/components/OrderSuccessInstructions";
+import { useCheckout } from "@/hooks/use-checkout";
 import paymentBkash from "@/assets/payment-bkash.png";
 import paymentNagad from "@/assets/payment-nagad.png";
 import paymentCod from "@/assets/payment-cod.png";
 import paymentBank from "@/assets/payment-bank.png";
 import paymentStripe from "@/assets/payment-stripe.png";
-
-interface CheckoutForm {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  couponCode: string;
-  notes: string;
-  paymentMethod: string;
-  senderNumber: string;
-  trxId: string;
-}
-
-const emptyForm: CheckoutForm = {
-  name: "", email: "", phone: "", address: "", couponCode: "", notes: "", paymentMethod: "",
-  senderNumber: "", trxId: "",
-};
 
 const ALL_PAYMENT_METHODS = [
   { value: "cod", label: "Cash on Delivery", logo: paymentCod },
@@ -44,31 +22,17 @@ const ALL_PAYMENT_METHODS = [
   { value: "stripe", label: "Credit/Debit Card", logo: paymentStripe },
 ];
 
-// Send Money Panel Component
 function SendMoneyPanel({
-  provider,
-  amount,
-  currencySymbol,
-  senderNumber,
-  trxId,
-  onSenderChange,
-  onTrxIdChange,
-  settings,
+  provider, amount, currencySymbol, senderNumber, trxId, onSenderChange, onTrxIdChange, settings,
 }: {
-  provider: string;
-  amount: number;
-  currencySymbol: string;
-  senderNumber: string;
-  trxId: string;
-  onSenderChange: (v: string) => void;
-  onTrxIdChange: (v: string) => void;
+  provider: string; amount: number; currencySymbol: string;
+  senderNumber: string; trxId: string;
+  onSenderChange: (v: string) => void; onTrxIdChange: (v: string) => void;
   settings: any;
 }) {
   const [copied, setCopied] = useState(false);
   const isBkash = provider === "bkash_send";
-  const merchantNumber = isBkash
-    ? settings?.bkash_send_number || ""
-    : settings?.nagad_send_number || "";
+  const merchantNumber = isBkash ? settings?.bkash_send_number || "" : settings?.nagad_send_number || "";
   const instructions = isBkash
     ? settings?.bkash_send_instructions || "1. Open bKash app\n2. Tap Send Money\n3. Enter the number shown\n4. Enter the exact amount\n5. Submit your sender number and TrxID below"
     : settings?.nagad_send_instructions || "1. Open Nagad app\n2. Tap Send Money\n3. Enter the number shown\n4. Enter the exact amount\n5. Submit your sender number and TrxID below";
@@ -90,12 +54,7 @@ function SendMoneyPanel({
         {merchantNumber ? (
           <div className="flex items-center gap-2">
             <span className="text-2xl font-mono font-bold tracking-widest">{merchantNumber}</span>
-            <button
-              type="button"
-              onClick={copyNumber}
-              className="p-1.5 rounded-lg hover:bg-muted transition-colors"
-              title="Copy number"
-            >
+            <button type="button" onClick={copyNumber} className="p-1.5 rounded-lg hover:bg-muted transition-colors" title="Copy number">
               {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
             </button>
           </div>
@@ -103,29 +62,15 @@ function SendMoneyPanel({
           <p className="text-sm text-destructive">Merchant number not configured. Please contact support.</p>
         )}
       </div>
-
-      <div className="text-sm text-muted-foreground whitespace-pre-line bg-muted/50 rounded-xl p-3">
-        {instructions}
-      </div>
-
+      <div className="text-sm text-muted-foreground whitespace-pre-line bg-muted/50 rounded-xl p-3">{instructions}</div>
       <div className="space-y-3">
         <div>
           <label className="text-xs font-medium mb-1 block">Your {isBkash ? "bKash" : "Nagad"} Number *</label>
-          <input
-            value={senderNumber}
-            onChange={(e) => onSenderChange(e.target.value)}
-            className={inputClass}
-            placeholder="01XXXXXXXXX"
-          />
+          <input value={senderNumber} onChange={(e) => onSenderChange(e.target.value)} className={inputClass} placeholder="01XXXXXXXXX" />
         </div>
         <div>
           <label className="text-xs font-medium mb-1 block">Transaction ID (TrxID) *</label>
-          <input
-            value={trxId}
-            onChange={(e) => onTrxIdChange(e.target.value)}
-            className={inputClass}
-            placeholder="e.g. BIxxxxxxxx"
-          />
+          <input value={trxId} onChange={(e) => onTrxIdChange(e.target.value)} className={inputClass} placeholder="e.g. BIxxxxxxxx" />
         </div>
       </div>
     </div>
@@ -133,268 +78,30 @@ function SendMoneyPanel({
 }
 
 export default function CheckoutPage() {
-  const { items, subtotal, clearCart } = useCart();
-  const { data: settings } = useSiteSettings();
-  const sym = settings?.currency_symbol || "৳";
-  const navigate = useNavigate();
+  const co = useCheckout();
+  const {
+    items, subtotal, settings, sym,
+    form, update,
+    discount, couponApplied, couponLoading, applyCoupon, removeCoupon,
+    submitting, placeOrder,
+    orderPlaced, placedOrderId,
+    shippingCost, total,
+  } = co;
 
-  const [form, setForm] = useState<CheckoutForm>(emptyForm);
-  const [discount, setDiscount] = useState(0);
-  const [couponApplied, setCouponApplied] = useState<string | null>(null);
-  const [couponLoading, setCouponLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [orderPlaced, setOrderPlaced] = useState<string | null>(null);
-  const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
-
-  const shippingCost = 0;
-  const currency = settings?.currency || "USD";
-
-  // Track InitiateCheckout on mount
-  useEffect(() => {
-    if (items.length > 0) {
-      trackInitiateCheckout({
-        content_ids: items.map((i) => i.productId),
-        num_items: items.reduce((s, i) => s + i.quantity, 0),
-        value: subtotal,
-        currency,
-      });
-    }
-  }, []);
-
-  // Parse enabled payment methods from settings
+  // Parse enabled payment methods
   const enabledMethods = (() => {
     try {
       const raw = settings?.payment_methods as string | undefined;
       if (raw) return JSON.parse(raw) as string[];
     } catch {}
-    return ["cod"]; // default fallback
+    return ["cod"];
   })();
   const paymentMethods = ALL_PAYMENT_METHODS.filter((m) => enabledMethods.includes(m.value));
 
-  // Auto-select first available payment method
-  useEffect(() => {
-    if (paymentMethods.length > 0 && !form.paymentMethod) {
-      setForm((p) => ({ ...p, paymentMethod: paymentMethods[0].value }));
-    }
-  }, [enabledMethods.join(",")]);
-  const total = subtotal - discount + shippingCost;
-
-  const update = (key: keyof CheckoutForm, value: string) => setForm((p) => ({ ...p, [key]: value }));
-
-  const applyCoupon = async () => {
-    if (!form.couponCode.trim()) return;
-    setCouponLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("coupons_public")
-        .select("*")
-        .eq("code", form.couponCode.trim().toUpperCase())
-        .eq("is_valid", true)
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) {
-        toast({ title: "Invalid coupon", description: "This coupon code is not valid or has expired.", variant: "destructive" });
-        return;
-      }
-
-      // Check min order
-      if (subtotal < Number(data.min_order_amount)) {
-        toast({ title: "Minimum order not met", description: `Min order: ${sym}${Number(data.min_order_amount).toFixed(2)}`, variant: "destructive" });
-        return;
-      }
-
-      const discountAmount = data.discount_type === "percentage"
-        ? subtotal * (Number(data.discount_value) / 100)
-        : Number(data.discount_value);
-
-      setDiscount(Math.min(discountAmount, subtotal));
-      setCouponApplied(data.code!);
-      toast({ title: `Coupon applied: ${data.discount_type === "percentage" ? `${data.discount_value}% off` : `${sym}${Number(data.discount_value).toFixed(2)} off`}` });
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-    } finally {
-      setCouponLoading(false);
-    }
-  };
-
-  const removeCoupon = () => {
-    setDiscount(0);
-    setCouponApplied(null);
-    setForm((p) => ({ ...p, couponCode: "" }));
-  };
-
-  const placeOrder = async () => {
-    if (!form.name || !form.email || !form.phone) {
-      toast({ title: "Please fill in your name, email, and phone", variant: "destructive" });
-      return;
-    }
-    if (items.length === 0) {
-      toast({ title: "Cart is empty", variant: "destructive" });
-      return;
-    }
-    // Validate send money fields
-    if (form.paymentMethod === "bkash_send" || form.paymentMethod === "nagad_send") {
-      if (!form.senderNumber.trim() || !form.trxId.trim()) {
-        toast({ title: "Please enter your sender number and Transaction ID", variant: "destructive" });
-        return;
-      }
-    }
-
-    setSubmitting(true);
-    try {
-      // 1. Create or find customer via secure server-side function
-      const { data: customerId, error: custErr } = await supabase.rpc(
-        "upsert_checkout_customer",
-        {
-          _email: form.email.trim(),
-          _name: form.name,
-          _phone: form.phone,
-          _address: form.address,
-        }
-      );
-      if (custErr) throw custErr;
-
-      // 2. Create order
-      const { data: order, error: orderErr } = await supabase
-        .from("orders")
-        .insert({
-          customer_id: customerId,
-          customer_name: form.name,
-          customer_email: form.email.trim(),
-          customer_phone: form.phone,
-          shipping_address: form.address,
-          subtotal,
-          discount,
-          shipping_cost: shippingCost,
-          total,
-          payment_method: form.paymentMethod,
-          coupon_code: couponApplied,
-          notes: form.notes,
-          status: "pending",
-          payment_status: "unpaid",
-        })
-        .select("id, order_number")
-        .single();
-      if (orderErr) throw orderErr;
-
-      // 3. Create order items
-      const orderItems = items.map((item) => ({
-        order_id: order.id,
-        product_id: item.productId,
-        product_name: item.productName,
-        tier_label: item.tierLabel,
-        quantity: item.quantity,
-        unit_price: item.price,
-        total: item.price * item.quantity,
-      }));
-
-      const { error: itemsErr } = await supabase.from("order_items").insert(orderItems);
-      if (itemsErr) throw itemsErr;
-
-      // Fire outbound webhook (non-blocking)
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      const fnHeaders = {
-        "Content-Type": "application/json",
-        "apikey": anonKey,
-        "Authorization": `Bearer ${anonKey}`,
-      };
-      fetch(`https://${projectId}.supabase.co/functions/v1/order-webhook`, {
-        method: "POST",
-        headers: fnHeaders,
-        body: JSON.stringify({ order_id: order.id, event: "order.created" }),
-      }).catch(() => {});
-
-      // Send order confirmation email (non-blocking)
-      fetch(`https://${projectId}.supabase.co/functions/v1/send-order-confirmation`, {
-        method: "POST",
-        headers: fnHeaders,
-        body: JSON.stringify({ order_id: order.id, type: "order_confirmation", origin: window.location.origin }),
-      }).catch(() => {});
-
-      // 4. Handle bKash payment
-      if (form.paymentMethod === "bkash") {
-        const callbackURL = `${window.location.origin}/bkash/callback`;
-
-        const res = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/bkash-payment?action=create`,
-          {
-            method: "POST",
-            headers: fnHeaders,
-            body: JSON.stringify({
-              orderId: order.id,
-              callbackURL,
-              payerReference: form.phone,
-            }),
-          }
-        );
-
-        const bkashData = await res.json();
-        if (bkashData.bkashURL) {
-          // Store order info for callback page
-          localStorage.setItem("bkash_order_id", order.id);
-          localStorage.setItem("bkash_order_number", order.order_number);
-          // Redirect to bKash
-          window.location.href = bkashData.bkashURL;
-          return;
-        } else {
-          throw new Error(bkashData.error || "Failed to initiate bKash payment");
-        }
-      }
-
-      // 5. Handle Send Money (bkash_send / nagad_send)
-      if (form.paymentMethod === "bkash_send" || form.paymentMethod === "nagad_send") {
-        const res = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/verify-send-money`,
-          {
-            method: "POST",
-            headers: fnHeaders,
-            body: JSON.stringify({
-              orderId: order.id,
-              senderNumber: form.senderNumber.trim(),
-              trxId: form.trxId.trim(),
-              provider: form.paymentMethod,
-            }),
-          }
-        );
-        const sendResult = await res.json();
-        if (sendResult.verified) {
-          // Auto-verified
-          trackPurchase({
-            content_ids: items.map((i) => i.productId),
-            content_type: "product",
-            num_items: items.reduce((s, i) => s + i.quantity, 0),
-            value: total,
-            currency,
-          });
-        }
-        clearCart();
-        setPlacedOrderId(order.id);
-        setOrderPlaced(order.order_number);
-        if (!sendResult.verified) {
-          toast({ title: "Payment submitted", description: "Your payment is pending verification. You'll receive confirmation once verified." });
-        }
-        return;
-      }
-
-      // 6. Non-bKash: complete normally
-      trackPurchase({
-        content_ids: items.map((i) => i.productId),
-        content_type: "product",
-        num_items: items.reduce((s, i) => s + i.quantity, 0),
-        value: total,
-        currency,
-      });
-      clearCart();
-      setPlacedOrderId(order.id);
-      setOrderPlaced(order.order_number);
-    } catch (err: any) {
-      toast({ title: "Failed to place order", description: err.message, variant: "destructive" });
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  // Auto-select first method
+  if (paymentMethods.length > 0 && !form.paymentMethod) {
+    setTimeout(() => update("paymentMethod", paymentMethods[0].value), 0);
+  }
 
   if (orderPlaced) {
     return (
@@ -408,12 +115,7 @@ export default function CheckoutPage() {
             >
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 pointer-events-none" />
               <div className="relative">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="h-20 w-20 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-6"
-                >
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring", stiffness: 200 }} className="h-20 w-20 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-6">
                   <CheckCircle className="h-10 w-10 text-green-500" />
                 </motion.div>
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
@@ -427,12 +129,8 @@ export default function CheckoutPage() {
                 {placedOrderId && <DownloadLinks orderId={placedOrderId} />}
                 <OrderSuccessInstructions />
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
-                  <Button variant="gradient" asChild>
-                    <Link to="/products">Continue Shopping</Link>
-                  </Button>
-                  <Button variant="outline" asChild>
-                    <Link to="/account">View My Orders</Link>
-                  </Button>
+                  <Button variant="gradient" asChild><Link to="/products">Continue Shopping</Link></Button>
+                  <Button variant="outline" asChild><Link to="/account">View My Orders</Link></Button>
                 </motion.div>
                 <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="text-xs text-muted-foreground mt-6">
                   A confirmation email has been sent to your inbox.
@@ -452,9 +150,7 @@ export default function CheckoutPage() {
           <div className="container max-w-lg text-center">
             <ShoppingBag className="h-16 w-16 text-muted-foreground/30 mx-auto mb-6" />
             <h1 className="text-2xl font-display font-bold mb-3">Your cart is empty</h1>
-            <Button variant="gradient" asChild>
-              <Link to="/products">Browse Products</Link>
-            </Button>
+            <Button variant="gradient" asChild><Link to="/products">Browse Products</Link></Button>
           </div>
         </section>
       </Layout>
@@ -470,7 +166,6 @@ export default function CheckoutPage() {
           <h1 className="text-2xl sm:text-3xl font-display font-bold mb-6 sm:mb-8">Checkout</h1>
 
           <div className="grid gap-6 sm:gap-8 lg:grid-cols-5">
-            {/* Form */}
             <div className="lg:col-span-3 space-y-6">
               <div className="rounded-xl border border-border">
                 <div className="p-4 border-b border-border">
@@ -509,26 +204,16 @@ export default function CheckoutPage() {
                   <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Payment Method</h2>
                 </div>
                 <div className="p-4 space-y-2">
-                  {paymentMethods.length === 0 && (
-                    <p className="text-sm text-muted-foreground">No payment methods available.</p>
-                  )}
+                  {paymentMethods.length === 0 && <p className="text-sm text-muted-foreground">No payment methods available.</p>}
                   {paymentMethods.map((m) => (
                     <label key={m.value} className={`flex items-center gap-3 rounded-xl border p-3 cursor-pointer transition-colors ${form.paymentMethod === m.value ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"}`}>
-                      <input
-                        type="radio"
-                        name="payment"
-                        value={m.value}
-                        checked={form.paymentMethod === m.value}
-                        onChange={(e) => update("paymentMethod", e.target.value)}
-                        className="h-4 w-4 accent-primary"
-                      />
+                      <input type="radio" name="payment" value={m.value} checked={form.paymentMethod === m.value} onChange={(e) => update("paymentMethod", e.target.value)} className="h-4 w-4 accent-primary" />
                       <img src={m.logo} alt={m.label} className="h-7 w-7 object-contain rounded" loading="lazy" width={28} height={28} />
                       <span className="text-sm font-medium">{m.label}</span>
                     </label>
                   ))}
                 </div>
 
-                {/* Send Money Instructions Panel */}
                 {(form.paymentMethod === "bkash_send" || form.paymentMethod === "nagad_send") && (
                   <SendMoneyPanel
                     provider={form.paymentMethod}
@@ -549,7 +234,6 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Order Summary */}
             <div className="lg:col-span-2">
               <div className="rounded-xl border border-border sticky top-24">
                 <div className="p-4 border-b border-border">
@@ -569,7 +253,6 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="p-4 border-t border-border space-y-2">
-                  {/* Coupon */}
                   {couponApplied ? (
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-green-500">Coupon: {couponApplied}</span>
@@ -577,12 +260,7 @@ export default function CheckoutPage() {
                     </div>
                   ) : (
                     <div className="flex gap-2">
-                      <input
-                        value={form.couponCode}
-                        onChange={(e) => update("couponCode", e.target.value)}
-                        placeholder="Coupon code"
-                        className="h-9 flex-1 rounded-xl border border-border bg-background px-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
+                      <input value={form.couponCode} onChange={(e) => update("couponCode", e.target.value)} placeholder="Coupon code" className="h-9 flex-1 rounded-xl border border-border bg-background px-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary" />
                       <Button variant="outline" size="sm" onClick={applyCoupon} disabled={couponLoading}>
                         {couponLoading ? "..." : "Apply"}
                       </Button>

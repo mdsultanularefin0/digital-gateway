@@ -109,6 +109,35 @@ async function executePayment(baseUrl: string, idToken: string, paymentID: strin
   return data;
 }
 
+async function refundPayment(
+  baseUrl: string,
+  idToken: string,
+  paymentID: string,
+  trxID: string,
+  amount: string,
+  reason: string,
+) {
+  const appKey = Deno.env.get("BKASH_APP_KEY")!;
+  const res = await fetch(`${baseUrl}/tokenized/checkout/payment/refund`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      authorization: idToken,
+      "x-app-key": appKey,
+    },
+    body: JSON.stringify({
+      paymentID,
+      trxID,
+      amount,
+      sku: "refund",
+      reason: (reason || "Customer refund").slice(0, 255),
+    }),
+  });
+  const data = await res.json();
+  return { ok: res.ok, data };
+}
+
 // ── Main handler ───────────────────────────────────────────────
 
 Deno.serve(async (req) => {
