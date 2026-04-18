@@ -118,6 +118,7 @@ export default function CheckoutPage() {
   if (orderPlaced) {
     return (
       <Layout>
+        <SEOHead title="Order Confirmed" description="Your order has been received." noIndex disableHreflang />
         <section className="py-20 md:py-32">
           <div className="container max-w-lg mx-auto">
             <motion.div
@@ -158,6 +159,7 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <Layout>
+        <SEOHead title="Cart" description="Your cart is empty." noIndex disableHreflang />
         <section className="py-20 md:py-32">
           <div className="container max-w-lg text-center">
             <ShoppingBag className="h-16 w-16 text-muted-foreground/30 mx-auto mb-6" />
