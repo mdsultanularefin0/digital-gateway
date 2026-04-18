@@ -276,7 +276,7 @@ export default function AdminSales() {
           <div className="p-8 text-center text-muted-foreground">No orders yet</div>
         ) : (
           <div className="divide-y divide-border">
-            {orders.slice(0, 10).map((o: any) => (
+            {orders.slice(0, 10).map((o: OrderRow) => (
               <div key={o.id} className="flex items-center justify-between p-4">
                 <div>
                   <span className="font-mono text-xs">{o.order_number}</span>

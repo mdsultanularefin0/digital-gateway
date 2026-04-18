@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Search, Check, Star, Trash2, MessageSquare, Sparkles, Loader2, Copy, Globe } from "lucide-react";
 import { format } from "date-fns";
+import { getErrorMessage } from "@/lib/admin-utils";
+import type { Tables } from "@/integrations/supabase/types";
+
+type ReviewWithProduct = Tables<"reviews"> & { products: { name: string } | null };
 
 export default function AdminReviews() {
   const queryClient = useQueryClient();
@@ -20,7 +24,7 @@ export default function AdminReviews() {
         .select("*, products(name)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      return (data ?? []) as ReviewWithProduct[];
     },
   });
 
