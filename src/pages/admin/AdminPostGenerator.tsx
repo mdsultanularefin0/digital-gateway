@@ -1328,7 +1328,73 @@ export default function AdminPostGenerator() {
               </div>
             </BentoSection>
 
-            {/* Features */}
+            {/* Testimonial fields — shown when testimonial layout active */}
+            {layout.id === "testimonial" && (
+              <BentoSection title="TESTIMONIAL" id="testimonial" active={activeSection} onToggle={toggleSection} defaultOpen>
+                <div className="space-y-2.5">
+                  <FieldInput
+                    label="Quote"
+                    value={data.testimonialQuote}
+                    onChange={(v) => setData((d) => ({ ...d, testimonialQuote: v }))}
+                    placeholder="Best purchase I made all year!"
+                    multiline
+                  />
+                  <FieldInput
+                    label="Author"
+                    value={data.testimonialAuthor}
+                    onChange={(v) => setData((d) => ({ ...d, testimonialAuthor: v }))}
+                    placeholder="Sarah K."
+                  />
+                  <div>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 block">
+                      Rating ({data.testimonialRating}/5)
+                    </label>
+                    <input
+                      type="range"
+                      min={1}
+                      max={5}
+                      step={1}
+                      value={data.testimonialRating}
+                      onChange={(e) => setData((d) => ({ ...d, testimonialRating: Number(e.target.value) }))}
+                      className="w-full accent-primary"
+                    />
+                  </div>
+                </div>
+              </BentoSection>
+            )}
+
+            {/* Carousel fields — shown when carousel layout active */}
+            {layout.id === "carousel" && (
+              <BentoSection title="CAROUSEL" id="carousel" active={activeSection} onToggle={toggleSection} defaultOpen>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 block">
+                      Slide #
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={data.slideNumber}
+                      onChange={(e) => setData((d) => ({ ...d, slideNumber: Number(e.target.value) || 1 }))}
+                      className="h-8 w-full rounded-xl border border-border/60 bg-background px-2.5 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 block">
+                      Total
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={data.slideTotal}
+                      onChange={(e) => setData((d) => ({ ...d, slideTotal: Number(e.target.value) || 1 }))}
+                      className="h-8 w-full rounded-xl border border-border/60 bg-background px-2.5 text-xs"
+                    />
+                  </div>
+                </div>
+              </BentoSection>
+            )}
+
             <BentoSection title="FEATURES" id="features" active={activeSection} onToggle={toggleSection}>
               <div className="space-y-1.5">
                 {data.features.map((feat, i) => (
