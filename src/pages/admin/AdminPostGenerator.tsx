@@ -1277,6 +1277,16 @@ export default function AdminPostGenerator() {
               </div>
             </BentoSection>
 
+            {/* AI Content Generator — fills layout-specific fields with its own context */}
+            <BentoSection title="✨ AI CONTENT" id="ai-content" active={activeSection} onToggle={toggleSection}>
+              <PosterContentAi
+                layoutId={layout.id}
+                data={data}
+                currencySymbol={currencySymbol}
+                onApply={(patch) => setData((d) => ({ ...d, ...patch }))}
+              />
+            </BentoSection>
+
             {/* Content — logically ordered */}
             <BentoSection title="CONTENT" id="content" active={activeSection} onToggle={toggleSection} defaultOpen>
               <div className="space-y-3">
