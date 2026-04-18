@@ -96,7 +96,6 @@ const navStructure: NavEntry[] = [
     items: [
       { label: "Integrations", to: "/admin/integrations", icon: Plug },
       { label: "Storage", to: "/admin/storage", icon: HardDrive },
-      { label: "Activity Log", to: "/admin/activity", icon: Clock },
       { label: "Settings", to: "/admin/settings", icon: Settings },
     ],
   },
