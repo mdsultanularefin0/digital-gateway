@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/button";
 import { exportToCSV } from "@/lib/admin-utils";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components/admin/DateRangeFilter";
+import type { Tables } from "@/integrations/supabase/types";
+
+type OrderRow = Tables<"orders">;
+type OrderItemRow = Tables<"order_items">;
 
 const PIE_COLORS = [
   "hsl(210, 100%, 45%)",
@@ -50,12 +54,12 @@ export default function AdminSales() {
   });
 
   // Apply date range filter
-  const orders = filterByDateRange(allOrders, dateRange, (o: any) => o.created_at);
-  const orderIds = new Set(orders.map((o: any) => o.id));
-  const orderItems = allOrderItems.filter((item: any) => orderIds.has(item.order_id));
+  const orders = filterByDateRange(allOrders as OrderRow[], dateRange, (o: OrderRow) => o.created_at);
+  const orderIds = new Set(orders.map((o: OrderRow) => o.id));
+  const orderItems = (allOrderItems as OrderItemRow[]).filter((item: OrderItemRow) => orderIds.has(item.order_id));
 
-  const paidOrders = orders.filter((o: any) => o.payment_status === "paid");
-  const totalRevenue = paidOrders.reduce((sum: number, o: any) => sum + Number(o.total), 0);
+  const paidOrders = orders.filter((o: OrderRow) => o.payment_status === "paid");
+  const totalRevenue = paidOrders.reduce((sum: number, o: OrderRow) => sum + Number(o.total), 0);
   const totalOrders = orders.length;
   const avgOrderValue = paidOrders.length > 0 ? totalRevenue / paidOrders.length : 0;
 
