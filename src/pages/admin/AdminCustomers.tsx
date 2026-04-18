@@ -9,6 +9,8 @@ import { exportToCSV } from "@/lib/admin-utils";
 import { format } from "date-fns";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { countries } from "@/data/countries-currencies";
+import { usePagination } from "@/hooks/use-pagination";
+import { PaginationBar } from "@/components/admin/PaginationBar";
 
 const emptyCustomer = {
   name: "", email: "", phone: "", whatsapp: "", address: "", city: "", state: "", country: "", zip_code: "", notes: "", tags: [] as string[], status: "active",
@@ -113,6 +115,8 @@ export default function AdminCustomers() {
     c.email.toLowerCase().includes(search.toLowerCase()) ||
     c.phone.includes(search)
   );
+
+  const customersPagination = usePagination(filtered, 25);
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -313,7 +317,7 @@ export default function AdminCustomers() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtered.map((c: any) => (
+              {customersPagination.paged.map((c: any) => (
                 <tr key={c.id} className={`transition-colors ${selectedIds.has(c.id) ? "bg-primary/5" : "hover:bg-muted/30"}`}>
                   <td className="p-3">
                     <button onClick={() => toggleSelect(c.id)} className="text-muted-foreground hover:text-foreground">
@@ -338,6 +342,16 @@ export default function AdminCustomers() {
               ))}
             </tbody>
           </table>
+          <div className="p-3 border-t border-border">
+            <PaginationBar
+              page={customersPagination.page}
+              pageCount={customersPagination.pageCount}
+              pageSize={customersPagination.pageSize}
+              total={customersPagination.total}
+              onPrev={customersPagination.prev}
+              onNext={customersPagination.next}
+            />
+          </div>
         </div>
       )}
     </AdminLayout>

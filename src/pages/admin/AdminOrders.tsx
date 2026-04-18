@@ -187,6 +187,9 @@ export default function AdminOrders() {
     return matchSearch && matchStatus;
   });
 
+  const ordersPagination = usePagination(filtered, 25);
+  const pagedOrders = ordersPagination.paged;
+
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
