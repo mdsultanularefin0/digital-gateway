@@ -97,6 +97,7 @@ export default function LoginPage() {
       <Layout>
         <SEOHead title={`Verify Email — ${siteName}`} description="Verify your email to continue." noIndex disableHreflang />
         <section className="py-16 md:py-24">
+          <div className="container max-w-md">
             <div className="rounded-2xl border border-border bg-card p-8 md:p-10 shadow-lg">
               <div className="flex justify-center mb-6">
                 <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
