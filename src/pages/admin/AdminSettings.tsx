@@ -78,6 +78,7 @@ const settingGroups = [
     fields: [
       { key: "meta_title", label: "Default Meta Title", placeholder: "GiftCardVibe — Premium Gift Cards" },
       { key: "meta_description", label: "Default Meta Description", placeholder: "Discover curated digital tools...", type: "textarea" },
+      { key: "meta_keywords", label: "Default Meta Keywords", placeholder: "comma, separated, keywords" },
       { key: "default_og_image_url", label: "Default Share Image", placeholder: "https://... or upload (1200×630 recommended)", type: "image" },
       { key: "default_twitter_card", label: "Default Twitter Card", placeholder: "summary_large_image", type: "twitter_card" },
       { key: "default_canonical_url", label: "Site Base URL", placeholder: "https://yourdomain.com" },
