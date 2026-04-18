@@ -114,7 +114,16 @@ const settingGroups: GroupDef[] = [
 ];
 
 // ----- Theme tab definitions -----
-type ThemeKey = "theme_primary" | "theme_accent" | "theme_background" | "theme_foreground" | "theme_radius";
+type ThemeKey =
+  | "theme_primary"
+  | "theme_accent"
+  | "theme_background"
+  | "theme_foreground"
+  | "theme_radius"
+  | "theme_dark_primary"
+  | "theme_dark_accent"
+  | "theme_dark_background"
+  | "theme_dark_foreground";
 
 const THEME_DEFAULTS: Record<ThemeKey, string> = {
   theme_primary: "210 100% 45%",
@@ -122,14 +131,18 @@ const THEME_DEFAULTS: Record<ThemeKey, string> = {
   theme_background: "210 30% 98%",
   theme_foreground: "214 60% 10%",
   theme_radius: "0.75rem",
+  theme_dark_primary: "210 100% 55%",
+  theme_dark_accent: "195 80% 50%",
+  theme_dark_background: "214 40% 8%",
+  theme_dark_foreground: "210 30% 92%",
 };
 
 const THEME_PRESETS: { name: string; values: Record<ThemeKey, string> }[] = [
-  { name: "Frost Blue (Default)", values: { theme_primary: "210 100% 45%", theme_accent: "195 80% 45%", theme_background: "210 30% 98%", theme_foreground: "214 60% 10%", theme_radius: "0.75rem" } },
-  { name: "Emerald", values: { theme_primary: "160 70% 38%", theme_accent: "175 65% 42%", theme_background: "150 30% 98%", theme_foreground: "160 50% 10%", theme_radius: "0.75rem" } },
-  { name: "Sunset Orange", values: { theme_primary: "20 90% 50%", theme_accent: "350 80% 55%", theme_background: "30 40% 98%", theme_foreground: "20 50% 10%", theme_radius: "1rem" } },
-  { name: "Royal Violet", values: { theme_primary: "265 75% 55%", theme_accent: "290 70% 55%", theme_background: "265 30% 98%", theme_foreground: "265 40% 10%", theme_radius: "0.5rem" } },
-  { name: "Mono Slate", values: { theme_primary: "215 25% 27%", theme_accent: "215 20% 50%", theme_background: "210 20% 98%", theme_foreground: "215 30% 10%", theme_radius: "0.375rem" } },
+  { name: "Frost Blue (Default)", values: { theme_primary: "210 100% 45%", theme_accent: "195 80% 45%", theme_background: "210 30% 98%", theme_foreground: "214 60% 10%", theme_radius: "0.75rem", theme_dark_primary: "210 100% 55%", theme_dark_accent: "195 80% 50%", theme_dark_background: "214 40% 8%", theme_dark_foreground: "210 30% 92%" } },
+  { name: "Emerald", values: { theme_primary: "160 70% 38%", theme_accent: "175 65% 42%", theme_background: "150 30% 98%", theme_foreground: "160 50% 10%", theme_radius: "0.75rem", theme_dark_primary: "160 70% 48%", theme_dark_accent: "175 65% 50%", theme_dark_background: "160 35% 8%", theme_dark_foreground: "150 25% 92%" } },
+  { name: "Sunset Orange", values: { theme_primary: "20 90% 50%", theme_accent: "350 80% 55%", theme_background: "30 40% 98%", theme_foreground: "20 50% 10%", theme_radius: "1rem", theme_dark_primary: "20 90% 58%", theme_dark_accent: "350 80% 62%", theme_dark_background: "20 35% 8%", theme_dark_foreground: "30 25% 92%" } },
+  { name: "Royal Violet", values: { theme_primary: "265 75% 55%", theme_accent: "290 70% 55%", theme_background: "265 30% 98%", theme_foreground: "265 40% 10%", theme_radius: "0.5rem", theme_dark_primary: "265 75% 65%", theme_dark_accent: "290 70% 62%", theme_dark_background: "265 35% 8%", theme_dark_foreground: "265 25% 92%" } },
+  { name: "Mono Slate", values: { theme_primary: "215 25% 27%", theme_accent: "215 20% 50%", theme_background: "210 20% 98%", theme_foreground: "215 30% 10%", theme_radius: "0.375rem", theme_dark_primary: "215 25% 75%", theme_dark_accent: "215 20% 60%", theme_dark_background: "215 30% 8%", theme_dark_foreground: "210 20% 92%" } },
 ];
 
 // hsl "h s% l%" <-> hex helpers
@@ -337,6 +350,46 @@ function ThemeEditor({ values, update }: { values: SettingsMap; update: (k: stri
     { key: "theme_foreground", label: "Foreground", help: "Default text color" },
   ];
 
+  const darkColorFields: { key: ThemeKey; label: string; help: string }[] = [
+    { key: "theme_dark_primary", label: "Primary (dark)", help: "Brand color when dark mode is active" },
+    { key: "theme_dark_accent", label: "Accent (dark)", help: "Secondary highlight in dark mode" },
+    { key: "theme_dark_background", label: "Background (dark)", help: "Page background in dark mode" },
+    { key: "theme_dark_foreground", label: "Foreground (dark)", help: "Default text color in dark mode" },
+  ];
+
+  const renderColorRow = (f: { key: ThemeKey; label: string; help: string }) => {
+    const raw = values[f.key] || THEME_DEFAULTS[f.key];
+    const hex = hslToHex(raw);
+    return (
+      <div key={f.key} className="flex flex-col sm:flex-row sm:items-center gap-3 p-4">
+        <div className="w-40 shrink-0">
+          <div className="text-sm font-medium">{f.label}</div>
+          <div className="text-xs text-muted-foreground">{f.help}</div>
+        </div>
+        <div className="flex items-center gap-3 flex-1">
+          <label className="relative cursor-pointer">
+            <input
+              type="color"
+              value={hex}
+              onChange={(e) => update(f.key, hexToHslStr(e.target.value))}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+            />
+            <span
+              className="block h-10 w-10 rounded-xl border border-border shadow-sm"
+              style={{ background: `hsl(${raw})` }}
+            />
+          </label>
+          <input
+            value={raw}
+            onChange={(e) => update(f.key, e.target.value)}
+            placeholder="e.g. 210 100% 45%"
+            className="h-10 flex-1 rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary font-mono"
+          />
+        </div>
+      </div>
+    );
+  };
+
   const applyPreset = (preset: typeof THEME_PRESETS[number]) => {
     Object.entries(preset.values).forEach(([k, v]) => update(k, v));
     toast({ title: `Applied "${preset.name}"`, description: "Click Save to persist." });
@@ -379,41 +432,20 @@ function ThemeEditor({ values, update }: { values: SettingsMap; update: (k: stri
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold tracking-wider uppercase mb-1">Colors</h3>
-        <p className="text-xs text-muted-foreground mb-3">Pick colors directly. Stored as HSL so dark mode adapts gracefully.</p>
+        <h3 className="text-sm font-semibold tracking-wider uppercase mb-1">Light Mode Colors</h3>
+        <p className="text-xs text-muted-foreground mb-3">Pick colors directly. Stored as HSL triplets.</p>
         <div className="rounded-xl border border-border divide-y divide-border">
-          {colorFields.map((f) => {
-            const raw = values[f.key] || THEME_DEFAULTS[f.key];
-            const hex = hslToHex(raw);
-            return (
-              <div key={f.key} className="flex flex-col sm:flex-row sm:items-center gap-3 p-4">
-                <div className="w-40 shrink-0">
-                  <div className="text-sm font-medium">{f.label}</div>
-                  <div className="text-xs text-muted-foreground">{f.help}</div>
-                </div>
-                <div className="flex items-center gap-3 flex-1">
-                  <label className="relative cursor-pointer">
-                    <input
-                      type="color"
-                      value={hex}
-                      onChange={(e) => update(f.key, hexToHslStr(e.target.value))}
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                    />
-                    <span
-                      className="block h-10 w-10 rounded-xl border border-border shadow-sm"
-                      style={{ background: `hsl(${raw})` }}
-                    />
-                  </label>
-                  <input
-                    value={raw}
-                    onChange={(e) => update(f.key, e.target.value)}
-                    placeholder="e.g. 210 100% 45%"
-                    className="h-10 flex-1 rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary font-mono"
-                  />
-                </div>
-              </div>
-            );
-          })}
+          {colorFields.map(renderColorRow)}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold tracking-wider uppercase mb-1">Dark Mode Colors</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          Override tokens used when dark mode is active. Leave defaults if unsure.
+        </p>
+        <div className="rounded-xl border border-border divide-y divide-border">
+          {darkColorFields.map(renderColorRow)}
         </div>
       </div>
 
