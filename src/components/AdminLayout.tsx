@@ -4,10 +4,11 @@ import {
   LayoutDashboard, Package, ShoppingCart, Users, BarChart3, Tag,
   MessageSquare, Settings, LogOut, Menu, X, Zap, ChevronLeft, Plug,
   ImageIcon, Mail, Clock, Newspaper, CreditCard, FileText,
-  PanelTop, ChevronDown, FileEdit, ShieldCheck, HardDrive, Boxes,
+  PanelTop, ChevronDown, FileEdit, ShieldCheck, HardDrive, Boxes, Share2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { KeyboardShortcutsDialog } from "@/components/admin/KeyboardShortcutsDialog";
 
 interface NavItem {
   label: string;
@@ -72,6 +73,7 @@ const navStructure: NavEntry[] = [
       { label: "Newsletter", to: "/admin/newsletter", icon: Newspaper },
       { label: "Social Poster", to: "/admin/social-poster", icon: Newspaper },
       { label: "Post Generator", to: "/admin/post-generator", icon: ImageIcon },
+      { label: "Referrals", to: "/admin/referrals", icon: Share2 },
     ],
   },
   {
@@ -227,6 +229,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <div className="fixed inset-0 z-40 bg-background/50 lg:hidden" onClick={closeSidebar} />
       )}
 
+      <KeyboardShortcutsDialog />
       <div className="flex-1 flex flex-col min-w-0">
         <header className="sticky top-0 z-30 flex h-14 sm:h-16 items-center gap-3 border-b glass px-4 sm:px-6">
           <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-muted-foreground hover:text-foreground">

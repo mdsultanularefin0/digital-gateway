@@ -1030,6 +1030,78 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_attributions: {
+        Row: {
+          amount: number
+          created_at: string
+          customer_email: string
+          event_type: string
+          id: string
+          order_id: string | null
+          referral_code: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          customer_email?: string
+          event_type?: string
+          id?: string
+          order_id?: string | null
+          referral_code: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          customer_email?: string
+          event_type?: string
+          id?: string
+          order_id?: string | null
+          referral_code?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          active: boolean
+          click_count: number
+          code: string
+          created_at: string
+          id: string
+          order_count: number
+          owner_email: string
+          owner_name: string
+          signup_count: number
+          total_revenue: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          click_count?: number
+          code: string
+          created_at?: string
+          id?: string
+          order_count?: number
+          owner_email: string
+          owner_name?: string
+          signup_count?: number
+          total_revenue?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          click_count?: number
+          code?: string
+          created_at?: string
+          id?: string
+          order_count?: number
+          owner_email?: string
+          owner_name?: string
+          signup_count?: number
+          total_revenue?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           approved: boolean
@@ -1039,6 +1111,7 @@ export type Database = {
           customer_name: string
           featured: boolean
           id: string
+          photo_urls: string[]
           product_id: string | null
           rating: number
           title: string
@@ -1052,6 +1125,7 @@ export type Database = {
           customer_name?: string
           featured?: boolean
           id?: string
+          photo_urls?: string[]
           product_id?: string | null
           rating?: number
           title?: string
@@ -1065,6 +1139,7 @@ export type Database = {
           customer_name?: string
           featured?: boolean
           id?: string
+          photo_urls?: string[]
           product_id?: string | null
           rating?: number
           title?: string

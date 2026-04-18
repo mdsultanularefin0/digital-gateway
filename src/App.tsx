@@ -1,4 +1,5 @@
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
+import { captureReferralFromUrl } from "@/lib/referral-tracking";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -59,6 +60,7 @@ const AdminSocialPoster = lazyRetry(() => import("./pages/admin/AdminSocialPoste
 const AdminEmailLogs = lazyRetry(() => import("./pages/admin/AdminEmailLogs"));
 const AdminInventory = lazyRetry(() => import("./pages/admin/AdminInventory"));
 const AdminEdgeFunctionLogs = lazyRetry(() => import("./pages/admin/AdminEdgeFunctionLogs"));
+const AdminReferrals = lazyRetry(() => import("./pages/admin/AdminReferrals"));
 const NotFound = lazyRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -71,7 +73,9 @@ function PageLoader() {
   );
 }
 
-const App = () => (
+const App = () => {
+  useEffect(() => { captureReferralFromUrl().catch(() => {}); }, []);
+  return (
   <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -129,6 +133,7 @@ const App = () => (
                       <Route path="/admin/email-logs" element={<AdminGuard><AdminEmailLogs /></AdminGuard>} />
                       <Route path="/admin/inventory" element={<AdminGuard><AdminInventory /></AdminGuard>} />
                       <Route path="/admin/edge-function-logs" element={<AdminGuard><AdminEdgeFunctionLogs /></AdminGuard>} />
+                      <Route path="/admin/referrals" element={<AdminGuard><AdminReferrals /></AdminGuard>} />
                       <Route path="/p/:slug" element={<LandingPage />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
@@ -142,6 +147,7 @@ const App = () => (
       </TooltipProvider>
     </QueryClientProvider>
   </ThemeProvider>
-);
+  );
+};
 
 export default App;
