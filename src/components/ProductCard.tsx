@@ -155,11 +155,11 @@ export function ProductCard({ product: rawProduct }: { product: Product }) {
       </div>
 
       {/* CTA row */}
-      <div className="mt-3 flex items-center gap-2">
+      <div className="mt-3 grid grid-cols-2 gap-2">
         <Button
           variant="outline"
           size="sm"
-          className={cn("rounded-xl flex-1 h-10 sm:h-9 text-sm font-semibold")}
+          className={cn("rounded-xl w-full h-10 text-sm font-semibold")}
           tabIndex={-1}
           onClick={(e) => e.stopPropagation()}
           aria-label={t("action.view_details")}
@@ -170,7 +170,7 @@ export function ProductCard({ product: rawProduct }: { product: Product }) {
           <Button
             variant="gradient"
             size="sm"
-            className="rounded-xl flex-1 sm:flex-none h-10 sm:h-9 px-4 text-sm font-semibold"
+            className="rounded-xl w-full h-10 text-sm font-semibold"
             onClick={handleBuyNow}
             tabIndex={-1}
             aria-label={t("action.buy_now") || "Buy Now"}
