@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { getErrorMessage } from "@/lib/admin-utils";
 
 import mockupDatacamp from "@/assets/mockup-datacamp.png";
 import mockupCanva from "@/assets/mockup-canva.png";
@@ -961,8 +962,8 @@ export default function AdminPostGenerator() {
       const result = await uploadToStorage(file, "social");
       const caption = encodeURIComponent(`${data.productName || ""}\n\n${data.tagline || ""}`.trim());
       window.location.href = `/admin/social-poster?mediaUrl=${encodeURIComponent(result.url)}&caption=${caption}`;
-    } catch (err: any) {
-      toast({ title: "Failed to send", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      toast({ title: "Failed to send", description: getErrorMessage(err), variant: "destructive" });
     } finally {
       setPublishing(false);
     }
@@ -1530,7 +1531,7 @@ function PosterContentAi({
       if (parsed.ctaText) patch.ctaText = String(parsed.ctaText);
       if (parsed.footerText) patch.footerText = String(parsed.footerText);
       if (Array.isArray(parsed.features)) {
-        const cleaned = parsed.features.map((f: any) => String(f || "").trim()).filter(Boolean);
+        const cleaned = parsed.features.map((f: unknown) => String(f ?? "").trim()).filter(Boolean);
         if (cleaned.length) patch.features = cleaned;
       }
       if (parsed.testimonialQuote) patch.testimonialQuote = String(parsed.testimonialQuote);
@@ -1539,9 +1540,9 @@ function PosterContentAi({
       setLastResult(patch);
       onApply(patch);
       toast({ title: "Poster content generated!" });
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("poster ai error", e);
-      toast({ title: e?.message || "Generation failed", variant: "destructive" });
+      toast({ title: getErrorMessage(e, "Generation failed"), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -1655,8 +1656,8 @@ function CaptionGenerator({ data }: { data: PostData }) {
       if (error) throw error;
       if (result?.error) throw new Error(result.error);
       setCaption(result?.caption || "");
-    } catch (e: any) {
-      toast({ title: e.message || "Failed to generate caption", variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: getErrorMessage(e, "Failed to generate caption"), variant: "destructive" });
     } finally {
       setLoading(false);
     }
