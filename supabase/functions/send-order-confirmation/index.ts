@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { withLogging } from "../_shared/logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -105,7 +106,7 @@ function wrapInEmailLayout(siteName: string, bodyContent: string): string {
 </html>`;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withLogging("send-order-confirmation", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -386,4 +387,4 @@ Deno.serve(async (req) => {
     console.error("send-order-confirmation error:", err);
     return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: corsHeaders });
   }
-});
+}));

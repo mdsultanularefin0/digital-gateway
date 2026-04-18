@@ -32,7 +32,7 @@ RULES:
 - Return ONLY the translated text. No preamble, no quotes, no explanations.`;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withLogging("translate", async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -105,4 +105,4 @@ Deno.serve(async (req) => {
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
-});
+}));

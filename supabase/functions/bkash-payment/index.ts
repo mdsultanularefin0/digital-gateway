@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { withLogging } from "../_shared/logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -140,7 +141,7 @@ async function refundPayment(
 
 // ── Main handler ───────────────────────────────────────────────
 
-Deno.serve(async (req) => {
+Deno.serve(withLogging("bkash-payment", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -386,4 +387,4 @@ Deno.serve(async (req) => {
     const message = err instanceof Error ? err.message : "Unknown error";
     return json({ error: message }, 500);
   }
-});
+}));
