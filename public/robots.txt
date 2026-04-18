@@ -13,4 +13,5 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://secure-link-shop.lovable.app/sitemap.xml
+# Dynamic sitemap (auto-generated from products, blog, landing pages)
+Sitemap: https://hlkjlkjxkmjklrsffvrs.functions.supabase.co/sitemap
