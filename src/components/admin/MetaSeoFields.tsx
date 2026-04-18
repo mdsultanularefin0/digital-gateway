@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { uploadToStorage } from "@/lib/storage";
+import { LinkPreviewCard } from "@/components/admin/LinkPreviewCard";
 
 export interface MetaSeoValues {
   meta_title: string;
@@ -11,6 +12,10 @@ export interface MetaSeoValues {
   meta_keywords: string;
   /** Optional — only shown when `showOgImage` is true. */
   og_image_url?: string;
+  /** Optional Twitter card type. Defaults to "summary_large_image" when blank. */
+  twitter_card?: string;
+  /** Optional fully-qualified canonical URL for this page. */
+  canonical_url?: string;
 }
 
 interface Props {
@@ -29,6 +34,12 @@ interface Props {
   langLabel?: string;
   /** Show a translate-from-EN bar on Bangla side (parent provides handler). */
   translateAction?: React.ReactNode;
+  /** Show the Twitter card + canonical URL fields. Default: true. */
+  showAdvanced?: boolean;
+  /** Show the live link-preview card. Default: true. */
+  showPreview?: boolean;
+  /** Site name passed into the preview card. */
+  siteName?: string;
 }
 
 const inputClass =
@@ -55,6 +66,9 @@ export function MetaSeoFields({
   showOgImage = true,
   langLabel,
   translateAction,
+  showAdvanced = true,
+  showPreview = true,
+  siteName,
 }: Props) {
   const [generating, setGenerating] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -100,8 +114,10 @@ export function MetaSeoFields({
     <div className="rounded-xl border border-border bg-muted/20 p-4 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h3 className="text-sm font-semibold">SEO Meta {langLabel ? `(${langLabel})` : ""}</h3>
-          <p className="text-xs text-muted-foreground">Search engine title, description & keywords. Leave blank to auto-fall-back.</p>
+          <h3 className="text-sm font-semibold">SEO &amp; Link Preview {langLabel ? `(${langLabel})` : ""}</h3>
+          <p className="text-xs text-muted-foreground">
+            Controls the title, description, image &amp; URL shown when this page is shared on Facebook, X, LinkedIn, WhatsApp, etc.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           {translateAction}
@@ -151,6 +167,7 @@ export function MetaSeoFields({
       {showOgImage && (
         <div>
           <label className="text-xs font-medium block mb-1">Open Graph Image (social share)</label>
+          <p className="text-[10px] text-muted-foreground mb-2">Recommended: 1200×630 JPG/PNG, under 5 MB.</p>
           <div className="flex gap-2 items-start flex-wrap">
             {values.og_image_url ? (
               <div className="relative">
@@ -187,6 +204,51 @@ export function MetaSeoFields({
               </label>
             </div>
           </div>
+        </div>
+      )}
+
+      {showAdvanced && (
+        <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t border-border">
+          <div>
+            <label className="text-xs font-medium block mb-1">Twitter / X Card Type</label>
+            <select
+              value={values.twitter_card || ""}
+              onChange={(e) => onChange({ ...values, twitter_card: e.target.value })}
+              className={inputClass}
+            >
+              <option value="">Auto (large image if OG image is set)</option>
+              <option value="summary_large_image">Summary, Large Image</option>
+              <option value="summary">Summary (small thumbnail)</option>
+            </select>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Controls the X / Twitter preview layout.
+            </p>
+          </div>
+          <div>
+            <label className="text-xs font-medium block mb-1">Canonical URL</label>
+            <input
+              value={values.canonical_url || ""}
+              onChange={(e) => onChange({ ...values, canonical_url: e.target.value })}
+              placeholder="https://example.com/about"
+              className={inputClass}
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Tells search engines &amp; social platforms the official URL.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {showPreview && (
+        <div className="pt-3 border-t border-border">
+          <LinkPreviewCard
+            title={values.meta_title}
+            description={values.meta_description}
+            ogImage={values.og_image_url}
+            canonical={values.canonical_url}
+            twitterCard={values.twitter_card || "summary_large_image"}
+            siteName={siteName}
+          />
         </div>
       )}
     </div>
