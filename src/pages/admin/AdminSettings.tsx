@@ -350,6 +350,46 @@ function ThemeEditor({ values, update }: { values: SettingsMap; update: (k: stri
     { key: "theme_foreground", label: "Foreground", help: "Default text color" },
   ];
 
+  const darkColorFields: { key: ThemeKey; label: string; help: string }[] = [
+    { key: "theme_dark_primary", label: "Primary (dark)", help: "Brand color when dark mode is active" },
+    { key: "theme_dark_accent", label: "Accent (dark)", help: "Secondary highlight in dark mode" },
+    { key: "theme_dark_background", label: "Background (dark)", help: "Page background in dark mode" },
+    { key: "theme_dark_foreground", label: "Foreground (dark)", help: "Default text color in dark mode" },
+  ];
+
+  const renderColorRow = (f: { key: ThemeKey; label: string; help: string }) => {
+    const raw = values[f.key] || THEME_DEFAULTS[f.key];
+    const hex = hslToHex(raw);
+    return (
+      <div key={f.key} className="flex flex-col sm:flex-row sm:items-center gap-3 p-4">
+        <div className="w-40 shrink-0">
+          <div className="text-sm font-medium">{f.label}</div>
+          <div className="text-xs text-muted-foreground">{f.help}</div>
+        </div>
+        <div className="flex items-center gap-3 flex-1">
+          <label className="relative cursor-pointer">
+            <input
+              type="color"
+              value={hex}
+              onChange={(e) => update(f.key, hexToHslStr(e.target.value))}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+            />
+            <span
+              className="block h-10 w-10 rounded-xl border border-border shadow-sm"
+              style={{ background: `hsl(${raw})` }}
+            />
+          </label>
+          <input
+            value={raw}
+            onChange={(e) => update(f.key, e.target.value)}
+            placeholder="e.g. 210 100% 45%"
+            className="h-10 flex-1 rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary font-mono"
+          />
+        </div>
+      </div>
+    );
+  };
+
   const applyPreset = (preset: typeof THEME_PRESETS[number]) => {
     Object.entries(preset.values).forEach(([k, v]) => update(k, v));
     toast({ title: `Applied "${preset.name}"`, description: "Click Save to persist." });
