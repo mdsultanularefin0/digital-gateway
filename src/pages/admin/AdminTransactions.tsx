@@ -72,6 +72,8 @@ export default function AdminTransactions() {
     return matchesSearch && matchesStatus && matchesMethod;
   });
 
+  const pagination = usePagination(filtered, 25);
+
   // Stats
   const totalCount = dateFiltered.length;
   const completedCount = dateFiltered.filter((t) => t.status === "completed" || t.status === "paid").length;
@@ -196,7 +198,7 @@ export default function AdminTransactions() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((t) => {
+                  {pagination.paged.map((t) => {
                     const sc = statusConfig[t.status] || statusConfig.pending;
                     const StatusIcon = sc.icon;
                     const ml = methodLabels[t.payment_method] || { label: t.payment_method, icon: CreditCard };
@@ -244,6 +246,16 @@ export default function AdminTransactions() {
                   })}
                 </tbody>
               </table>
+            </div>
+            <div className="px-4 pb-3">
+              <PaginationBar
+                page={pagination.page}
+                pageCount={pagination.pageCount}
+                pageSize={pagination.pageSize}
+                total={pagination.total}
+                onPrev={pagination.prev}
+                onNext={pagination.next}
+              />
             </div>
           </div>
         )}
