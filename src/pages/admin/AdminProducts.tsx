@@ -572,7 +572,7 @@ export default function AdminProducts() {
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">Price Label</label>
-              <input value={editing.price_label ?? ""} onChange={(e) => setEditing({ ...editing, price_label: e.target.value })} className={inputClass} placeholder="e.g. $29/mo" />
+              <input value={editing.price_label ?? ""} onChange={(e) => setEditing({ ...editing, price_label: e.target.value })} className={inputClass} placeholder="e.g. ৳29/mo" />
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">Billing Cycle</label>
