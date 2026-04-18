@@ -95,7 +95,7 @@ export default function LoginPage() {
   if (showOtp) {
     return (
       <Layout>
-        <section className="py-16 md:py-24">
+        <SEOHead title={`Verify Email — ${siteName}`} description="Verify your email to continue." noIndex disableHreflang />
           <div className="container max-w-md">
             <div className="rounded-2xl border border-border bg-card p-8 md:p-10 shadow-lg">
               <div className="flex justify-center mb-6">
