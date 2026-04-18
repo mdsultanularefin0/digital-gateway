@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Undo2, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import FulfillmentPanel from "./FulfillmentPanel";
+import { toast } from "@/hooks/use-toast";
 
 interface OrderDetailProps {
   order: any;
@@ -13,6 +15,39 @@ interface OrderDetailProps {
 }
 
 export default function OrderDetail({ order: o, currencySymbol, onBack, onDelete, onUpdateStatus, onUpdatePayment }: OrderDetailProps) {
+  const [refundOpen, setRefundOpen] = useState(false);
+  const [refundAmt, setRefundAmt] = useState<string>(String(o.total));
+  const [refundReason, setRefundReason] = useState("");
+  const [refunding, setRefunding] = useState(false);
+
+  const isBkash = o.payment_method === "bkash" && o.payment_status === "paid";
+
+  const handleRefund = async () => {
+    setRefunding(true);
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const res = await fetch(`https://${projectId}.supabase.co/functions/v1/bkash-payment?action=refund`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+        body: JSON.stringify({ orderId: o.id, amount: Number(refundAmt), reason: refundReason }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        toast({ title: "Refund failed", description: JSON.stringify(data.error || data), variant: "destructive" });
+      } else {
+        toast({ title: "Refund processed", description: `bKash refundTrxID: ${data.refund?.refundTrxID || "—"}` });
+        setRefundOpen(false);
+        // trigger parent re-fetch by re-marking payment status
+        if (Math.abs(Number(refundAmt) - Number(o.total)) < 0.01) onUpdatePayment(o.id, "refunded");
+      }
+    } catch (e: any) {
+      toast({ title: "Refund error", description: e.message, variant: "destructive" });
+    } finally {
+      setRefunding(false);
+    }
+  };
+
   return (
     <>
       <div className="mb-6">
@@ -24,10 +59,51 @@ export default function OrderDetail({ order: o, currencySymbol, onBack, onDelete
             <h2 className="text-xl font-display font-bold">{o.order_number}</h2>
             <p className="text-sm text-muted-foreground">{format(new Date(o.created_at), "PPP p")}</p>
           </div>
-          <Button variant="destructive" size="sm" onClick={() => { if (confirm("Delete this order?")) onDelete(o.id); }}>
-            <Trash2 className="h-4 w-4 mr-1" /> Delete
-          </Button>
+          <div className="flex gap-2">
+            {isBkash && (
+              <Button variant="outline" size="sm" onClick={() => setRefundOpen((v) => !v)}>
+                <Undo2 className="h-4 w-4 mr-1" /> Refund
+              </Button>
+            )}
+            <Button variant="destructive" size="sm" onClick={() => { if (confirm("Delete this order?")) onDelete(o.id); }}>
+              <Trash2 className="h-4 w-4 mr-1" /> Delete
+            </Button>
+          </div>
         </div>
+
+        {refundOpen && isBkash && (
+          <div className="rounded-xl border border-border p-4 space-y-3 bg-muted/30">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">bKash Refund</h3>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium mb-1 block">Amount ({currencySymbol})</label>
+                <input
+                  type="number" step="0.01" min="0" max={o.total}
+                  value={refundAmt}
+                  onChange={(e) => setRefundAmt(e.target.value)}
+                  className="h-9 w-full rounded-xl border border-border bg-background px-3 text-sm"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Order total: {currencySymbol}{Number(o.total).toFixed(2)} — partial refunds supported.</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium mb-1 block">Reason</label>
+                <input
+                  value={refundReason}
+                  onChange={(e) => setRefundReason(e.target.value)}
+                  placeholder="e.g. Customer request"
+                  className="h-9 w-full rounded-xl border border-border bg-background px-3 text-sm"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" variant="destructive" onClick={handleRefund} disabled={refunding || !refundAmt || Number(refundAmt) <= 0}>
+                {refunding && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+                Process Refund
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setRefundOpen(false)}>Cancel</Button>
+            </div>
+          </div>
+        )}
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-xl border border-border p-4">
