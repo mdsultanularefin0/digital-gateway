@@ -3,11 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Mail, MapPin, Phone, MessageCircle } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { usePageContents } from "@/hooks/use-page-contents";
+import { usePageMeta } from "@/hooks/use-page-meta";
+import { SEOHead } from "@/components/SEOHead";
 import DOMPurify from "dompurify";
 
 export default function ContactPage() {
   const { data: settings } = useSiteSettings();
   const { data: pageContent } = usePageContents("contact");
+  const { data: pageMeta } = usePageMeta("contact");
 
   const heading = pageContent?.heading || "Get in Touch";
   const subheading = pageContent?.subheading || "Have questions? We'd love to hear from you.";
@@ -21,6 +24,15 @@ export default function ContactPage() {
 
   return (
     <Layout>
+      <SEOHead
+        title={pageMeta?.meta_title?.trim() || heading}
+        description={pageMeta?.meta_description?.trim() || subheading}
+        keywords={pageMeta?.meta_keywords?.trim() || undefined}
+        ogImage={pageMeta?.og_image_url?.trim() || (settings as any)?.default_og_image_url || undefined}
+        canonical={pageMeta?.canonical_url?.trim() || undefined}
+        twitterCard={(pageMeta?.twitter_card?.trim() || (settings as any)?.default_twitter_card || undefined) as any}
+        siteName={(settings as any)?.site_name}
+      />
       <section className="py-16 md:py-24">
         <div className="container px-5 md:px-8 max-w-4xl">
           <div className="text-center mb-16">

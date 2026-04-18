@@ -1,10 +1,15 @@
 import { Layout } from "@/components/Layout";
 import { faqs as defaultFaqs } from "@/data/products";
 import { usePageContents } from "@/hooks/use-page-contents";
+import { usePageMeta } from "@/hooks/use-page-meta";
+import { useSiteSettings } from "@/hooks/use-site-settings";
+import { SEOHead } from "@/components/SEOHead";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export default function FAQPage() {
   const { data: pageContent } = usePageContents("faq");
+  const { data: pageMeta } = usePageMeta("faq");
+  const { data: settings } = useSiteSettings();
   const heading = pageContent?.heading || "FAQ";
   const subheading = pageContent?.subheading || "Everything you need to know about our products and services.";
 
@@ -23,6 +28,15 @@ export default function FAQPage() {
 
   return (
     <Layout>
+      <SEOHead
+        title={pageMeta?.meta_title?.trim() || heading}
+        description={pageMeta?.meta_description?.trim() || subheading}
+        keywords={pageMeta?.meta_keywords?.trim() || undefined}
+        ogImage={pageMeta?.og_image_url?.trim() || (settings as any)?.default_og_image_url || undefined}
+        canonical={pageMeta?.canonical_url?.trim() || undefined}
+        twitterCard={(pageMeta?.twitter_card?.trim() || (settings as any)?.default_twitter_card || undefined) as any}
+        siteName={(settings as any)?.site_name}
+      />
       <section className="py-16 md:py-24">
         <div className="container px-5 md:px-8 max-w-2xl">
           <div className="text-center mb-12">
