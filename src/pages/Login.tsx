@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/Layout";
+import { SEOHead } from "@/components/SEOHead";
 import { toast } from "@/hooks/use-toast";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useSiteSettings } from "@/hooks/use-site-settings";
@@ -94,6 +95,7 @@ export default function LoginPage() {
   if (showOtp) {
     return (
       <Layout>
+        <SEOHead title={`Verify Email — ${siteName}`} description="Verify your email to continue." noIndex disableHreflang />
         <section className="py-16 md:py-24">
           <div className="container max-w-md">
             <div className="rounded-2xl border border-border bg-card p-8 md:p-10 shadow-lg">
@@ -159,6 +161,12 @@ export default function LoginPage() {
 
   return (
     <Layout>
+      <SEOHead
+        title={isSignUp ? `Sign Up — ${siteName}` : `Sign In — ${siteName}`}
+        description={isSignUp ? `Create your ${siteName} account to track orders and access purchases.` : `Sign in to your ${siteName} account.`}
+        noIndex
+        disableHreflang
+      />
       <section className="py-16 md:py-24">
         <div className="container max-w-md">
           <div className="rounded-2xl border border-border bg-card p-8 md:p-10 shadow-lg">

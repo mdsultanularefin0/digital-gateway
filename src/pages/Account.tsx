@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Layout } from "@/components/Layout";
+import { SEOHead } from "@/components/SEOHead";
 
 import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/hooks/use-site-settings";
@@ -166,6 +167,7 @@ export default function AccountPage() {
   if (loading) {
     return (
       <Layout>
+        <SEOHead title="My Account" description="Manage your account." noIndex disableHreflang />
         <div className="min-h-[60vh] flex items-center justify-center">
           <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
@@ -184,6 +186,7 @@ export default function AccountPage() {
 
   return (
     <Layout>
+      <SEOHead title="My Account" description="View your orders, downloads, and account settings." noIndex disableHreflang />
       <section className="py-12 md:py-20">
         <div className="container px-5 md:px-8 max-w-5xl">
           {/* Header */}

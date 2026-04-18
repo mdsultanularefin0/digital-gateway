@@ -20,6 +20,8 @@ interface SEOHeadProps {
   breadcrumbs?: BreadcrumbItem[];
   /** Disable automatic hreflang injection for routes that aren't bilingual */
   disableHreflang?: boolean;
+  /** Set robots to noindex,nofollow (private/auth/checkout pages) */
+  noIndex?: boolean;
 }
 
 const LANGS = ["en", "bn"] as const;
@@ -36,6 +38,7 @@ export function SEOHead({
   jsonLd,
   breadcrumbs,
   disableHreflang,
+  noIndex,
 }: SEOHeadProps) {
   const { data: settings } = useSiteSettings();
 
@@ -67,6 +70,12 @@ export function SEOHead({
     setMeta("property", "og:type", type);
     setMeta("name", "twitter:title", title);
     setMeta("name", "twitter:description", description);
+
+    if (noIndex) {
+      setMeta("name", "robots", "noindex, nofollow");
+    } else {
+      removeMeta("name", "robots");
+    }
 
     if (effectiveSiteName && effectiveSiteName.trim()) {
       setMeta("property", "og:site_name", effectiveSiteName.trim());
@@ -180,6 +189,7 @@ export function SEOHead({
     disableHreflang,
     baseUrl,
     settings?.default_twitter_card,
+    noIndex,
   ]);
 
   return null;

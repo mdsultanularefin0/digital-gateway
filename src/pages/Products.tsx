@@ -3,9 +3,12 @@ import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
+import { SEOHead } from "@/components/SEOHead";
 import { useProducts, categories } from "@/data/products";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useProductTranslator } from "@/hooks/use-product-translation";
+import { useSiteSettings } from "@/hooks/use-site-settings";
+import { usePageMeta } from "@/hooks/use-page-meta";
 
 export default function ProductsPage() {
   const [category, setCategory] = useState("All");
@@ -13,6 +16,11 @@ export default function ProductsPage() {
   const { data: products = [], isLoading } = useProducts();
   const { t, lang } = useLanguage();
   const { tr } = useProductTranslator();
+  const { data: settings } = useSiteSettings();
+  const { data: pageMeta } = usePageMeta("products");
+  const siteName = settings?.site_name || "GiftCardVibe";
+  const siteUrl = settings?.default_canonical_url?.replace(/\/$/, "") || (typeof window !== "undefined" ? window.location.origin : "");
+  const canonicalUrl = `${siteUrl}/products`;
 
   const q = search.toLowerCase();
   const filtered = products.filter((p) => {
@@ -29,6 +37,17 @@ export default function ProductsPage() {
 
   return (
     <Layout>
+      <SEOHead
+        title={pageMeta?.meta_title?.trim() || `${t("product.all_products")} — ${siteName}`}
+        description={pageMeta?.meta_description?.trim() || (lang === "bn" ? "আমাদের প্রিমিয়াম ডিজিটাল টুল ও সার্ভিসের সংগ্রহ ব্রাউজ করুন।" : "Browse our collection of premium digital tools, gift cards and subscription services.")}
+        keywords={pageMeta?.meta_keywords?.trim() || undefined}
+        canonical={canonicalUrl}
+        ogImage={pageMeta?.og_image_url?.trim() || undefined}
+        breadcrumbs={[
+          { name: "Home", url: "/" },
+          { name: t("product.all_products"), url: "/products" },
+        ]}
+      />
       <section className="py-16 md:py-24">
         <div className="container px-5 md:px-8">
           <div className="mx-auto max-w-2xl text-center mb-12">

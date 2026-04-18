@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Layout } from "@/components/Layout";
+import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle, ShoppingBag, Copy, Check } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -117,6 +118,7 @@ export default function CheckoutPage() {
   if (orderPlaced) {
     return (
       <Layout>
+        <SEOHead title="Order Confirmed" description="Your order has been received." noIndex disableHreflang />
         <section className="py-20 md:py-32">
           <div className="container max-w-lg mx-auto">
             <motion.div
@@ -157,6 +159,7 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <Layout>
+        <SEOHead title="Cart" description="Your cart is empty." noIndex disableHreflang />
         <section className="py-20 md:py-32">
           <div className="container max-w-lg text-center">
             <ShoppingBag className="h-16 w-16 text-muted-foreground/30 mx-auto mb-6" />
@@ -172,6 +175,7 @@ export default function CheckoutPage() {
 
   return (
     <Layout>
+      <SEOHead title="Checkout" description="Complete your purchase securely." noIndex disableHreflang />
       <section className="py-6 sm:py-12 md:py-20">
         <div className="container px-3 sm:px-5 md:px-8 max-w-5xl">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-bold mb-4 sm:mb-6 md:mb-8">Checkout</h1>
