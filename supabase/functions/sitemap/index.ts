@@ -11,6 +11,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// Only public, indexable routes. Private/auth routes (/login, /checkout,
+// /account, /reset-password, /admin/*, /bkash-callback) are intentionally excluded.
 const STATIC_ROUTES = [
   "/",
   "/products",
@@ -20,7 +22,6 @@ const STATIC_ROUTES = [
   "/faq",
   "/privacy",
   "/terms",
-  "/login",
 ];
 
 function escapeXml(s: string) {
