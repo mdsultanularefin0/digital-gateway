@@ -682,8 +682,257 @@ export default function AdminPostGenerator() {
       drawCta(rightCx, ry);
       drawFooter(rightCx, H - 50 * scale);
       drawAccentBar();
+
+    } else if (layout.id === "quote") {
+      // ── MINIMAL QUOTE — large centered text on solid color
+      drawBg();
+      const cx = W / 2;
+      // Big opening quote mark
+      ctx.fillStyle = activeColors.accent + "55";
+      ctx.font = `900 ${Math.round(220 * scale)}px ${displayFont}`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText("\u201C", cx, H * 0.08);
+
+      const quoteText = data.tagline || data.productName || "Your message here";
+      const qSize = 56 * scale * hScale;
+      ctx.font = `700 ${Math.round(qSize)}px ${displayFont}`;
+      ctx.fillStyle = activeColors.text;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      const lines = wrapText(ctx, quoteText, W * 0.78);
+      let qy = H * 0.34;
+      lines.forEach((ln) => {
+        ctx.fillText(ln, cx, qy);
+        qy += qSize * 1.18;
+      });
+
+      // Author / brand line
+      if (data.productName && data.tagline) {
+        ctx.font = `500 ${Math.round(20 * scale)}px ${bodyFont}`;
+        ctx.fillStyle = activeColors.accent;
+        ctx.fillText(`— ${data.productName}`, cx, qy + 30 * scale);
+      }
+
+      // Accent line
+      ctx.fillStyle = activeColors.accent;
+      ctx.fillRect(cx - 40 * scale, H * 0.86, 80 * scale, 3 * scale);
+      drawFooter(cx, H - 60 * scale);
+
+    } else if (layout.id === "sale") {
+      // ── PRICE DROP / SALE — bold sale focus
+      drawBg();
+      const cx = W / 2;
+
+      // Diagonal SALE ribbon top-right
+      ctx.save();
+      ctx.fillStyle = activeColors.accent;
+      ctx.translate(W - 80 * scale, 80 * scale);
+      ctx.rotate(Math.PI / 4);
+      ctx.fillRect(-180 * scale, -28 * scale, 360 * scale, 56 * scale);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `900 ${Math.round(28 * scale)}px ${displayFont}`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(data.badge?.toUpperCase() || "SALE", 0, 0);
+      ctx.restore();
+
+      let cy = H * 0.18;
+      // Product name
+      ctx.font = `800 ${Math.round(48 * scale * hScale)}px ${displayFont}`;
+      ctx.fillStyle = activeColors.text;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      const nameLines = wrapText(ctx, data.productName || "", W * 0.8);
+      nameLines.forEach((ln) => { ctx.fillText(ln, cx, cy); cy += 48 * scale * hScale * 1.1; });
+      cy += 30 * scale;
+
+      // Mockup
+      if (mockupImage) {
+        const imgMaxW = W * 0.4, imgMaxH = H * 0.22;
+        drawMockupPlain(cx, cy + imgMaxH / 2, imgMaxW, imgMaxH);
+        cy += imgMaxH + 40 * scale;
+      }
+
+      // Original price (crossed out, large)
+      if (data.originalPrice) {
+        const oSize = 64 * scale;
+        ctx.font = `400 ${Math.round(oSize)}px ${displayFont}`;
+        ctx.fillStyle = activeColors.text + "66";
+        ctx.fillText(data.originalPrice, cx, cy);
+        const oW = ctx.measureText(data.originalPrice).width;
+        ctx.strokeStyle = activeColors.accent;
+        ctx.lineWidth = 5 * scale;
+        ctx.beginPath();
+        ctx.moveTo(cx - oW / 2 - 10, cy + oSize * 0.55);
+        ctx.lineTo(cx + oW / 2 + 10, cy + oSize * 0.45);
+        ctx.stroke();
+        cy += oSize + 20 * scale;
+      }
+
+      // New price — huge & bold
+      if (data.price) {
+        const pSize = 140 * scale;
+        ctx.font = `900 ${Math.round(pSize)}px ${displayFont}`;
+        ctx.fillStyle = activeColors.accent;
+        ctx.fillText(data.price, cx, cy);
+        cy += pSize + 30 * scale;
+      }
+
+      drawCta(cx, cy);
+      drawFooter(cx, H - 50 * scale);
+      drawAccentBar();
+
+    } else if (layout.id === "testimonial") {
+      // ── TESTIMONIAL CARD — quote + stars + author
+      drawBg();
+      const cardW = W * 0.82, cardH = H * 0.78;
+      const cardX = (W - cardW) / 2, cardY = (H - cardH) / 2;
+
+      // Card with shadow
+      ctx.save();
+      ctx.fillStyle = activeColors.card;
+      ctx.shadowColor = "rgba(0,0,0,0.2)";
+      ctx.shadowBlur = 50 * scale;
+      ctx.shadowOffsetY = 15 * scale;
+      ctx.beginPath();
+      ctx.roundRect(cardX, cardY, cardW, cardH, 24 * scale);
+      ctx.fill();
+      ctx.restore();
+
+      const cx = cardX + cardW / 2;
+      let cy = cardY + 60 * scale;
+
+      // Stars
+      const rating = Math.max(0, Math.min(5, Math.round(data.testimonialRating || 5)));
+      const starSize = 36 * scale;
+      const starGap = 10 * scale;
+      const totalStarW = 5 * starSize + 4 * starGap;
+      const startX = cx - totalStarW / 2;
+      ctx.font = `400 ${Math.round(starSize)}px ${displayFont}`;
+      ctx.textBaseline = "top";
+      ctx.textAlign = "left";
+      for (let i = 0; i < 5; i++) {
+        ctx.fillStyle = i < rating ? activeColors.accent : activeColors.bg + "22";
+        ctx.fillText("★", startX + i * (starSize + starGap), cy);
+      }
+      cy += starSize + 50 * scale;
+
+      // Quote
+      const qText = data.testimonialQuote || data.tagline || "Add your testimonial quote";
+      const qSize = 32 * scale * hScale;
+      ctx.font = `500 ${Math.round(qSize)}px ${displayFont}`;
+      ctx.fillStyle = activeColors.bg;
+      ctx.textAlign = "center";
+      const qLines = wrapText(ctx, `"${qText}"`, cardW * 0.82);
+      qLines.forEach((ln) => { ctx.fillText(ln, cx, cy); cy += qSize * 1.4; });
+      cy += 40 * scale;
+
+      // Divider
+      ctx.fillStyle = activeColors.accent;
+      ctx.fillRect(cx - 30 * scale, cy, 60 * scale, 3 * scale);
+      cy += 30 * scale;
+
+      // Author
+      if (data.testimonialAuthor) {
+        ctx.font = `700 ${Math.round(22 * scale)}px ${bodyFont}`;
+        ctx.fillStyle = activeColors.bg;
+        ctx.fillText(data.testimonialAuthor, cx, cy);
+        cy += 28 * scale;
+      }
+      // Product name as subtitle
+      if (data.productName) {
+        ctx.font = `400 ${Math.round(16 * scale)}px ${bodyFont}`;
+        ctx.fillStyle = activeColors.bg + "88";
+        ctx.fillText(data.productName, cx, cy);
+      }
+
+    } else if (layout.id === "carousel") {
+      // ── CAROUSEL SLIDE — numbered slide for multi-post storytelling
+      drawBg();
+      const padX = 80 * scale;
+
+      // Slide indicator top-right
+      const indSize = 20 * scale;
+      ctx.font = `700 ${Math.round(indSize)}px ${bodyFont}`;
+      ctx.fillStyle = activeColors.accent;
+      ctx.textAlign = "right";
+      ctx.textBaseline = "top";
+      ctx.fillText(`${data.slideNumber || 1} / ${data.slideTotal || 5}`, W - padX, padX);
+
+      // Big number on left
+      const numSize = 320 * scale;
+      ctx.font = `900 ${Math.round(numSize)}px ${displayFont}`;
+      ctx.fillStyle = activeColors.accent + "20";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillText(String(data.slideNumber || 1).padStart(2, "0"), padX - 20 * scale, H * 0.05);
+
+      // Headline (product name)
+      let cy = H * 0.42;
+      ctx.font = `900 ${Math.round(72 * scale * hScale)}px ${displayFont}`;
+      ctx.fillStyle = activeColors.text;
+      ctx.textAlign = "left";
+      const headLines = wrapText(ctx, data.productName || "Slide title", W - padX * 2);
+      headLines.forEach((ln) => { ctx.fillText(ln, padX, cy); cy += 72 * scale * hScale * 1.1; });
+      cy += 30 * scale;
+
+      // Divider
+      ctx.fillStyle = activeColors.accent;
+      ctx.fillRect(padX, cy, 80 * scale, 4 * scale);
+      cy += 40 * scale;
+
+      // Body text (tagline)
+      if (data.tagline) {
+        const bSize = 24 * scale;
+        ctx.font = `400 ${Math.round(bSize)}px ${bodyFont}`;
+        ctx.fillStyle = activeColors.text + "aa";
+        const bLines = wrapText(ctx, data.tagline, W - padX * 2);
+        bLines.forEach((ln) => { ctx.fillText(ln, padX, cy); cy += bSize * 1.55; });
+      }
+
+      // Swipe hint at bottom
+      const isLast = (data.slideNumber || 1) >= (data.slideTotal || 5);
+      ctx.font = `700 ${Math.round(16 * scale)}px ${bodyFont}`;
+      ctx.fillStyle = activeColors.accent;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "bottom";
+      ctx.fillText(isLast ? "TAP THE LINK →" : "SWIPE NEXT →", padX, H - padX);
+
+      drawAccentBar();
     }
-  }, [data, template, activeColors, mockupImage, layout]);
+
+    // ── Branding overlay (logo + URL + handle) ─────────────
+    if (data.showBranding) {
+      const bPad = 30 * scale;
+      const bY = H - bPad - 32 * scale;
+      let bX = bPad;
+      // Logo
+      if (logoImage) {
+        const lh = 36 * scale;
+        const lw = lh * (logoImage.width / logoImage.height);
+        ctx.drawImage(logoImage, bX, bY - 2 * scale, lw, lh);
+        bX += lw + 14 * scale;
+      }
+      // Website URL
+      if (data.websiteUrl) {
+        ctx.font = `700 ${Math.round(15 * scale)}px ${bodyFont}`;
+        ctx.fillStyle = activeColors.text + "cc";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillText(data.websiteUrl, bX, bY + 14 * scale);
+        bX += ctx.measureText(data.websiteUrl).width + 18 * scale;
+      }
+      // Social handle (right-aligned)
+      if (data.socialHandle) {
+        ctx.font = `700 ${Math.round(15 * scale)}px ${bodyFont}`;
+        ctx.fillStyle = activeColors.accent;
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        ctx.fillText(data.socialHandle, W - bPad, bY + 14 * scale);
+      }
+    }
+  }, [data, template, activeColors, mockupImage, layout, fontPair, headlineScale, textAlign, logoImage]);
 
   useEffect(() => {
     drawCanvas();
