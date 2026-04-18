@@ -159,7 +159,7 @@ export function ProductCard({ product: rawProduct }: { product: Product }) {
         <Button
           variant="outline"
           size="sm"
-          className={cn("rounded-xl flex-1 h-9 text-xs sm:text-sm")}
+          className={cn("rounded-xl flex-1 h-10 sm:h-9 text-sm font-semibold")}
           tabIndex={-1}
           onClick={(e) => e.stopPropagation()}
           aria-label={t("action.view_details")}
@@ -170,13 +170,13 @@ export function ProductCard({ product: rawProduct }: { product: Product }) {
           <Button
             variant="gradient"
             size="sm"
-            className="rounded-xl h-9 px-3 text-xs sm:text-sm"
+            className="rounded-xl flex-1 sm:flex-none h-10 sm:h-9 px-4 text-sm font-semibold"
             onClick={handleBuyNow}
             tabIndex={-1}
             aria-label={t("action.buy_now") || "Buy Now"}
           >
-            <Zap className="h-3.5 w-3.5 sm:mr-1" />
-            <span className="hidden sm:inline">{t("action.buy_now") || "Buy Now"}</span>
+            <Zap className="h-4 w-4 mr-1.5" />
+            <span>{t("action.buy_now") || "Buy Now"}</span>
           </Button>
         )}
       </div>
