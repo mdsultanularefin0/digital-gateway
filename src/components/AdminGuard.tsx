@@ -1,6 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
+import { SEOHead } from "@/components/SEOHead";
 
 export function AdminGuard({ children }: { children: React.ReactNode }) {
   const { user, isAdmin, loading } = useAuth();
@@ -29,5 +30,10 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <SEOHead title="Admin — GiftCardVibe" description="Admin dashboard." noIndex disableHreflang />
+      {children}
+    </>
+  );
 }
