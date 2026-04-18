@@ -112,44 +112,46 @@ export function ProductCard({ product: rawProduct }: { product: Product }) {
         )}
       </div>
 
-      <div className="flex flex-1 flex-col p-4 sm:p-5">
-        <div className="flex items-center gap-2 mb-2 flex-wrap">
+      <div className="flex flex-1 flex-col p-3 sm:p-5">
+        <div className="flex items-center gap-1 mb-2 flex-wrap">
           {product.tags.slice(0, 2).map((tag) => (
             <span
               key={tag}
-              className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] sm:text-xs font-medium tracking-wider uppercase text-primary"
+              className="rounded-full bg-primary/10 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-xs font-medium tracking-wider uppercase text-primary"
             >
               {tag}
             </span>
           ))}
           {inStock && (
-            <span className="rounded-full bg-success/10 px-2 py-0.5 text-[10px] sm:text-xs font-medium text-success">
+            <span className="hidden sm:inline rounded-full bg-success/10 px-2 py-0.5 text-[10px] sm:text-xs font-medium text-success">
               {t("product.in_stock")}
             </span>
           )}
         </div>
 
-        <h3 className="text-base sm:text-lg font-display font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+        <h3 className="text-sm sm:text-lg font-display font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 sm:line-clamp-1 leading-tight">
           {product.name}
         </h3>
-        <p className="mt-1 text-xs sm:text-sm text-muted-foreground line-clamp-2">{product.tagline}</p>
+        <p className="mt-1 text-[11px] sm:text-sm text-muted-foreground line-clamp-2 hidden sm:block">{product.tagline}</p>
 
-        <div className="mt-auto flex items-center justify-between pt-3 border-t border-border mt-3">
-          <span className="text-base sm:text-lg font-bold text-foreground">
+        <div className="mt-auto flex items-center justify-between gap-2 pt-3 border-t border-border mt-3">
+          <span className="text-sm sm:text-lg font-bold text-foreground shrink-0">
             {currencySymbol}{displayPrice}
           </span>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 min-w-0">
             {inStock && (
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-xl h-8 text-xs px-2.5"
+                className="rounded-xl h-8 text-[11px] sm:text-xs px-2 sm:px-2.5"
                 onClick={handleAddToCart}
+                aria-label={t("action.add_to_cart")}
               >
-                <ShoppingCart className="h-3 w-3 mr-1" /> {t("action.add_to_cart")}
+                <ShoppingCart className="h-3 w-3 sm:mr-1" />
+                <span className="hidden sm:inline">{t("action.add_to_cart")}</span>
               </Button>
             )}
-            <span className="hidden sm:flex items-center gap-1 text-sm text-primary font-medium group-hover:gap-2 transition-all">
+            <span className="hidden lg:flex items-center gap-1 text-sm text-primary font-medium group-hover:gap-2 transition-all">
               {t("action.view_details")} <ArrowRight className="h-4 w-4" />
             </span>
           </div>
