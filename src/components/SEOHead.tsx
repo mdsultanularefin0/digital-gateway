@@ -7,6 +7,8 @@ interface SEOHeadProps {
   canonical?: string;
   ogImage?: string;
   type?: "website" | "product" | "article";
+  twitterCard?: "summary" | "summary_large_image" | "app" | "player";
+  siteName?: string;
   jsonLd?: Record<string, unknown>;
 }
 
@@ -17,6 +19,8 @@ export function SEOHead({
   canonical,
   ogImage,
   type = "website",
+  twitterCard,
+  siteName,
   jsonLd,
 }: SEOHeadProps) {
   useEffect(() => {
@@ -43,16 +47,28 @@ export function SEOHead({
     setMeta("name", "twitter:title", title);
     setMeta("name", "twitter:description", description);
 
+    if (siteName && siteName.trim()) {
+      setMeta("property", "og:site_name", siteName.trim());
+    }
+
     if (keywords && keywords.trim()) {
       setMeta("name", "keywords", keywords.trim());
     } else {
       removeMeta("name", "keywords");
     }
 
+    // Always set a twitter:card so previews render. Default to large image
+    // when an OG image is present, otherwise a plain summary.
+    const effectiveTwitterCard =
+      twitterCard || (ogImage ? "summary_large_image" : "summary");
+    setMeta("name", "twitter:card", effectiveTwitterCard);
+
     if (ogImage) {
       setMeta("property", "og:image", ogImage);
       setMeta("name", "twitter:image", ogImage);
-      setMeta("name", "twitter:card", "summary_large_image");
+    } else {
+      removeMeta("property", "og:image");
+      removeMeta("name", "twitter:image");
     }
 
     // Canonical
@@ -64,8 +80,10 @@ export function SEOHead({
         document.head.appendChild(link);
       }
       link.setAttribute("href", canonical);
+      setMeta("property", "og:url", canonical);
     } else {
       link?.remove();
+      removeMeta("property", "og:url");
     }
 
     // JSON-LD
@@ -82,7 +100,7 @@ export function SEOHead({
     return () => {
       document.querySelector('script[data-seo-jsonld]')?.remove();
     };
-  }, [title, description, keywords, canonical, ogImage, type, jsonLd]);
+  }, [title, description, keywords, canonical, ogImage, type, twitterCard, siteName, jsonLd]);
 
   return null;
 }

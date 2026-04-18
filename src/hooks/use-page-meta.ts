@@ -7,19 +7,30 @@ export interface PageMeta {
   meta_description?: string;
   meta_keywords?: string;
   og_image_url?: string;
+  twitter_card?: string;
+  canonical_url?: string;
 }
 
 /**
- * Loads the SEO meta block (meta_title / meta_description / meta_keywords /
- * og_image_url) for a given page slug from the `page_contents` table,
- * preferring the active language and falling back to English.
+ * Loads the SEO meta block for a given page slug from the `page_contents`
+ * table, preferring the active language and falling back to English.
+ *
+ * Section keys read: meta_title, meta_description, meta_keywords,
+ * og_image_url, twitter_card, canonical_url.
  */
 export function usePageMeta(pageSlug: string) {
   const { lang } = useLanguage();
   return useQuery<PageMeta>({
     queryKey: ["page-meta", pageSlug, lang],
     queryFn: async () => {
-      const keys = ["meta_title", "meta_description", "meta_keywords", "og_image_url"];
+      const keys = [
+        "meta_title",
+        "meta_description",
+        "meta_keywords",
+        "og_image_url",
+        "twitter_card",
+        "canonical_url",
+      ];
       const { data, error } = await supabase
         .from("page_contents" as any)
         .select("section_key, content, lang")
@@ -42,6 +53,8 @@ export function usePageMeta(pageSlug: string) {
         meta_description: pick("meta_description"),
         meta_keywords: pick("meta_keywords"),
         og_image_url: pick("og_image_url"),
+        twitter_card: pick("twitter_card"),
+        canonical_url: pick("canonical_url"),
       };
     },
     staleTime: 5 * 60 * 1000,

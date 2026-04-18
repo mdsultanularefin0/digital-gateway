@@ -1,6 +1,8 @@
 import { Layout } from "@/components/Layout";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { usePageContents } from "@/hooks/use-page-contents";
+import { usePageMeta } from "@/hooks/use-page-meta";
+import { SEOHead } from "@/components/SEOHead";
 import DOMPurify from "dompurify";
 
 const defaultBody = `<p>Last updated: March 8, 2026</p>
@@ -20,11 +22,21 @@ const defaultBody = `<p>Last updated: March 8, 2026</p>
 export default function TermsPage() {
   const { data: settings } = useSiteSettings();
   const { data: pageContent } = usePageContents("terms");
+  const { data: pageMeta } = usePageMeta("terms");
   const heading = pageContent?.heading || "Terms of Service";
   const body = pageContent?.body || defaultBody;
 
   return (
     <Layout>
+      <SEOHead
+        title={pageMeta?.meta_title?.trim() || heading}
+        description={pageMeta?.meta_description?.trim() || "The rules and conditions for using our services."}
+        keywords={pageMeta?.meta_keywords?.trim() || undefined}
+        ogImage={pageMeta?.og_image_url?.trim() || (settings as any)?.default_og_image_url || undefined}
+        canonical={pageMeta?.canonical_url?.trim() || undefined}
+        twitterCard={(pageMeta?.twitter_card?.trim() || (settings as any)?.default_twitter_card || undefined) as any}
+        siteName={(settings as any)?.site_name}
+      />
       <section className="py-16 md:py-24">
         <div className="container max-w-3xl">
           <h1 className="text-3xl font-display font-bold md:text-4xl mb-8">{heading}</h1>

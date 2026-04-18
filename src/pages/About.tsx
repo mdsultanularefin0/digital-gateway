@@ -39,7 +39,10 @@ export default function AboutPage() {
         title={pageMeta?.meta_title?.trim() || heading}
         description={pageMeta?.meta_description?.trim() || subheading}
         keywords={pageMeta?.meta_keywords?.trim() || undefined}
-        ogImage={pageMeta?.og_image_url?.trim() || undefined}
+        ogImage={pageMeta?.og_image_url?.trim() || (settings as any)?.default_og_image_url || undefined}
+        canonical={pageMeta?.canonical_url?.trim() || undefined}
+        twitterCard={(pageMeta?.twitter_card?.trim() || (settings as any)?.default_twitter_card || undefined) as any}
+        siteName={siteName}
       />
       <section className="py-16 md:py-24">
         <div className="container px-5 md:px-8 max-w-4xl">

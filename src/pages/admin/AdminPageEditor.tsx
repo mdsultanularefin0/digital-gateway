@@ -443,12 +443,16 @@ export default function AdminPageEditor() {
               meta_description: currentData["meta_description"] || "",
               meta_keywords: currentData["meta_keywords"] || "",
               og_image_url: currentData["og_image_url"] || "",
+              twitter_card: currentData["twitter_card"] || "",
+              canonical_url: currentData["canonical_url"] || "",
             }}
             onChange={(next) => {
               updateField("meta_title", next.meta_title);
               updateField("meta_description", next.meta_description);
               updateField("meta_keywords", next.meta_keywords);
               updateField("og_image_url", next.og_image_url || "");
+              updateField("twitter_card", next.twitter_card || "");
+              updateField("canonical_url", next.canonical_url || "");
             }}
             aiType="page_meta"
             aiPayload={{
@@ -460,6 +464,8 @@ export default function AdminPageEditor() {
               currentBody: currentData["body"] || currentData["hero_description"] || "",
             }}
             showOgImage={editLang === "en"}
+            showAdvanced={editLang === "en"}
+            siteName={siteName}
             langLabel={editLang === "en" ? "EN" : "বাংলা"}
           />
 

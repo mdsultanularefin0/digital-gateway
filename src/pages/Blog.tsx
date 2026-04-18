@@ -6,11 +6,13 @@ import { SEOHead } from "@/components/SEOHead";
 import { useBlogPosts, pickBlog } from "@/data/products";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePageMeta } from "@/hooks/use-page-meta";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 export default function Blog() {
   const { data: posts = [], isLoading } = useBlogPosts();
   const { lang, t } = useLanguage();
   const { data: pageMeta } = usePageMeta("blog");
+  const { data: settings } = useSiteSettings();
   const blogTitle = lang === "bn" ? "ব্লগ" : "Blog";
   const blogSub = lang === "bn"
     ? "আমাদের সর্বশেষ আর্টিকেল, টিপস এবং আপডেট।"
@@ -22,7 +24,10 @@ export default function Blog() {
         title={pageMeta?.meta_title?.trim() || blogTitle}
         description={pageMeta?.meta_description?.trim() || blogSub}
         keywords={pageMeta?.meta_keywords?.trim() || undefined}
-        ogImage={pageMeta?.og_image_url?.trim() || undefined}
+        ogImage={pageMeta?.og_image_url?.trim() || (settings as any)?.default_og_image_url || undefined}
+        canonical={pageMeta?.canonical_url?.trim() || undefined}
+        twitterCard={(pageMeta?.twitter_card?.trim() || (settings as any)?.default_twitter_card || undefined) as any}
+        siteName={(settings as any)?.site_name}
       />
       <section className="py-16 md:py-24">
         <div className="container max-w-5xl mx-auto px-4">
