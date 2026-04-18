@@ -54,6 +54,12 @@ export async function uploadToStorage(file: File, folder: string = "assets"): Pr
     throw new Error("External storage is not configured. Go to Admin → Integrations → Storage to set it up.");
   }
 
+  // Auto-convert images to WebP for smaller payloads (skips gif/svg/webp/avif)
+  if (file.type.startsWith("image/")) {
+    const { convertToWebP } = await import("./image-optimize");
+    file = await convertToWebP(file);
+  }
+
   // Map logical folder names → server bucket names
   const bucketMap: Record<string, string> = {
     "products": "product-images",

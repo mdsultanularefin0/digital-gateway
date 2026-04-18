@@ -6,10 +6,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useProductTranslator } from "@/hooks/use-product-translation";
 
 import { useCart } from "@/contexts/CartContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
+import { useRef } from "react";
 
 export function ProductCard({ product: rawProduct }: { product: Product }) {
   const { data: settings } = useSiteSettings();
@@ -18,6 +19,28 @@ export function ProductCard({ product: rawProduct }: { product: Product }) {
   const { t } = useLanguage();
   const { tr } = useProductTranslator();
   const product = tr(rawProduct as any) as Product;
+  const queryClient = useQueryClient();
+  const prefetchedRef = useRef(false);
+
+  const prefetchDetail = () => {
+    if (prefetchedRef.current) return;
+    prefetchedRef.current = true;
+    // Warm the lazy chunk
+    import("@/pages/ProductDetail").catch(() => {});
+    // Warm key data queries used by ProductDetail
+    const slugOrId = product.slug || product.id;
+    queryClient.prefetchQuery({
+      queryKey: ["product-detail", slugOrId],
+      queryFn: async () => {
+        const { data } = await supabase
+          .from("products")
+          .select("*")
+          .or(`slug.eq.${slugOrId},id.eq.${product.id}`)
+          .maybeSingle();
+        return data;
+      },
+    });
+  };
 
   const { data: firstImage } = useQuery({
     queryKey: ["product-first-image", product.id],
