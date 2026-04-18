@@ -180,7 +180,8 @@ export default function AdminPostGenerator() {
   });
 
   const loadProduct = (product: typeof dbProducts[number]) => {
-    setData({
+    setData((prev) => ({
+      ...prev,
       productName: product.name,
       tagline: product.tagline,
       price: product.priceLabel || `${currencySymbol}${product.price}`,
@@ -189,7 +190,7 @@ export default function AdminPostGenerator() {
       badge: "BEST DEAL",
       ctaText: "ORDER NOW",
       footerText: `Order now → ${settings?.site_name || "digistack.shop"}`,
-    });
+    }));
     if (product.imageUrl) {
       setCustomImageUrl(product.imageUrl);
     } else {
