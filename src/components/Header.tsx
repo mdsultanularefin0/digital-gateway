@@ -114,13 +114,6 @@ export function Header() {
         <div className="flex items-center gap-1 md:hidden">
           <ThemeToggle />
           <button
-            onClick={() => setSearchOpen(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-foreground hover:bg-secondary"
-            aria-label="Search"
-          >
-            <Search className="h-5 w-5" />
-          </button>
-          <button
             onClick={() => setIsOpen(true)}
             className="relative flex h-10 w-10 items-center justify-center rounded-xl text-foreground hover:bg-secondary"
           >
@@ -161,6 +154,12 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
+              <button
+                onClick={() => { setMobileOpen(false); setSearchOpen(true); }}
+                className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              >
+                <Search className="h-4 w-4" /> {t("nav.search") || "Search"}
+              </button>
               <div className="mt-2 border-t border-border pt-4 flex gap-2">
                 <Link to="/login" className="flex-1">
                   <Button variant="outline" className="w-full gap-2 rounded-xl">
