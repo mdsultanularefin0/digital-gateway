@@ -8,7 +8,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { Testimonials } from "@/components/Testimonials";
 import { NewsletterSection } from "@/components/NewsletterSection";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
-import { WelcomePopup } from "@/components/WelcomePopup";
+
 import { useProducts } from "@/data/products";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { usePageContents } from "@/hooks/use-page-contents";
@@ -75,7 +75,6 @@ export default function HomePage() {
         jsonLd={jsonLd}
       />
       <AnnouncementBanner />
-      <WelcomePopup />
       <Layout>
         {/* Hero */}
         <section className="flex items-center pt-24 pb-12 lg:min-h-[100dvh] lg:pt-16 lg:pb-0">
