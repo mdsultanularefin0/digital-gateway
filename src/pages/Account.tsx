@@ -214,9 +214,8 @@ export default function AccountPage() {
                     : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <t.icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{t.label}</span>
-                <span className="sm:hidden">{t.label.split(" ")[0]}</span>
+                <t.icon className="h-4 w-4 shrink-0" />
+                <span>{t.label}</span>
               </button>
             ))}
           </div>
