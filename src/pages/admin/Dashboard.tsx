@@ -5,6 +5,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { Package, ShoppingCart, Users, Wallet, Tag, MessageSquare } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components/admin/DateRangeFilter";
+import { RecentActivityWidget } from "@/components/admin/RecentActivityWidget";
 
 export default function AdminDashboard() {
   const { data: settings } = useSiteSettings();
@@ -100,6 +101,10 @@ export default function AdminDashboard() {
             <div className="text-3xl font-display font-bold">{s.value}</div>
           </div>
         ))}
+      </div>
+
+      <div className="mt-8">
+        <RecentActivityWidget />
       </div>
     </AdminLayout>
   );
