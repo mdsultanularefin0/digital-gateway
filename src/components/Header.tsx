@@ -124,6 +124,13 @@ export function Header() {
               </span>
             )}
           </button>
+          <Link
+            to="/account"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-foreground hover:bg-secondary"
+            aria-label="My Account"
+          >
+            <User className="h-5 w-5" />
+          </Link>
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="flex h-10 w-10 items-center justify-center rounded-xl text-foreground hover:bg-secondary"
