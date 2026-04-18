@@ -300,6 +300,29 @@ export default function CheckoutPage() {
           </div>
         </div>
       </section>
+
+      <AnimatePresence>
+        {showStickyBar && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-border bg-background/95 backdrop-blur-md shadow-[0_-4px_20px_-4px_hsl(var(--foreground)/0.1)]"
+          >
+            <div className="flex items-center gap-3 px-3 py-3 safe-area-pb">
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Total</p>
+                <p className="text-lg font-bold leading-tight truncate">{sym}{total.toFixed(2)}</p>
+              </div>
+              <Button variant="gradient" size="lg" onClick={placeOrder} disabled={submitting} className="shrink-0">
+                {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {submitting ? "Placing..." : "Place Order"}
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Layout>
   );
 }
