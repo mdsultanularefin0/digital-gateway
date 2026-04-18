@@ -23,7 +23,36 @@ interface PostData {
   badge: string;
   ctaText: string;
   footerText: string;
+  // Testimonial layout
+  testimonialQuote: string;
+  testimonialAuthor: string;
+  testimonialRating: number;
+  // Carousel layout
+  slideNumber: number;
+  slideTotal: number;
+  // Branding
+  logoUrl: string;
+  websiteUrl: string;
+  socialHandle: string;
+  showBranding: boolean;
 }
+
+type FontPair = {
+  id: string;
+  label: string;
+  display: string;
+  body: string;
+};
+
+const FONT_PAIRS: FontPair[] = [
+  { id: "jakarta", label: "Plus Jakarta", display: "Plus Jakarta Sans", body: "Plus Jakarta Sans" },
+  { id: "playfair", label: "Playfair / Inter", display: "Playfair Display", body: "Inter" },
+  { id: "bebas", label: "Bebas / Inter", display: "Bebas Neue", body: "Inter" },
+  { id: "space", label: "Space Grotesk", display: "Space Grotesk", body: "Space Grotesk" },
+  { id: "dmserif", label: "DM Serif / DM Sans", display: "DM Serif Display", body: "DM Sans" },
+];
+
+type TextAlign = "left" | "center" | "right";
 
 // ── Product → Mockup mapping ──────────────────────────────────────────
 const MOCKUP_MAP: Record<string, string> = {
@@ -42,21 +71,6 @@ function getMockupForProduct(name: string): string {
 }
 
 // ── Constants ──────────────────────────────────────────────────────────
-const TEMPLATES = [
-  { id: "square", label: "1080×1080", width: 1080, height: 1080 },
-  { id: "story", label: "1080×1920", width: 1080, height: 1920 },
-  { id: "landscape", label: "1920×1080", width: 1920, height: 1080 },
-  { id: "facebook", label: "1200×630", width: 1200, height: 630 },
-];
-
-const LAYOUTS = [
-  { id: "split", label: "Split Card", icon: "◧" },
-  { id: "centered", label: "Centered Hero", icon: "◉" },
-  { id: "bold-stack", label: "Bold Stack", icon: "▦" },
-  { id: "minimal", label: "Minimal Card", icon: "▢" },
-  { id: "diagonal", label: "Diagonal Cut", icon: "◤" },
-];
-
 const COLOR_PRESETS = [
   { name: "Midnight", bg: "#0d0d0d", accent: "#ff5722", text: "#ffffff", card: "#ffffff" },
   { name: "Ocean", bg: "#0a1628", accent: "#3b82f6", text: "#ffffff", card: "#f0f4ff" },
@@ -70,6 +84,26 @@ const COLOR_PRESETS = [
   { name: "Warm", bg: "#fdf6e3", accent: "#d97706", text: "#1a1a1a", card: "#ffffff" },
 ];
 
+const TEMPLATES = [
+  { id: "square", label: "1080×1080", width: 1080, height: 1080 },
+  { id: "story", label: "1080×1920", width: 1080, height: 1920 },
+  { id: "landscape", label: "1920×1080", width: 1920, height: 1080 },
+  { id: "facebook", label: "1200×630", width: 1200, height: 630 },
+  { id: "pinterest", label: "1000×1500", width: 1000, height: 1500 },
+];
+
+const LAYOUTS = [
+  { id: "split", label: "Split Card", icon: "◧" },
+  { id: "centered", label: "Centered Hero", icon: "◉" },
+  { id: "bold-stack", label: "Bold Stack", icon: "▦" },
+  { id: "minimal", label: "Minimal Card", icon: "▢" },
+  { id: "diagonal", label: "Diagonal Cut", icon: "◤" },
+  { id: "quote", label: "Minimal Quote", icon: "❝" },
+  { id: "sale", label: "Price Drop", icon: "%" },
+  { id: "testimonial", label: "Testimonial", icon: "★" },
+  { id: "carousel", label: "Carousel Slide", icon: "▤" },
+];
+
 // SAMPLE_TEMPLATES removed — products are now loaded from the database
 
 const emptyData: PostData = {
@@ -81,6 +115,15 @@ const emptyData: PostData = {
   badge: "BEST DEAL",
   ctaText: "ORDER NOW",
   footerText: "",
+  testimonialQuote: "",
+  testimonialAuthor: "",
+  testimonialRating: 5,
+  slideNumber: 1,
+  slideTotal: 5,
+  logoUrl: "",
+  websiteUrl: "",
+  socialHandle: "",
+  showBranding: false,
 };
 
 // ── Component ──────────────────────────────────────────────────────────
@@ -96,6 +139,38 @@ export default function AdminPostGenerator() {
   const [activeSection, setActiveSection] = useState<string | null>("products");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [layout, setLayout] = useState(LAYOUTS[0]);
+  const [fontPair, setFontPair] = useState<FontPair>(FONT_PAIRS[0]);
+  const [headlineScale, setHeadlineScale] = useState(1); // 0.7 - 1.3
+  const [textAlign, setTextAlign] = useState<TextAlign>("left");
+  const [logoImage, setLogoImage] = useState<HTMLImageElement | null>(null);
+
+  // Load Google Fonts for the selected font pair
+  useEffect(() => {
+    const families = Array.from(new Set(FONT_PAIRS.flatMap((p) => [p.display, p.body])))
+      .filter((f) => f !== "Plus Jakarta Sans") // already loaded
+      .map((f) => `family=${encodeURIComponent(f)}:wght@400;500;700;800;900`)
+      .join("&");
+    if (!document.getElementById("post-gen-fonts")) {
+      const link = document.createElement("link");
+      link.id = "post-gen-fonts";
+      link.rel = "stylesheet";
+      link.href = `https://fonts.googleapis.com/css2?${families}&display=swap`;
+      document.head.appendChild(link);
+    }
+  }, []);
+
+  // Load logo image when URL changes
+  useEffect(() => {
+    if (!data.logoUrl) {
+      setLogoImage(null);
+      return;
+    }
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => setLogoImage(img);
+    img.onerror = () => setLogoImage(null);
+    img.src = data.logoUrl;
+  }, [data.logoUrl]);
 
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "৳";
@@ -137,7 +212,8 @@ export default function AdminPostGenerator() {
   });
 
   const loadProduct = (product: typeof dbProducts[number]) => {
-    setData({
+    setData((prev) => ({
+      ...prev,
       productName: product.name,
       tagline: product.tagline,
       price: product.priceLabel || `${currencySymbol}${product.price}`,
@@ -146,7 +222,7 @@ export default function AdminPostGenerator() {
       badge: "BEST DEAL",
       ctaText: "ORDER NOW",
       footerText: `Order now → ${settings?.site_name || "digistack.shop"}`,
-    });
+    }));
     if (product.imageUrl) {
       setCustomImageUrl(product.imageUrl);
     } else {
@@ -214,6 +290,9 @@ export default function AdminPostGenerator() {
     canvas.height = H;
 
     const scale = Math.min(W, H) / 1080;
+    const displayFont = `"${fontPair.display}", "Plus Jakarta Sans", serif`;
+    const bodyFont = `"${fontPair.body}", "Plus Jakarta Sans", sans-serif`;
+    const hScale = headlineScale;
 
     // ── Helper functions ─────────────────────────────────────
     const drawBg = () => {
@@ -235,7 +314,7 @@ export default function AdminPostGenerator() {
     const drawBadge = (x: number, y: number) => {
       if (!data.badge) return y;
       ctx.fillStyle = activeColors.accent;
-      const badgeFont = `800 ${Math.round(15 * scale)}px "Plus Jakarta Sans", sans-serif`;
+      const badgeFont = `800 ${Math.round(15 * scale)}px ${bodyFont}`;
       ctx.font = badgeFont;
       const badgeText = data.badge.toUpperCase();
       const bm = ctx.measureText(badgeText);
@@ -251,7 +330,7 @@ export default function AdminPostGenerator() {
 
     const drawProductName = (x: number, y: number, maxW: number, size: number, align: CanvasTextAlign = "left") => {
       if (!data.productName) return y;
-      ctx.font = `900 ${Math.round(size)}px "Plus Jakarta Sans", serif`;
+      ctx.font = `900 ${Math.round(size * hScale)}px ${displayFont}`;
       ctx.fillStyle = activeColors.text;
       ctx.textBaseline = "top";
       ctx.textAlign = align;
@@ -260,7 +339,7 @@ export default function AdminPostGenerator() {
         const wrapped = wrapText(ctx, rawLine, maxW);
         wrapped.forEach((line) => {
           ctx.fillText(line, x, y);
-          y += size * 1.1;
+          y += size * hScale * 1.1;
         });
       });
       return y + 20 * scale;
@@ -276,7 +355,7 @@ export default function AdminPostGenerator() {
     const drawTagline = (x: number, y: number, maxW: number, align: CanvasTextAlign = "left") => {
       if (!data.tagline) return y;
       const tagSize = 19 * scale;
-      ctx.font = `400 ${Math.round(tagSize)}px "Plus Jakarta Sans", sans-serif`;
+      ctx.font = `400 ${Math.round(tagSize)}px ${bodyFont}`;
       ctx.fillStyle = activeColors.text + "88";
       ctx.textBaseline = "top";
       ctx.textAlign = align;
@@ -295,7 +374,7 @@ export default function AdminPostGenerator() {
         ctx.beginPath();
         ctx.arc(dotX, y + featSize * 0.55, 3.5 * scale, 0, Math.PI * 2);
         ctx.fill();
-        ctx.font = `400 ${Math.round(featSize)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.font = `400 ${Math.round(featSize)}px ${bodyFont}`;
         ctx.fillStyle = activeColors.text + "aa";
         ctx.textBaseline = "top";
         ctx.textAlign = align === "center" ? "left" : "left";
@@ -309,14 +388,14 @@ export default function AdminPostGenerator() {
     const drawPrice = (x: number, y: number, align: CanvasTextAlign, fillColor: string) => {
       if (!data.price) return y;
       const priceSize = 56 * scale;
-      ctx.font = `900 ${Math.round(priceSize)}px "Plus Jakarta Sans", sans-serif`;
+      ctx.font = `900 ${Math.round(priceSize)}px ${displayFont}`;
       ctx.fillStyle = fillColor;
       ctx.textAlign = align;
       ctx.textBaseline = "middle";
       ctx.fillText(data.price, x, y);
       if (data.originalPrice) {
         const origSize = 22 * scale;
-        ctx.font = `400 ${Math.round(origSize)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.font = `400 ${Math.round(origSize)}px ${bodyFont}`;
         ctx.fillStyle = fillColor + "44";
         const origY = y + priceSize * 0.6;
         const origW = ctx.measureText(data.originalPrice).width;
@@ -336,7 +415,7 @@ export default function AdminPostGenerator() {
     const drawCta = (cx: number, y: number) => {
       if (!data.ctaText) return y;
       const ctaFontSize = 22 * scale;
-      ctx.font = `800 ${Math.round(ctaFontSize)}px "Plus Jakarta Sans", sans-serif`;
+      ctx.font = `800 ${Math.round(ctaFontSize)}px ${bodyFont}`;
       const ctaTextW = ctx.measureText(data.ctaText.toUpperCase()).width;
       const ctaPadX = 50 * scale, ctaPadY = 20 * scale;
       const ctaW = ctaTextW + ctaPadX * 2, ctaH = ctaFontSize + ctaPadY * 2;
@@ -355,7 +434,7 @@ export default function AdminPostGenerator() {
     const drawFooter = (cx: number, y: number) => {
       if (!data.footerText) return;
       const footSize = 15 * scale;
-      ctx.font = `500 ${Math.round(footSize)}px "Plus Jakarta Sans", sans-serif`;
+      ctx.font = `500 ${Math.round(footSize)}px ${bodyFont}`;
       ctx.fillStyle = activeColors.text + "44";
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
@@ -425,7 +504,7 @@ export default function AdminPostGenerator() {
       drawCta(cardX + cardW / 2, cardY + cardH * 0.68);
       if (data.footerText) {
         const footSize = 15 * scale;
-        ctx.font = `500 ${Math.round(footSize)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.font = `500 ${Math.round(footSize)}px ${bodyFont}`;
         ctx.fillStyle = activeColors.bg + "44"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
         ctx.fillText(data.footerText, cardX + cardW / 2, cardY + cardH - 22 * scale);
       }
@@ -524,7 +603,7 @@ export default function AdminPostGenerator() {
       // Badge
       if (data.badge) {
         ctx.fillStyle = activeColors.accent;
-        ctx.font = `800 ${Math.round(13 * scale)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.font = `800 ${Math.round(13 * scale)}px ${bodyFont}`;
         const bt = data.badge.toUpperCase();
         const bm = ctx.measureText(bt);
         const bpx = 14 * scale, bpy = 7 * scale;
@@ -544,7 +623,7 @@ export default function AdminPostGenerator() {
       // Tagline
       const tagSize = 16 * scale;
       if (data.tagline) {
-        ctx.font = `400 ${Math.round(tagSize)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.font = `400 ${Math.round(tagSize)}px ${bodyFont}`;
         ctx.fillStyle = activeColors.bg + "66"; ctx.textAlign = "center"; ctx.textBaseline = "top";
         const lines = wrapText(ctx, data.tagline, cardW * 0.75);
         lines.forEach((line) => { ctx.fillText(line, cx, cy); cy += tagSize * 1.5; });
@@ -557,7 +636,7 @@ export default function AdminPostGenerator() {
       // Footer
       if (data.footerText) {
         const fs = 13 * scale;
-        ctx.font = `500 ${Math.round(fs)}px "Plus Jakarta Sans", sans-serif`;
+        ctx.font = `500 ${Math.round(fs)}px ${bodyFont}`;
         ctx.fillStyle = activeColors.bg + "33"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
         ctx.fillText(data.footerText, cx, cardY + cardH - 20 * scale);
       }
@@ -602,8 +681,257 @@ export default function AdminPostGenerator() {
       drawCta(rightCx, ry);
       drawFooter(rightCx, H - 50 * scale);
       drawAccentBar();
+
+    } else if (layout.id === "quote") {
+      // ── MINIMAL QUOTE — large centered text on solid color
+      drawBg();
+      const cx = W / 2;
+      // Big opening quote mark
+      ctx.fillStyle = activeColors.accent + "55";
+      ctx.font = `900 ${Math.round(220 * scale)}px ${displayFont}`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText("\u201C", cx, H * 0.08);
+
+      const quoteText = data.tagline || data.productName || "Your message here";
+      const qSize = 56 * scale * hScale;
+      ctx.font = `700 ${Math.round(qSize)}px ${displayFont}`;
+      ctx.fillStyle = activeColors.text;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      const lines = wrapText(ctx, quoteText, W * 0.78);
+      let qy = H * 0.34;
+      lines.forEach((ln) => {
+        ctx.fillText(ln, cx, qy);
+        qy += qSize * 1.18;
+      });
+
+      // Author / brand line
+      if (data.productName && data.tagline) {
+        ctx.font = `500 ${Math.round(20 * scale)}px ${bodyFont}`;
+        ctx.fillStyle = activeColors.accent;
+        ctx.fillText(`— ${data.productName}`, cx, qy + 30 * scale);
+      }
+
+      // Accent line
+      ctx.fillStyle = activeColors.accent;
+      ctx.fillRect(cx - 40 * scale, H * 0.86, 80 * scale, 3 * scale);
+      drawFooter(cx, H - 60 * scale);
+
+    } else if (layout.id === "sale") {
+      // ── PRICE DROP / SALE — bold sale focus
+      drawBg();
+      const cx = W / 2;
+
+      // Diagonal SALE ribbon top-right
+      ctx.save();
+      ctx.fillStyle = activeColors.accent;
+      ctx.translate(W - 80 * scale, 80 * scale);
+      ctx.rotate(Math.PI / 4);
+      ctx.fillRect(-180 * scale, -28 * scale, 360 * scale, 56 * scale);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `900 ${Math.round(28 * scale)}px ${displayFont}`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(data.badge?.toUpperCase() || "SALE", 0, 0);
+      ctx.restore();
+
+      let cy = H * 0.18;
+      // Product name
+      ctx.font = `800 ${Math.round(48 * scale * hScale)}px ${displayFont}`;
+      ctx.fillStyle = activeColors.text;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      const nameLines = wrapText(ctx, data.productName || "", W * 0.8);
+      nameLines.forEach((ln) => { ctx.fillText(ln, cx, cy); cy += 48 * scale * hScale * 1.1; });
+      cy += 30 * scale;
+
+      // Mockup
+      if (mockupImage) {
+        const imgMaxW = W * 0.4, imgMaxH = H * 0.22;
+        drawMockupPlain(cx, cy + imgMaxH / 2, imgMaxW, imgMaxH);
+        cy += imgMaxH + 40 * scale;
+      }
+
+      // Original price (crossed out, large)
+      if (data.originalPrice) {
+        const oSize = 64 * scale;
+        ctx.font = `400 ${Math.round(oSize)}px ${displayFont}`;
+        ctx.fillStyle = activeColors.text + "66";
+        ctx.fillText(data.originalPrice, cx, cy);
+        const oW = ctx.measureText(data.originalPrice).width;
+        ctx.strokeStyle = activeColors.accent;
+        ctx.lineWidth = 5 * scale;
+        ctx.beginPath();
+        ctx.moveTo(cx - oW / 2 - 10, cy + oSize * 0.55);
+        ctx.lineTo(cx + oW / 2 + 10, cy + oSize * 0.45);
+        ctx.stroke();
+        cy += oSize + 20 * scale;
+      }
+
+      // New price — huge & bold
+      if (data.price) {
+        const pSize = 140 * scale;
+        ctx.font = `900 ${Math.round(pSize)}px ${displayFont}`;
+        ctx.fillStyle = activeColors.accent;
+        ctx.fillText(data.price, cx, cy);
+        cy += pSize + 30 * scale;
+      }
+
+      drawCta(cx, cy);
+      drawFooter(cx, H - 50 * scale);
+      drawAccentBar();
+
+    } else if (layout.id === "testimonial") {
+      // ── TESTIMONIAL CARD — quote + stars + author
+      drawBg();
+      const cardW = W * 0.82, cardH = H * 0.78;
+      const cardX = (W - cardW) / 2, cardY = (H - cardH) / 2;
+
+      // Card with shadow
+      ctx.save();
+      ctx.fillStyle = activeColors.card;
+      ctx.shadowColor = "rgba(0,0,0,0.2)";
+      ctx.shadowBlur = 50 * scale;
+      ctx.shadowOffsetY = 15 * scale;
+      ctx.beginPath();
+      ctx.roundRect(cardX, cardY, cardW, cardH, 24 * scale);
+      ctx.fill();
+      ctx.restore();
+
+      const cx = cardX + cardW / 2;
+      let cy = cardY + 60 * scale;
+
+      // Stars
+      const rating = Math.max(0, Math.min(5, Math.round(data.testimonialRating || 5)));
+      const starSize = 36 * scale;
+      const starGap = 10 * scale;
+      const totalStarW = 5 * starSize + 4 * starGap;
+      const startX = cx - totalStarW / 2;
+      ctx.font = `400 ${Math.round(starSize)}px ${displayFont}`;
+      ctx.textBaseline = "top";
+      ctx.textAlign = "left";
+      for (let i = 0; i < 5; i++) {
+        ctx.fillStyle = i < rating ? activeColors.accent : activeColors.bg + "22";
+        ctx.fillText("★", startX + i * (starSize + starGap), cy);
+      }
+      cy += starSize + 50 * scale;
+
+      // Quote
+      const qText = data.testimonialQuote || data.tagline || "Add your testimonial quote";
+      const qSize = 32 * scale * hScale;
+      ctx.font = `500 ${Math.round(qSize)}px ${displayFont}`;
+      ctx.fillStyle = activeColors.bg;
+      ctx.textAlign = "center";
+      const qLines = wrapText(ctx, `"${qText}"`, cardW * 0.82);
+      qLines.forEach((ln) => { ctx.fillText(ln, cx, cy); cy += qSize * 1.4; });
+      cy += 40 * scale;
+
+      // Divider
+      ctx.fillStyle = activeColors.accent;
+      ctx.fillRect(cx - 30 * scale, cy, 60 * scale, 3 * scale);
+      cy += 30 * scale;
+
+      // Author
+      if (data.testimonialAuthor) {
+        ctx.font = `700 ${Math.round(22 * scale)}px ${bodyFont}`;
+        ctx.fillStyle = activeColors.bg;
+        ctx.fillText(data.testimonialAuthor, cx, cy);
+        cy += 28 * scale;
+      }
+      // Product name as subtitle
+      if (data.productName) {
+        ctx.font = `400 ${Math.round(16 * scale)}px ${bodyFont}`;
+        ctx.fillStyle = activeColors.bg + "88";
+        ctx.fillText(data.productName, cx, cy);
+      }
+
+    } else if (layout.id === "carousel") {
+      // ── CAROUSEL SLIDE — numbered slide for multi-post storytelling
+      drawBg();
+      const padX = 80 * scale;
+
+      // Slide indicator top-right
+      const indSize = 20 * scale;
+      ctx.font = `700 ${Math.round(indSize)}px ${bodyFont}`;
+      ctx.fillStyle = activeColors.accent;
+      ctx.textAlign = "right";
+      ctx.textBaseline = "top";
+      ctx.fillText(`${data.slideNumber || 1} / ${data.slideTotal || 5}`, W - padX, padX);
+
+      // Big number on left
+      const numSize = 320 * scale;
+      ctx.font = `900 ${Math.round(numSize)}px ${displayFont}`;
+      ctx.fillStyle = activeColors.accent + "20";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillText(String(data.slideNumber || 1).padStart(2, "0"), padX - 20 * scale, H * 0.05);
+
+      // Headline (product name)
+      let cy = H * 0.42;
+      ctx.font = `900 ${Math.round(72 * scale * hScale)}px ${displayFont}`;
+      ctx.fillStyle = activeColors.text;
+      ctx.textAlign = "left";
+      const headLines = wrapText(ctx, data.productName || "Slide title", W - padX * 2);
+      headLines.forEach((ln) => { ctx.fillText(ln, padX, cy); cy += 72 * scale * hScale * 1.1; });
+      cy += 30 * scale;
+
+      // Divider
+      ctx.fillStyle = activeColors.accent;
+      ctx.fillRect(padX, cy, 80 * scale, 4 * scale);
+      cy += 40 * scale;
+
+      // Body text (tagline)
+      if (data.tagline) {
+        const bSize = 24 * scale;
+        ctx.font = `400 ${Math.round(bSize)}px ${bodyFont}`;
+        ctx.fillStyle = activeColors.text + "aa";
+        const bLines = wrapText(ctx, data.tagline, W - padX * 2);
+        bLines.forEach((ln) => { ctx.fillText(ln, padX, cy); cy += bSize * 1.55; });
+      }
+
+      // Swipe hint at bottom
+      const isLast = (data.slideNumber || 1) >= (data.slideTotal || 5);
+      ctx.font = `700 ${Math.round(16 * scale)}px ${bodyFont}`;
+      ctx.fillStyle = activeColors.accent;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "bottom";
+      ctx.fillText(isLast ? "TAP THE LINK →" : "SWIPE NEXT →", padX, H - padX);
+
+      drawAccentBar();
     }
-  }, [data, template, activeColors, mockupImage, layout]);
+
+    // ── Branding overlay (logo + URL + handle) ─────────────
+    if (data.showBranding) {
+      const bPad = 30 * scale;
+      const bY = H - bPad - 32 * scale;
+      let bX = bPad;
+      // Logo
+      if (logoImage) {
+        const lh = 36 * scale;
+        const lw = lh * (logoImage.width / logoImage.height);
+        ctx.drawImage(logoImage, bX, bY - 2 * scale, lw, lh);
+        bX += lw + 14 * scale;
+      }
+      // Website URL
+      if (data.websiteUrl) {
+        ctx.font = `700 ${Math.round(15 * scale)}px ${bodyFont}`;
+        ctx.fillStyle = activeColors.text + "cc";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillText(data.websiteUrl, bX, bY + 14 * scale);
+        bX += ctx.measureText(data.websiteUrl).width + 18 * scale;
+      }
+      // Social handle (right-aligned)
+      if (data.socialHandle) {
+        ctx.font = `700 ${Math.round(15 * scale)}px ${bodyFont}`;
+        ctx.fillStyle = activeColors.accent;
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        ctx.fillText(data.socialHandle, W - bPad, bY + 14 * scale);
+      }
+    }
+  }, [data, template, activeColors, mockupImage, layout, fontPair, headlineScale, textAlign, logoImage]);
 
   useEffect(() => {
     drawCanvas();
@@ -790,6 +1118,118 @@ export default function AdminPostGenerator() {
               )}
             </BentoSection>
 
+            {/* Typography */}
+            <BentoSection title="TYPOGRAPHY" id="typography" active={activeSection} onToggle={toggleSection}>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 block">
+                    Font Pairing
+                  </span>
+                  <div className="grid grid-cols-1 gap-1.5">
+                    {FONT_PAIRS.map((p) => (
+                      <button
+                        key={p.id}
+                        onClick={() => setFontPair(p)}
+                        className={`text-left px-3 py-2 rounded-xl border transition-all ${
+                          fontPair.id === p.id
+                            ? "border-primary bg-primary/10"
+                            : "border-border/60 hover:border-foreground/20"
+                        }`}
+                      >
+                        <div
+                          className="text-sm font-bold text-foreground leading-tight"
+                          style={{ fontFamily: `"${p.display}", serif` }}
+                        >
+                          {p.display}
+                        </div>
+                        <div
+                          className="text-[10px] text-muted-foreground"
+                          style={{ fontFamily: `"${p.body}", sans-serif` }}
+                        >
+                          {p.body} body
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                      Headline Size
+                    </span>
+                    <span className="text-[10px] font-mono text-muted-foreground">
+                      {Math.round(headlineScale * 100)}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={70}
+                    max={130}
+                    step={5}
+                    value={Math.round(headlineScale * 100)}
+                    onChange={(e) => setHeadlineScale(Number(e.target.value) / 100)}
+                    className="w-full accent-primary"
+                  />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 block">
+                    Text Alignment
+                  </span>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {(["left", "center", "right"] as const).map((a) => (
+                      <button
+                        key={a}
+                        onClick={() => setTextAlign(a)}
+                        className={`text-[11px] font-medium px-3 py-2 rounded-xl border transition-all capitalize ${
+                          textAlign === a
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border/60 text-muted-foreground hover:border-foreground/20"
+                        }`}
+                      >
+                        {a}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[9px] text-muted-foreground mt-1">
+                    Affects layouts that respect text alignment.
+                  </p>
+                </div>
+              </div>
+            </BentoSection>
+
+            {/* Branding */}
+            <BentoSection title="BRANDING" id="branding" active={activeSection} onToggle={toggleSection}>
+              <div className="space-y-2.5">
+                <label className="flex items-center gap-2 text-[11px] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={data.showBranding}
+                    onChange={(e) => setData((d) => ({ ...d, showBranding: e.target.checked }))}
+                    className="rounded-[2px] border-border"
+                  />
+                  Show branding overlay
+                </label>
+                <FieldInput
+                  label="Logo URL"
+                  value={data.logoUrl}
+                  onChange={(v) => setData((d) => ({ ...d, logoUrl: v }))}
+                  placeholder="https://…/logo.png"
+                />
+                <FieldInput
+                  label="Website URL"
+                  value={data.websiteUrl}
+                  onChange={(v) => setData((d) => ({ ...d, websiteUrl: v }))}
+                  placeholder="digistack.shop"
+                />
+                <FieldInput
+                  label="Social Handle"
+                  value={data.socialHandle}
+                  onChange={(v) => setData((d) => ({ ...d, socialHandle: v }))}
+                  placeholder="@digistack"
+                />
+              </div>
+            </BentoSection>
+
             {/* Product Image */}
             <BentoSection title="PRODUCT IMAGE" id="image" active={activeSection} onToggle={toggleSection}>
               <div className="space-y-2">
@@ -888,7 +1328,73 @@ export default function AdminPostGenerator() {
               </div>
             </BentoSection>
 
-            {/* Features */}
+            {/* Testimonial fields — shown when testimonial layout active */}
+            {layout.id === "testimonial" && (
+              <BentoSection title="TESTIMONIAL" id="testimonial" active={activeSection} onToggle={toggleSection} defaultOpen>
+                <div className="space-y-2.5">
+                  <FieldInput
+                    label="Quote"
+                    value={data.testimonialQuote}
+                    onChange={(v) => setData((d) => ({ ...d, testimonialQuote: v }))}
+                    placeholder="Best purchase I made all year!"
+                    multiline
+                  />
+                  <FieldInput
+                    label="Author"
+                    value={data.testimonialAuthor}
+                    onChange={(v) => setData((d) => ({ ...d, testimonialAuthor: v }))}
+                    placeholder="Sarah K."
+                  />
+                  <div>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 block">
+                      Rating ({data.testimonialRating}/5)
+                    </label>
+                    <input
+                      type="range"
+                      min={1}
+                      max={5}
+                      step={1}
+                      value={data.testimonialRating}
+                      onChange={(e) => setData((d) => ({ ...d, testimonialRating: Number(e.target.value) }))}
+                      className="w-full accent-primary"
+                    />
+                  </div>
+                </div>
+              </BentoSection>
+            )}
+
+            {/* Carousel fields — shown when carousel layout active */}
+            {layout.id === "carousel" && (
+              <BentoSection title="CAROUSEL" id="carousel" active={activeSection} onToggle={toggleSection} defaultOpen>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 block">
+                      Slide #
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={data.slideNumber}
+                      onChange={(e) => setData((d) => ({ ...d, slideNumber: Number(e.target.value) || 1 }))}
+                      className="h-8 w-full rounded-xl border border-border/60 bg-background px-2.5 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 block">
+                      Total
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={data.slideTotal}
+                      onChange={(e) => setData((d) => ({ ...d, slideTotal: Number(e.target.value) || 1 }))}
+                      className="h-8 w-full rounded-xl border border-border/60 bg-background px-2.5 text-xs"
+                    />
+                  </div>
+                </div>
+              </BentoSection>
+            )}
+
             <BentoSection title="FEATURES" id="features" active={activeSection} onToggle={toggleSection}>
               <div className="space-y-1.5">
                 {data.features.map((feat, i) => (
