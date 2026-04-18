@@ -1119,6 +1119,118 @@ export default function AdminPostGenerator() {
               )}
             </BentoSection>
 
+            {/* Typography */}
+            <BentoSection title="TYPOGRAPHY" id="typography" active={activeSection} onToggle={toggleSection}>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 block">
+                    Font Pairing
+                  </span>
+                  <div className="grid grid-cols-1 gap-1.5">
+                    {FONT_PAIRS.map((p) => (
+                      <button
+                        key={p.id}
+                        onClick={() => setFontPair(p)}
+                        className={`text-left px-3 py-2 rounded-xl border transition-all ${
+                          fontPair.id === p.id
+                            ? "border-primary bg-primary/10"
+                            : "border-border/60 hover:border-foreground/20"
+                        }`}
+                      >
+                        <div
+                          className="text-sm font-bold text-foreground leading-tight"
+                          style={{ fontFamily: `"${p.display}", serif` }}
+                        >
+                          {p.display}
+                        </div>
+                        <div
+                          className="text-[10px] text-muted-foreground"
+                          style={{ fontFamily: `"${p.body}", sans-serif` }}
+                        >
+                          {p.body} body
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                      Headline Size
+                    </span>
+                    <span className="text-[10px] font-mono text-muted-foreground">
+                      {Math.round(headlineScale * 100)}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={70}
+                    max={130}
+                    step={5}
+                    value={Math.round(headlineScale * 100)}
+                    onChange={(e) => setHeadlineScale(Number(e.target.value) / 100)}
+                    className="w-full accent-primary"
+                  />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 block">
+                    Text Alignment
+                  </span>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {(["left", "center", "right"] as const).map((a) => (
+                      <button
+                        key={a}
+                        onClick={() => setTextAlign(a)}
+                        className={`text-[11px] font-medium px-3 py-2 rounded-xl border transition-all capitalize ${
+                          textAlign === a
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border/60 text-muted-foreground hover:border-foreground/20"
+                        }`}
+                      >
+                        {a}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[9px] text-muted-foreground mt-1">
+                    Affects layouts that respect text alignment.
+                  </p>
+                </div>
+              </div>
+            </BentoSection>
+
+            {/* Branding */}
+            <BentoSection title="BRANDING" id="branding" active={activeSection} onToggle={toggleSection}>
+              <div className="space-y-2.5">
+                <label className="flex items-center gap-2 text-[11px] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={data.showBranding}
+                    onChange={(e) => setData((d) => ({ ...d, showBranding: e.target.checked }))}
+                    className="rounded-[2px] border-border"
+                  />
+                  Show branding overlay
+                </label>
+                <FieldInput
+                  label="Logo URL"
+                  value={data.logoUrl}
+                  onChange={(v) => setData((d) => ({ ...d, logoUrl: v }))}
+                  placeholder="https://…/logo.png"
+                />
+                <FieldInput
+                  label="Website URL"
+                  value={data.websiteUrl}
+                  onChange={(v) => setData((d) => ({ ...d, websiteUrl: v }))}
+                  placeholder="digistack.shop"
+                />
+                <FieldInput
+                  label="Social Handle"
+                  value={data.socialHandle}
+                  onChange={(v) => setData((d) => ({ ...d, socialHandle: v }))}
+                  placeholder="@digistack"
+                />
+              </div>
+            </BentoSection>
+
             {/* Product Image */}
             <BentoSection title="PRODUCT IMAGE" id="image" active={activeSection} onToggle={toggleSection}>
               <div className="space-y-2">
