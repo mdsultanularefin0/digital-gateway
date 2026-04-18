@@ -470,8 +470,18 @@ function ThemeEditor({ values, update }: { values: SettingsMap; update: (k: stri
             borderRadius: values.theme_radius || THEME_DEFAULTS.theme_radius,
           }}
         >
-          <h4 className="text-xl font-display font-bold">Preview heading</h4>
-          <p className="text-sm opacity-80">A short paragraph of body text using your chosen colors.</p>
+          <h4
+            className="text-xl font-bold"
+            style={values.theme_font_heading ? { fontFamily: `'${values.theme_font_heading}', sans-serif` } : undefined}
+          >
+            Preview heading
+          </h4>
+          <p
+            className="text-sm opacity-80"
+            style={values.theme_font_body ? { fontFamily: `'${values.theme_font_body}', sans-serif` } : undefined}
+          >
+            A short paragraph of body text using your chosen colors and fonts.
+          </p>
           <div className="flex gap-3">
             <button
               type="button"
