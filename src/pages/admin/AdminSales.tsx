@@ -65,9 +65,9 @@ export default function AdminSales() {
 
   const today = startOfDay(new Date());
   const todayRevenue = paidOrders
-    .filter((o: any) => new Date(o.created_at) >= today)
-    .reduce((sum: number, o: any) => sum + Number(o.total), 0);
-  const todayOrders = orders.filter((o: any) => new Date(o.created_at) >= today).length;
+    .filter((o: OrderRow) => new Date(o.created_at) >= today)
+    .reduce((sum: number, o: OrderRow) => sum + Number(o.total), 0);
+  const todayOrders = orders.filter((o: OrderRow) => new Date(o.created_at) >= today).length;
 
   // Last 30 days revenue
   const last30Days = Array.from({ length: 30 }, (_, i) => {
@@ -75,13 +75,13 @@ export default function AdminSales() {
     const dayStart = startOfDay(date);
     const dayEnd = new Date(dayStart);
     dayEnd.setDate(dayEnd.getDate() + 1);
-    const dayOrders = paidOrders.filter((o: any) => {
+    const dayOrders = paidOrders.filter((o: OrderRow) => {
       const d = new Date(o.created_at);
       return d >= dayStart && d < dayEnd;
     });
     return {
       date: format(date, "MMM d"),
-      revenue: dayOrders.reduce((s: number, o: any) => s + Number(o.total), 0),
+      revenue: dayOrders.reduce((s: number, o: OrderRow) => s + Number(o.total), 0),
       orders: dayOrders.length,
     };
   });
@@ -90,7 +90,7 @@ export default function AdminSales() {
 
   // Top products by revenue
   const productRevenue: Record<string, { name: string; revenue: number; quantity: number }> = {};
-  orderItems.forEach((item: any) => {
+  orderItems.forEach((item: OrderItemRow) => {
     const key = item.product_name || "Unknown";
     if (!productRevenue[key]) productRevenue[key] = { name: key, revenue: 0, quantity: 0 };
     productRevenue[key].revenue += Number(item.total);
@@ -101,12 +101,12 @@ export default function AdminSales() {
   // Order status breakdown
   const statusBreakdown = ["pending", "confirmed", "processing", "completed", "cancelled", "refunded"].map((s) => ({
     name: s.charAt(0).toUpperCase() + s.slice(1),
-    value: orders.filter((o: any) => o.status === s).length,
+    value: orders.filter((o: OrderRow) => o.status === s).length,
   })).filter((s) => s.value > 0);
 
   // Payment method breakdown
   const paymentMethods: Record<string, number> = {};
-  orders.forEach((o: any) => {
+  orders.forEach((o: OrderRow) => {
     const method = o.payment_method || "unknown";
     paymentMethods[method] = (paymentMethods[method] || 0) + 1;
   });
@@ -119,7 +119,7 @@ export default function AdminSales() {
 
   const handleExportSales = () => {
     exportToCSV(
-      orders.map((o: any) => ({
+      orders.map((o: OrderRow) => ({
         order_number: o.order_number,
         customer: o.customer_name,
         email: o.customer_email,
