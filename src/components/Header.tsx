@@ -174,6 +174,10 @@ export function Header() {
       </AnimatePresence>
     </header>
 
+    <div className="fixed bottom-4 right-4 z-40 md:hidden">
+      <LanguageToggle compact />
+    </div>
+
     <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
