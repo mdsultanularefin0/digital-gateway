@@ -5,7 +5,7 @@ import { uploadToStorage } from "@/lib/storage";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Save, Upload, ChevronDown, Search } from "lucide-react";
+import { Save, Upload, ChevronDown, Search, Sparkles, Loader2 } from "lucide-react";
 import { countries, currencies } from "@/data/countries-currencies";
 
 interface SettingsMap {
@@ -78,6 +78,7 @@ const settingGroups = [
     fields: [
       { key: "meta_title", label: "Default Meta Title", placeholder: "GiftCardVibe — Premium Gift Cards" },
       { key: "meta_description", label: "Default Meta Description", placeholder: "Discover curated digital tools...", type: "textarea" },
+      { key: "meta_keywords", label: "Default Meta Keywords", placeholder: "comma, separated, keywords" },
       { key: "default_og_image_url", label: "Default Share Image", placeholder: "https://... or upload (1200×630 recommended)", type: "image" },
       { key: "default_twitter_card", label: "Default Twitter Card", placeholder: "summary_large_image", type: "twitter_card" },
       { key: "default_canonical_url", label: "Site Base URL", placeholder: "https://yourdomain.com" },
@@ -212,6 +213,39 @@ export default function AdminSettings() {
   const queryClient = useQueryClient();
   const [values, setValues] = useState<SettingsMap>({});
   const [uploading, setUploading] = useState(false);
+  const [seoGenerating, setSeoGenerating] = useState(false);
+
+  const generateSeoDefaults = async () => {
+    setSeoGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-generate", {
+        body: {
+          type: "page_meta",
+          language: "en",
+          pageName: values.site_name || "Home",
+          pageDescription: values.site_tagline || "",
+          siteName: values.site_name || "",
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const result: string = data?.result || "";
+      const t = result.match(/TITLE:\s*(.+)/i);
+      const d = result.match(/DESCRIPTION:\s*(.+)/i);
+      const k = result.match(/KEYWORDS:\s*(.+)/i);
+      const next: SettingsMap = { ...values };
+      if (t?.[1]) next.meta_title = t[1].trim();
+      if (d?.[1]) next.meta_description = d[1].trim();
+      if (k?.[1]) next.meta_keywords = k[1].trim();
+      if (!t && !d && !k) throw new Error("AI returned no parseable fields");
+      setValues(next);
+      toast({ title: "SEO defaults generated", description: "Review and click Save to persist." });
+    } catch (e: any) {
+      toast({ title: "AI failed", description: e?.message || String(e), variant: "destructive" });
+    } finally {
+      setSeoGenerating(false);
+    }
+  };
 
   const currencyOptions = currencies.map((c) => c.code);
   const currencyLabels: Record<string, string> = {};
@@ -317,9 +351,24 @@ export default function AdminSettings() {
       <div className="max-w-3xl space-y-10">
         {settingGroups.map((group) => (
           <div key={group.title}>
-            <div className="mb-4">
-              <h3 className="text-sm font-semibold tracking-executive uppercase">{group.title}</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">{group.description}</p>
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold tracking-executive uppercase">{group.title}</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">{group.description}</p>
+              </div>
+              {group.title === "SEO & Link Previews" && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={generateSeoDefaults}
+                  disabled={seoGenerating}
+                  className="gap-1.5 shrink-0"
+                >
+                  {seoGenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                  {seoGenerating ? "Generating..." : "AI Generate"}
+                </Button>
+              )}
             </div>
             <div className="rounded-xl border border-border divide-y divide-border">
               {group.fields.map((field) => (

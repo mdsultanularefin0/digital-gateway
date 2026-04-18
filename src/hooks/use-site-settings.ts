@@ -24,6 +24,7 @@ export interface SiteSettings {
   youtube_url: string;
   meta_title: string;
   meta_description: string;
+  meta_keywords: string;
   default_og_image_url: string;
   default_twitter_card: string;
   default_canonical_url: string;
@@ -61,6 +62,7 @@ const defaults: SiteSettings = {
   youtube_url: "",
   meta_title: "",
   meta_description: "",
+  meta_keywords: "",
   default_og_image_url: "",
   default_twitter_card: "",
   default_canonical_url: "",
