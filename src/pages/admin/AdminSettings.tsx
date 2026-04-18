@@ -169,6 +169,166 @@ function hexToHslStr(hex: string): string {
   return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
 
+const POPULAR_GOOGLE_FONTS = [
+  "Plus Jakarta Sans",
+  "Inter",
+  "Roboto",
+  "Open Sans",
+  "Lato",
+  "Montserrat",
+  "Poppins",
+  "Nunito",
+  "Raleway",
+  "Source Sans 3",
+  "Work Sans",
+  "DM Sans",
+  "Manrope",
+  "Outfit",
+  "Figtree",
+  "Sora",
+  "Space Grotesk",
+  "Urbanist",
+  "Playfair Display",
+  "Merriweather",
+  "Lora",
+  "Cormorant Garamond",
+  "Libre Baskerville",
+  "EB Garamond",
+  "Crimson Pro",
+  "Bebas Neue",
+  "Oswald",
+  "Archivo",
+  "Archivo Black",
+  "Bricolage Grotesque",
+  "Syne",
+  "Fraunces",
+  "Instrument Serif",
+  "DM Serif Display",
+  "Abril Fatface",
+  "JetBrains Mono",
+  "Space Mono",
+  "Fira Code",
+];
+
+const loadedFontPreviewSet = new Set<string>();
+function loadFontPreview(family: string) {
+  if (!family || loadedFontPreviewSet.has(family)) return;
+  loadedFontPreviewSet.add(family);
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family).replace(/%20/g, "+")}:wght@400;600;700&display=swap`;
+  document.head.appendChild(link);
+}
+
+function FontPickerRow({
+  label,
+  help,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  help: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  // Preload selected + visible options for live preview
+  useEffect(() => {
+    if (value) loadFontPreview(value);
+  }, [value]);
+
+  const filtered = POPULAR_GOOGLE_FONTS.filter((f) =>
+    f.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Lazily preload preview fonts when dropdown opens
+  useEffect(() => {
+    if (!open) return;
+    filtered.slice(0, 20).forEach(loadFontPreview);
+  }, [open, filtered]);
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4">
+      <div className="w-40 shrink-0">
+        <div className="text-sm font-medium">{label}</div>
+        <div className="text-xs text-muted-foreground">{help}</div>
+      </div>
+      <div className="flex-1 relative">
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          className="h-12 w-full rounded-xl border border-border bg-background px-4 text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <span
+            className={value ? "text-foreground text-base" : "text-muted-foreground text-sm"}
+            style={value ? { fontFamily: `'${value}', sans-serif` } : undefined}
+          >
+            {value || placeholder}
+          </span>
+          <div className="flex items-center gap-2 shrink-0">
+            {value && (
+              <span
+                onClick={(e) => { e.stopPropagation(); onChange(""); }}
+                className="text-xs text-muted-foreground hover:text-destructive px-2"
+              >
+                Clear
+              </span>
+            )}
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          </div>
+        </button>
+        {open && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => { setOpen(false); setSearch(""); }} />
+            <div className="absolute z-50 mt-1 w-full rounded-xl border border-border bg-background shadow-lg max-h-72 flex flex-col">
+              <div className="p-2 border-b border-border">
+                <div className="relative">
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <input
+                    autoFocus
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search Google Fonts..."
+                    className="h-8 w-full rounded-xl border border-border bg-muted pl-7 pr-3 text-xs focus:outline-none"
+                  />
+                </div>
+              </div>
+              <div className="overflow-y-auto flex-1">
+                {filtered.length === 0 ? (
+                  <div className="px-3 py-2 text-xs text-muted-foreground">No matching fonts</div>
+                ) : (
+                  filtered.map((font) => (
+                    <button
+                      key={font}
+                      type="button"
+                      onMouseEnter={() => loadFontPreview(font)}
+                      onClick={() => {
+                        loadFontPreview(font);
+                        onChange(font);
+                        setOpen(false);
+                        setSearch("");
+                      }}
+                      className={`w-full text-left px-3 py-2.5 hover:bg-muted transition-colors flex items-center justify-between ${font === value ? "bg-primary/10 text-primary" : ""}`}
+                      style={{ fontFamily: `'${font}', sans-serif` }}
+                    >
+                      <span className="text-base">{font}</span>
+                      <span className="text-xs opacity-50">Aa</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ThemeEditor({ values, update }: { values: SettingsMap; update: (k: string, v: string) => void }) {
   const colorFields: { key: ThemeKey; label: string; help: string }[] = [
     { key: "theme_primary", label: "Primary", help: "Main brand color (buttons, links)" },
@@ -279,6 +439,27 @@ function ThemeEditor({ values, update }: { values: SettingsMap; update: (k: stri
       </div>
 
       <div>
+        <h3 className="text-sm font-semibold tracking-wider uppercase mb-1">Typography</h3>
+        <p className="text-xs text-muted-foreground mb-3">Pick Google Fonts for headings and body text. They load on save.</p>
+        <div className="rounded-xl border border-border divide-y divide-border">
+          <FontPickerRow
+            label="Heading Font"
+            help="Used for titles, hero, and product names"
+            value={values.theme_font_heading || ""}
+            onChange={(v) => update("theme_font_heading", v)}
+            placeholder="Plus Jakarta Sans (default)"
+          />
+          <FontPickerRow
+            label="Body Font"
+            help="Used for paragraphs, descriptions, and UI text"
+            value={values.theme_font_body || ""}
+            onChange={(v) => update("theme_font_body", v)}
+            placeholder="Plus Jakarta Sans (default)"
+          />
+        </div>
+      </div>
+
+      <div>
         <h3 className="text-sm font-semibold tracking-wider uppercase mb-1">Live Preview</h3>
         <p className="text-xs text-muted-foreground mb-3">Save changes to apply globally; this preview reflects current values.</p>
         <div
@@ -289,8 +470,18 @@ function ThemeEditor({ values, update }: { values: SettingsMap; update: (k: stri
             borderRadius: values.theme_radius || THEME_DEFAULTS.theme_radius,
           }}
         >
-          <h4 className="text-xl font-display font-bold">Preview heading</h4>
-          <p className="text-sm opacity-80">A short paragraph of body text using your chosen colors.</p>
+          <h4
+            className="text-xl font-bold"
+            style={values.theme_font_heading ? { fontFamily: `'${values.theme_font_heading}', sans-serif` } : undefined}
+          >
+            Preview heading
+          </h4>
+          <p
+            className="text-sm opacity-80"
+            style={values.theme_font_body ? { fontFamily: `'${values.theme_font_body}', sans-serif` } : undefined}
+          >
+            A short paragraph of body text using your chosen colors and fonts.
+          </p>
           <div className="flex gap-3">
             <button
               type="button"
