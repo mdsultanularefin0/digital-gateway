@@ -146,10 +146,6 @@ export function ProductCard({ product: rawProduct }: { product: Product }) {
         {product.name}
       </h3>
 
-      {/* Description (hidden on mobile) */}
-      <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground line-clamp-2 hidden sm:block">
-        {product.tagline}
-      </p>
 
       {/* Price row (pushed to bottom) */}
       <div className="mt-auto flex items-center justify-between gap-2 pt-3 sm:pt-4">
