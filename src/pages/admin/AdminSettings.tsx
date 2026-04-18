@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Save, Upload, ChevronDown, Search, Sparkles, Loader2 } from "lucide-react";
 import { countries, currencies } from "@/data/countries-currencies";
+import { getErrorMessage } from "@/lib/admin-utils";
 
 interface SettingsMap {
   [key: string]: string;
@@ -240,8 +241,8 @@ export default function AdminSettings() {
       if (!t && !d && !k) throw new Error("AI returned no parseable fields");
       setValues(next);
       toast({ title: "SEO defaults generated", description: "Review and click Save to persist." });
-    } catch (e: any) {
-      toast({ title: "AI failed", description: e?.message || String(e), variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: "AI failed", description: getErrorMessage(e), variant: "destructive" });
     } finally {
       setSeoGenerating(false);
     }
@@ -302,8 +303,8 @@ export default function AdminSettings() {
       const result = await uploadToStorage(file, "assets");
       setValues({ ...values, [key]: result.url });
       toast({ title: "Image uploaded" });
-    } catch (err: any) {
-      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      toast({ title: "Upload failed", description: getErrorMessage(err), variant: "destructive" });
     } finally {
       setUploading(false);
     }

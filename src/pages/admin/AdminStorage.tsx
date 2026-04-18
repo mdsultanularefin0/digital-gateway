@@ -20,6 +20,7 @@ import {
   Folder, FileIcon, Upload, FolderPlus, Trash2, ChevronRight, Home,
   RefreshCw, Loader2, Copy, ExternalLink, ImageIcon, FileText, Film, Music, Archive,
 } from "lucide-react";
+import { getErrorMessage } from "@/lib/admin-utils";
 
 const BUCKETS = [
   { id: "product-images", label: "Product Images" },
@@ -117,7 +118,7 @@ export default function AdminStorage() {
       setDeleteTarget(null);
       queryClient.invalidateQueries({ queryKey });
     },
-    onError: (err: any) => toast({ title: "Delete failed", description: err.message, variant: "destructive" }),
+    onError: (err: unknown) => toast({ title: "Delete failed", description: getErrorMessage(err), variant: "destructive" }),
   });
 
   const folderMutation = useMutation({
@@ -128,7 +129,7 @@ export default function AdminStorage() {
       setNewFolderName("");
       queryClient.invalidateQueries({ queryKey });
     },
-    onError: (err: any) => toast({ title: "Create failed", description: err.message, variant: "destructive" }),
+    onError: (err: unknown) => toast({ title: "Create failed", description: getErrorMessage(err), variant: "destructive" }),
   });
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,9 +142,9 @@ export default function AdminStorage() {
       try {
         await uploadToStoragePath(file, bucket, prefix);
         success++;
-      } catch (err: any) {
+      } catch (err: unknown) {
         failed++;
-        toast({ title: `Upload failed: ${file.name}`, description: err.message, variant: "destructive" });
+        toast({ title: `Upload failed: ${file.name}`, description: getErrorMessage(err), variant: "destructive" });
       }
     }
     setUploading(false);

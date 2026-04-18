@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Search, Check, Star, Trash2, MessageSquare, Sparkles, Loader2, Copy, Globe } from "lucide-react";
 import { format } from "date-fns";
+import { getErrorMessage } from "@/lib/admin-utils";
+import type { Tables } from "@/integrations/supabase/types";
+
+type ReviewWithProduct = Tables<"reviews"> & { products: { name: string } | null };
 
 export default function AdminReviews() {
   const queryClient = useQueryClient();
@@ -20,7 +24,7 @@ export default function AdminReviews() {
         .select("*, products(name)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      return (data ?? []) as ReviewWithProduct[];
     },
   });
 
@@ -54,7 +58,7 @@ export default function AdminReviews() {
     },
   });
 
-  const filtered = reviews.filter((r: any) => {
+  const filtered = reviews.filter((r: ReviewWithProduct) => {
     const matchSearch =
       r.customer_name.toLowerCase().includes(search.toLowerCase()) ||
       r.content.toLowerCase().includes(search.toLowerCase());
@@ -64,7 +68,7 @@ export default function AdminReviews() {
     return matchSearch;
   });
 
-  const pendingCount = reviews.filter((r: any) => !r.approved).length;
+  const pendingCount = reviews.filter((r: ReviewWithProduct) => !r.approved).length;
 
   return (
     <AdminLayout>
@@ -99,7 +103,7 @@ export default function AdminReviews() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((r: any) => (
+          {filtered.map((r: ReviewWithProduct) => (
             <div key={r.id} className={`rounded-xl border p-4 ${r.approved ? "border-border" : "border-yellow-500/30 bg-yellow-500/5"}`}>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
@@ -114,7 +118,7 @@ export default function AdminReviews() {
                     {r.featured && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">Featured</span>}
                   </div>
                   <p className="text-xs text-muted-foreground mb-1">
-                    {(r as any).products?.name || "Unknown product"} • {format(new Date(r.created_at), "PP")}
+                    {r.products?.name || "Unknown product"} • {format(new Date(r.created_at), "PP")}
                   </p>
                   {r.title && <p className="text-sm font-medium mb-0.5">{r.title}</p>}
                   <p className="text-sm text-muted-foreground">{r.content}</p>
@@ -149,7 +153,7 @@ export default function AdminReviews() {
   );
 }
 
-function ReviewResponseGenerator({ review }: { review: any }) {
+function ReviewResponseGenerator({ review }: { review: ReviewWithProduct }) {
   const [response, setResponse] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -176,8 +180,8 @@ function ReviewResponseGenerator({ review }: { review: any }) {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       setResponse(data?.result || "");
-    } catch (e: any) {
-      toast({ title: e.message || "Failed to generate response", variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: getErrorMessage(e, "Failed to generate response"), variant: "destructive" });
     } finally {
       setLoading(false);
     }

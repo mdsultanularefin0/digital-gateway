@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/button";
 import { exportToCSV } from "@/lib/admin-utils";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components/admin/DateRangeFilter";
+import type { Tables } from "@/integrations/supabase/types";
+
+type OrderRow = Tables<"orders">;
+type OrderItemRow = Tables<"order_items">;
 
 const PIE_COLORS = [
   "hsl(210, 100%, 45%)",
@@ -50,20 +54,20 @@ export default function AdminSales() {
   });
 
   // Apply date range filter
-  const orders = filterByDateRange(allOrders, dateRange, (o: any) => o.created_at);
-  const orderIds = new Set(orders.map((o: any) => o.id));
-  const orderItems = allOrderItems.filter((item: any) => orderIds.has(item.order_id));
+  const orders = filterByDateRange(allOrders as OrderRow[], dateRange, (o: OrderRow) => o.created_at);
+  const orderIds = new Set(orders.map((o: OrderRow) => o.id));
+  const orderItems = (allOrderItems as OrderItemRow[]).filter((item: OrderItemRow) => orderIds.has(item.order_id));
 
-  const paidOrders = orders.filter((o: any) => o.payment_status === "paid");
-  const totalRevenue = paidOrders.reduce((sum: number, o: any) => sum + Number(o.total), 0);
+  const paidOrders = orders.filter((o: OrderRow) => o.payment_status === "paid");
+  const totalRevenue = paidOrders.reduce((sum: number, o: OrderRow) => sum + Number(o.total), 0);
   const totalOrders = orders.length;
   const avgOrderValue = paidOrders.length > 0 ? totalRevenue / paidOrders.length : 0;
 
   const today = startOfDay(new Date());
   const todayRevenue = paidOrders
-    .filter((o: any) => new Date(o.created_at) >= today)
-    .reduce((sum: number, o: any) => sum + Number(o.total), 0);
-  const todayOrders = orders.filter((o: any) => new Date(o.created_at) >= today).length;
+    .filter((o: OrderRow) => new Date(o.created_at) >= today)
+    .reduce((sum: number, o: OrderRow) => sum + Number(o.total), 0);
+  const todayOrders = orders.filter((o: OrderRow) => new Date(o.created_at) >= today).length;
 
   // Last 30 days revenue
   const last30Days = Array.from({ length: 30 }, (_, i) => {
@@ -71,13 +75,13 @@ export default function AdminSales() {
     const dayStart = startOfDay(date);
     const dayEnd = new Date(dayStart);
     dayEnd.setDate(dayEnd.getDate() + 1);
-    const dayOrders = paidOrders.filter((o: any) => {
+    const dayOrders = paidOrders.filter((o: OrderRow) => {
       const d = new Date(o.created_at);
       return d >= dayStart && d < dayEnd;
     });
     return {
       date: format(date, "MMM d"),
-      revenue: dayOrders.reduce((s: number, o: any) => s + Number(o.total), 0),
+      revenue: dayOrders.reduce((s: number, o: OrderRow) => s + Number(o.total), 0),
       orders: dayOrders.length,
     };
   });
@@ -86,7 +90,7 @@ export default function AdminSales() {
 
   // Top products by revenue
   const productRevenue: Record<string, { name: string; revenue: number; quantity: number }> = {};
-  orderItems.forEach((item: any) => {
+  orderItems.forEach((item: OrderItemRow) => {
     const key = item.product_name || "Unknown";
     if (!productRevenue[key]) productRevenue[key] = { name: key, revenue: 0, quantity: 0 };
     productRevenue[key].revenue += Number(item.total);
@@ -97,12 +101,12 @@ export default function AdminSales() {
   // Order status breakdown
   const statusBreakdown = ["pending", "confirmed", "processing", "completed", "cancelled", "refunded"].map((s) => ({
     name: s.charAt(0).toUpperCase() + s.slice(1),
-    value: orders.filter((o: any) => o.status === s).length,
+    value: orders.filter((o: OrderRow) => o.status === s).length,
   })).filter((s) => s.value > 0);
 
   // Payment method breakdown
   const paymentMethods: Record<string, number> = {};
-  orders.forEach((o: any) => {
+  orders.forEach((o: OrderRow) => {
     const method = o.payment_method || "unknown";
     paymentMethods[method] = (paymentMethods[method] || 0) + 1;
   });
@@ -115,7 +119,7 @@ export default function AdminSales() {
 
   const handleExportSales = () => {
     exportToCSV(
-      orders.map((o: any) => ({
+      orders.map((o: OrderRow) => ({
         order_number: o.order_number,
         customer: o.customer_name,
         email: o.customer_email,
@@ -272,7 +276,7 @@ export default function AdminSales() {
           <div className="p-8 text-center text-muted-foreground">No orders yet</div>
         ) : (
           <div className="divide-y divide-border">
-            {orders.slice(0, 10).map((o: any) => (
+            {orders.slice(0, 10).map((o: OrderRow) => (
               <div key={o.id} className="flex items-center justify-between p-4">
                 <div>
                   <span className="font-mono text-xs">{o.order_number}</span>
