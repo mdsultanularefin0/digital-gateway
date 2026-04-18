@@ -302,12 +302,13 @@ export default function ProductDetailPage() {
                   </motion.p>
                 )}
 
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-5 sm:mt-6">
-                  <Button variant="outline" size="lg" className="flex-1 sm:size-xl" onClick={handleAddToCart}>
-                    <ShoppingCart className="mr-2 h-4 w-4" /> {t("action.add_to_cart")}
+                <div className="flex flex-row gap-2 sm:gap-3 mt-5 sm:mt-6">
+                  <Button variant="outline" size="default" className="flex-1 px-2 sm:px-4 sm:h-12 lg:h-14 text-xs sm:text-sm min-w-0" onClick={handleAddToCart}>
+                    <ShoppingCart className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{t("action.add_to_cart")}</span>
                   </Button>
-                  <Button variant="gradient" size="lg" className="flex-1 sm:size-xl" onClick={handleBuyNow}>
-                    {t("action.buy_now")}
+                  <Button variant="gradient" size="default" className="flex-1 px-2 sm:px-4 sm:h-12 lg:h-14 text-xs sm:text-sm min-w-0" onClick={handleBuyNow}>
+                    <span className="truncate">{t("action.buy_now")}</span>
                   </Button>
                 </div>
               </div>
