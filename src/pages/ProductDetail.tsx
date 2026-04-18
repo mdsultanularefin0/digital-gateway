@@ -195,27 +195,27 @@ export default function ProductDetailPage() {
         type="product"
         jsonLd={productJsonLd}
       />
-      <section className="py-16 md:py-24">
-        <div className="container px-5 md:px-8">
-          <Link to="/products" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
+      <section className="py-8 sm:py-12 md:py-24">
+        <div className="container max-w-6xl">
+          <Link to="/products" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 sm:mb-8">
             <ArrowLeft className="h-4 w-4" /> {lang === "bn" ? "পণ্যে ফিরে যান" : "Back to Products"}
           </Link>
 
-          <div className="grid gap-12 lg:grid-cols-2">
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+          <div className="grid gap-6 md:gap-12 lg:grid-cols-2">
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="max-w-sm mx-auto w-full lg:max-w-none">
               <ProductImageGallery productId={product.id} fallbackLetter={product.name[0]} />
             </motion.div>
 
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <div className="flex flex-wrap gap-2">
+              <div className="flex items-start justify-between gap-4 mb-3">
+                <div className="flex flex-wrap gap-1.5">
                   {product.tags.map((tag) => (
-                    <span key={tag} className="rounded-xl bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{tag}</span>
+                    <span key={tag} className="rounded-xl bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">{tag}</span>
                   ))}
                 </div>
               </div>
-              <h1 className="text-3xl font-display font-bold md:text-4xl break-words">{product.name}</h1>
-              <p className="mt-2 text-lg text-muted-foreground break-words">{product.tagline}</p>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold break-words leading-tight">{product.name}</h1>
+              <p className="mt-2 text-base sm:text-lg text-muted-foreground break-words">{product.tagline}</p>
 
               {/* Rating summary */}
               {reviews.length > 0 && (
@@ -245,7 +245,7 @@ export default function ProductDetailPage() {
               )}
 
               {/* Subscription Selector */}
-              <div className="mt-10 rounded-xl border border-border p-6">
+              <div className="mt-8 sm:mt-10 rounded-xl border border-border p-4 sm:p-6">
                 {hasTiers ? (
                   <>
                     <h3 className="text-sm font-medium tracking-executive uppercase text-muted-foreground mb-4">{lang === "bn" ? "প্ল্যান বাছাই করুন" : "Choose Plan"}</h3>
@@ -254,7 +254,7 @@ export default function ProductDetailPage() {
                         <button
                           key={tier.id}
                           onClick={() => setSelectedTierIdx(i)}
-                          className={`relative flex-1 rounded-xl border-2 px-4 py-3 text-center transition-all duration-300 ${
+                          className={`relative flex-1 min-w-[90px] rounded-xl border-2 px-3 py-3 text-center transition-all duration-300 ${
                             selectedTierIdx === i
                               ? "border-primary bg-primary/5"
                               : "border-border hover:border-foreground/20"
@@ -268,7 +268,7 @@ export default function ProductDetailPage() {
                               {tier.badge}
                             </Badge>
                           )}
-                          <span className={`block text-sm font-medium ${selectedTierIdx === i ? "text-primary" : "text-foreground"}`}>
+                          <span className={`block text-xs sm:text-sm font-medium ${selectedTierIdx === i ? "text-primary" : "text-foreground"}`}>
                             {tier.label}
                           </span>
                         </button>
@@ -279,7 +279,7 @@ export default function ProductDetailPage() {
                   <h3 className="text-sm font-medium tracking-executive uppercase text-muted-foreground mb-2">{lang === "bn" ? "মূল্য" : "Pricing"}</h3>
                 )}
 
-                <div className="mt-6 flex items-baseline gap-2">
+                <div className="mt-5 sm:mt-6 flex items-baseline gap-2 flex-wrap">
                   <AnimatePresence mode="wait">
                     <motion.span
                       key={displayPrice}
@@ -287,13 +287,13 @@ export default function ProductDetailPage() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -8 }}
                       transition={{ duration: 0.25 }}
-                      className="text-4xl font-display font-bold"
+                      className="text-3xl sm:text-4xl font-display font-bold"
                     >
                       {currencySymbol}{Number(displayPrice).toFixed(2)}
                     </motion.span>
                   </AnimatePresence>
-                  {activeTier && <span className="text-muted-foreground">/ {activeTier.label.toLowerCase()}</span>}
-                  {!activeTier && product.billingCycle && <span className="text-muted-foreground">/ {product.billingCycle}</span>}
+                  {activeTier && <span className="text-sm sm:text-base text-muted-foreground">/ {activeTier.label.toLowerCase()}</span>}
+                  {!activeTier && product.billingCycle && <span className="text-sm sm:text-base text-muted-foreground">/ {product.billingCycle}</span>}
                 </div>
 
                 {savings > 0 && (
@@ -302,11 +302,11 @@ export default function ProductDetailPage() {
                   </motion.p>
                 )}
 
-                <div className="flex gap-3 mt-6">
-                  <Button variant="outline" size="xl" className="flex-1" onClick={handleAddToCart}>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-5 sm:mt-6">
+                  <Button variant="outline" size="lg" className="flex-1 sm:size-xl" onClick={handleAddToCart}>
                     <ShoppingCart className="mr-2 h-4 w-4" /> {t("action.add_to_cart")}
                   </Button>
-                  <Button variant="gradient" size="xl" className="flex-1" onClick={handleBuyNow}>
+                  <Button variant="gradient" size="lg" className="flex-1 sm:size-xl" onClick={handleBuyNow}>
                     {t("action.buy_now")}
                   </Button>
                 </div>
