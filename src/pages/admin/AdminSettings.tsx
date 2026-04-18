@@ -351,9 +351,24 @@ export default function AdminSettings() {
       <div className="max-w-3xl space-y-10">
         {settingGroups.map((group) => (
           <div key={group.title}>
-            <div className="mb-4">
-              <h3 className="text-sm font-semibold tracking-executive uppercase">{group.title}</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">{group.description}</p>
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold tracking-executive uppercase">{group.title}</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">{group.description}</p>
+              </div>
+              {group.title === "SEO & Link Previews" && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={generateSeoDefaults}
+                  disabled={seoGenerating}
+                  className="gap-1.5 shrink-0"
+                >
+                  {seoGenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                  {seoGenerating ? "Generating..." : "AI Generate"}
+                </Button>
+              )}
             </div>
             <div className="rounded-xl border border-border divide-y divide-border">
               {group.fields.map((field) => (
