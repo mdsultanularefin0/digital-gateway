@@ -114,7 +114,16 @@ const settingGroups: GroupDef[] = [
 ];
 
 // ----- Theme tab definitions -----
-type ThemeKey = "theme_primary" | "theme_accent" | "theme_background" | "theme_foreground" | "theme_radius";
+type ThemeKey =
+  | "theme_primary"
+  | "theme_accent"
+  | "theme_background"
+  | "theme_foreground"
+  | "theme_radius"
+  | "theme_dark_primary"
+  | "theme_dark_accent"
+  | "theme_dark_background"
+  | "theme_dark_foreground";
 
 const THEME_DEFAULTS: Record<ThemeKey, string> = {
   theme_primary: "210 100% 45%",
@@ -122,14 +131,18 @@ const THEME_DEFAULTS: Record<ThemeKey, string> = {
   theme_background: "210 30% 98%",
   theme_foreground: "214 60% 10%",
   theme_radius: "0.75rem",
+  theme_dark_primary: "210 100% 55%",
+  theme_dark_accent: "195 80% 50%",
+  theme_dark_background: "214 40% 8%",
+  theme_dark_foreground: "210 30% 92%",
 };
 
 const THEME_PRESETS: { name: string; values: Record<ThemeKey, string> }[] = [
-  { name: "Frost Blue (Default)", values: { theme_primary: "210 100% 45%", theme_accent: "195 80% 45%", theme_background: "210 30% 98%", theme_foreground: "214 60% 10%", theme_radius: "0.75rem" } },
-  { name: "Emerald", values: { theme_primary: "160 70% 38%", theme_accent: "175 65% 42%", theme_background: "150 30% 98%", theme_foreground: "160 50% 10%", theme_radius: "0.75rem" } },
-  { name: "Sunset Orange", values: { theme_primary: "20 90% 50%", theme_accent: "350 80% 55%", theme_background: "30 40% 98%", theme_foreground: "20 50% 10%", theme_radius: "1rem" } },
-  { name: "Royal Violet", values: { theme_primary: "265 75% 55%", theme_accent: "290 70% 55%", theme_background: "265 30% 98%", theme_foreground: "265 40% 10%", theme_radius: "0.5rem" } },
-  { name: "Mono Slate", values: { theme_primary: "215 25% 27%", theme_accent: "215 20% 50%", theme_background: "210 20% 98%", theme_foreground: "215 30% 10%", theme_radius: "0.375rem" } },
+  { name: "Frost Blue (Default)", values: { theme_primary: "210 100% 45%", theme_accent: "195 80% 45%", theme_background: "210 30% 98%", theme_foreground: "214 60% 10%", theme_radius: "0.75rem", theme_dark_primary: "210 100% 55%", theme_dark_accent: "195 80% 50%", theme_dark_background: "214 40% 8%", theme_dark_foreground: "210 30% 92%" } },
+  { name: "Emerald", values: { theme_primary: "160 70% 38%", theme_accent: "175 65% 42%", theme_background: "150 30% 98%", theme_foreground: "160 50% 10%", theme_radius: "0.75rem", theme_dark_primary: "160 70% 48%", theme_dark_accent: "175 65% 50%", theme_dark_background: "160 35% 8%", theme_dark_foreground: "150 25% 92%" } },
+  { name: "Sunset Orange", values: { theme_primary: "20 90% 50%", theme_accent: "350 80% 55%", theme_background: "30 40% 98%", theme_foreground: "20 50% 10%", theme_radius: "1rem", theme_dark_primary: "20 90% 58%", theme_dark_accent: "350 80% 62%", theme_dark_background: "20 35% 8%", theme_dark_foreground: "30 25% 92%" } },
+  { name: "Royal Violet", values: { theme_primary: "265 75% 55%", theme_accent: "290 70% 55%", theme_background: "265 30% 98%", theme_foreground: "265 40% 10%", theme_radius: "0.5rem", theme_dark_primary: "265 75% 65%", theme_dark_accent: "290 70% 62%", theme_dark_background: "265 35% 8%", theme_dark_foreground: "265 25% 92%" } },
+  { name: "Mono Slate", values: { theme_primary: "215 25% 27%", theme_accent: "215 20% 50%", theme_background: "210 20% 98%", theme_foreground: "215 30% 10%", theme_radius: "0.375rem", theme_dark_primary: "215 25% 75%", theme_dark_accent: "215 20% 60%", theme_dark_background: "215 30% 8%", theme_dark_foreground: "210 20% 92%" } },
 ];
 
 // hsl "h s% l%" <-> hex helpers
