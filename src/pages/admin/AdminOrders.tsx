@@ -10,6 +10,8 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 import OrderDetail from "@/components/admin/OrderDetail";
 import { exportToCSV, logActivity } from "@/lib/admin-utils";
 import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components/admin/DateRangeFilter";
+import { usePagination } from "@/hooks/use-pagination";
+import { PaginationBar } from "@/components/admin/PaginationBar";
 
 const statuses = ["pending", "confirmed", "processing", "completed", "cancelled", "refunded"];
 const paymentStatuses = ["unpaid", "paid", "refunded"];
@@ -360,7 +362,7 @@ export default function AdminOrders() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtered.map((o: any) => (
+              {pagedOrders.map((o: any) => (
                 <tr key={o.id} className={`transition-colors ${selectedIds.has(o.id) ? "bg-primary/5" : "hover:bg-muted/30"}`}>
                   <td className="p-3">
                     <button onClick={() => toggleSelect(o.id)} className="text-muted-foreground hover:text-foreground">
@@ -417,6 +419,16 @@ export default function AdminOrders() {
               ))}
             </tbody>
           </table>
+          <div className="p-3 border-t border-border">
+            <PaginationBar
+              page={ordersPagination.page}
+              pageCount={ordersPagination.pageCount}
+              pageSize={ordersPagination.pageSize}
+              total={ordersPagination.total}
+              onPrev={ordersPagination.prev}
+              onNext={ordersPagination.next}
+            />
+          </div>
         </div>
       )}
     </AdminLayout>
