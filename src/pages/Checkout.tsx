@@ -164,17 +164,17 @@ export default function CheckoutPage() {
 
   return (
     <Layout>
-      <section className="py-10 sm:py-16 md:py-24">
-        <div className="container px-4 sm:px-5 md:px-8 max-w-5xl">
-          <h1 className="text-2xl sm:text-3xl font-display font-bold mb-6 sm:mb-8">Checkout</h1>
+      <section className="py-6 sm:py-12 md:py-20">
+        <div className="container px-3 sm:px-5 md:px-8 max-w-5xl">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-bold mb-4 sm:mb-6 md:mb-8">Checkout</h1>
 
-          <div className="grid gap-6 sm:gap-8 lg:grid-cols-5">
-            <div className="lg:col-span-3 space-y-6">
+          <div className="grid gap-4 sm:gap-6 lg:gap-8 lg:grid-cols-5">
+            <div className="lg:col-span-3 space-y-4 sm:space-y-6">
               <div className="rounded-xl border border-border">
-                <div className="p-4 border-b border-border">
-                  <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Contact Information</h2>
+                <div className="p-3 sm:p-4 border-b border-border">
+                  <h2 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-muted-foreground">Contact Information</h2>
                 </div>
-                <div className="p-4 space-y-3">
+                <div className="p-3 sm:p-4 space-y-3">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
                       <label className="text-xs font-medium mb-1 block">Full Name *</label>
@@ -193,26 +193,26 @@ export default function CheckoutPage() {
               </div>
 
               <div className="rounded-xl border border-border">
-                <div className="p-4 border-b border-border">
-                  <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Address</h2>
+                <div className="p-3 sm:p-4 border-b border-border">
+                  <h2 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-muted-foreground">Address</h2>
                 </div>
-                <div className="p-4">
+                <div className="p-3 sm:p-4">
                   <label className="text-xs font-medium mb-1 block">Full Address</label>
-                  <textarea value={form.address} onChange={(e) => update("address", e.target.value)} className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]" placeholder="House/Apt, Street, Area, City, Country..." />
+                  <textarea value={form.address} onChange={(e) => update("address", e.target.value)} className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[72px] sm:min-h-[80px]" placeholder="House/Apt, Street, Area, City, Country..." />
                 </div>
               </div>
 
               <div className="rounded-xl border border-border">
-                <div className="p-4 border-b border-border">
-                  <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Payment Method</h2>
+                <div className="p-3 sm:p-4 border-b border-border">
+                  <h2 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-muted-foreground">Payment Method</h2>
                 </div>
-                <div className="p-4 space-y-2">
+                <div className="p-3 sm:p-4 space-y-2">
                   {paymentMethods.length === 0 && <p className="text-sm text-muted-foreground">No payment methods available.</p>}
                   {paymentMethods.map((m) => (
-                    <label key={m.value} className={`flex items-center gap-3 rounded-xl border p-3 cursor-pointer transition-colors ${form.paymentMethod === m.value ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"}`}>
-                      <input type="radio" name="payment" value={m.value} checked={form.paymentMethod === m.value} onChange={(e) => update("paymentMethod", e.target.value)} className="h-4 w-4 accent-primary" />
-                      <img src={m.logo} alt={m.label} className="h-7 w-7 object-contain rounded" loading="lazy" width={28} height={28} />
-                      <span className="text-sm font-medium">{m.label}</span>
+                    <label key={m.value} className={`flex items-center gap-2.5 sm:gap-3 rounded-xl border p-2.5 sm:p-3 cursor-pointer transition-colors ${form.paymentMethod === m.value ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"}`}>
+                      <input type="radio" name="payment" value={m.value} checked={form.paymentMethod === m.value} onChange={(e) => update("paymentMethod", e.target.value)} className="h-4 w-4 accent-primary shrink-0" />
+                      <img src={m.logo} alt={m.label} className="h-6 w-6 sm:h-7 sm:w-7 object-contain rounded shrink-0" loading="lazy" width={28} height={28} />
+                      <span className="text-xs sm:text-sm font-medium truncate">{m.label}</span>
                     </label>
                   ))}
                 </div>
@@ -233,21 +233,21 @@ export default function CheckoutPage() {
 
               <div>
                 <label className="text-xs font-medium mb-1 block">Order Notes (optional)</label>
-                <textarea value={form.notes} onChange={(e) => update("notes", e.target.value)} className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]" placeholder="Special instructions..." />
+                <textarea value={form.notes} onChange={(e) => update("notes", e.target.value)} className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[72px] sm:min-h-[80px]" placeholder="Special instructions..." />
               </div>
             </div>
 
             <div className="lg:col-span-2">
-              <div className="rounded-xl border border-border sticky top-24">
-                <div className="p-4 border-b border-border">
-                  <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Order Summary</h2>
+              <div className="rounded-xl border border-border lg:sticky lg:top-24">
+                <div className="p-3 sm:p-4 border-b border-border">
+                  <h2 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-muted-foreground">Order Summary</h2>
                 </div>
                 <div className="divide-y divide-border">
                   {items.map((item) => (
-                    <div key={`${item.productId}-${item.tierId}`} className="flex justify-between gap-2 p-4">
+                    <div key={`${item.productId}-${item.tierId}`} className="flex justify-between gap-2 p-3 sm:p-4">
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{item.productName}</p>
-                        {item.tierLabel && <p className="text-xs text-muted-foreground">{item.tierLabel}</p>}
+                        {item.tierLabel && <p className="text-xs text-muted-foreground truncate">{item.tierLabel}</p>}
                         <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                       </div>
                       <p className="text-sm font-medium shrink-0">{sym}{(item.price * item.quantity).toFixed(2)}</p>
@@ -255,33 +255,33 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
-                <div className="p-4 border-t border-border space-y-2">
+                <div className="p-3 sm:p-4 border-t border-border space-y-2">
                   {couponApplied ? (
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-green-500">Coupon: {couponApplied}</span>
-                      <button onClick={removeCoupon} className="text-xs text-destructive underline">Remove</button>
+                    <div className="flex items-center justify-between text-sm gap-2">
+                      <span className="text-green-500 truncate">Coupon: {couponApplied}</span>
+                      <button onClick={removeCoupon} className="text-xs text-destructive underline shrink-0">Remove</button>
                     </div>
                   ) : (
                     <div className="flex gap-2">
-                      <input value={form.couponCode} onChange={(e) => update("couponCode", e.target.value)} placeholder="Coupon code" className="h-9 flex-1 rounded-xl border border-border bg-background px-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary" />
-                      <Button variant="outline" size="sm" onClick={applyCoupon} disabled={couponLoading}>
+                      <input value={form.couponCode} onChange={(e) => update("couponCode", e.target.value)} placeholder="Coupon code" className="h-9 flex-1 min-w-0 rounded-xl border border-border bg-background px-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary" />
+                      <Button variant="outline" size="sm" onClick={applyCoupon} disabled={couponLoading} className="shrink-0">
                         {couponLoading ? "..." : "Apply"}
                       </Button>
                     </div>
                   )}
                 </div>
 
-                <div className="p-4 border-t border-border space-y-1.5">
+                <div className="p-3 sm:p-4 border-t border-border space-y-1.5">
                   <div className="flex justify-between text-sm"><span>Subtotal</span><span>{sym}{subtotal.toFixed(2)}</span></div>
                   {discount > 0 && <div className="flex justify-between text-sm text-green-500"><span>Discount</span><span>-{sym}{discount.toFixed(2)}</span></div>}
                   {shippingCost > 0 && <div className="flex justify-between text-sm"><span>Shipping</span><span>{sym}{shippingCost.toFixed(2)}</span></div>}
-                  <div className="flex justify-between font-bold text-lg pt-2 border-t border-border">
+                  <div className="flex justify-between font-bold text-base sm:text-lg pt-2 border-t border-border">
                     <span>Total</span>
                     <span>{sym}{total.toFixed(2)}</span>
                   </div>
                 </div>
 
-                <div className="p-4 border-t border-border">
+                <div className="p-3 sm:p-4 border-t border-border">
                   <Button variant="gradient" size="lg" className="w-full" onClick={placeOrder} disabled={submitting}>
                     {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                     {submitting ? "Placing Order..." : "Place Order"}
