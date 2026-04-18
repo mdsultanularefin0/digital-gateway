@@ -167,13 +167,6 @@ export function Header() {
               >
                 <Search className="h-4 w-4" /> {t("nav.search") || "Search"}
               </button>
-              <div className="mt-2 border-t border-border pt-4 flex gap-2">
-                <Link to="/login" className="flex-1">
-                  <Button variant="outline" className="w-full gap-2 rounded-xl">
-                    <User className="h-4 w-4" /> Profile
-                  </Button>
-                </Link>
-              </div>
             </div>
           </motion.div>
         )}
