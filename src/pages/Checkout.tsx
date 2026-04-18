@@ -14,13 +14,22 @@ import paymentCod from "@/assets/payment-cod.png";
 import paymentBank from "@/assets/payment-bank.png";
 import paymentStripe from "@/assets/payment-stripe.png";
 
+const DEFAULT_LOGOS: Record<string, string> = {
+  cod: paymentCod,
+  bkash: paymentBkash,
+  bkash_send: paymentBkash,
+  nagad_send: paymentNagad,
+  bank: paymentBank,
+  stripe: paymentStripe,
+};
+
 const ALL_PAYMENT_METHODS = [
-  { value: "cod", label: "Cash on Delivery", logo: paymentCod },
-  { value: "bkash", label: "bKash (PGW)", logo: paymentBkash },
-  { value: "bkash_send", label: "bKash Send Money", logo: paymentBkash },
-  { value: "nagad_send", label: "Nagad Send Money", logo: paymentNagad },
-  { value: "bank", label: "Bank Transfer", logo: paymentBank },
-  { value: "stripe", label: "Credit/Debit Card", logo: paymentStripe },
+  { value: "cod", label: "Cash on Delivery" },
+  { value: "bkash", label: "bKash (PGW)" },
+  { value: "bkash_send", label: "bKash Send Money" },
+  { value: "nagad_send", label: "Nagad Send Money" },
+  { value: "bank", label: "Bank Transfer" },
+  { value: "stripe", label: "Credit/Debit Card" },
 ];
 
 function SendMoneyPanel({
@@ -97,7 +106,10 @@ export default function CheckoutPage() {
     } catch {}
     return ["cod"];
   })();
-  const paymentMethods = ALL_PAYMENT_METHODS.filter((m) => enabledMethods.includes(m.value));
+  const paymentMethods = ALL_PAYMENT_METHODS.filter((m) => enabledMethods.includes(m.value)).map((m) => ({
+    ...m,
+    logo: (settings as any)?.[`payment_logo_${m.value}`] || DEFAULT_LOGOS[m.value],
+  }));
 
   // Auto-select first method
   useEffect(() => {
