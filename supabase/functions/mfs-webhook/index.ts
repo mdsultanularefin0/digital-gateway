@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { withLogging } from "../_shared/logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,7 +14,7 @@ function json(body: Record<string, unknown>, status = 200) {
   });
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withLogging("mfs-webhook", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -139,4 +140,4 @@ Deno.serve(async (req) => {
     const message = err instanceof Error ? err.message : "Unknown error";
     return json({ error: message }, 500);
   }
-});
+}));
