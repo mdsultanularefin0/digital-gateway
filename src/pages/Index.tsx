@@ -67,8 +67,10 @@ export default function HomePage() {
         title={pageMeta?.meta_title?.trim() || `${siteName} — Premium Digital Products`}
         description={pageMeta?.meta_description?.trim() || tagline}
         keywords={pageMeta?.meta_keywords?.trim() || undefined}
-        ogImage={pageMeta?.og_image_url?.trim() || undefined}
-        canonical="https://secure-link-shop.lovable.app/"
+        ogImage={pageMeta?.og_image_url?.trim() || (settings as any)?.default_og_image_url || undefined}
+        canonical={pageMeta?.canonical_url?.trim() || (settings as any)?.default_canonical_url || "https://secure-link-shop.lovable.app/"}
+        twitterCard={(pageMeta?.twitter_card?.trim() || (settings as any)?.default_twitter_card || undefined) as any}
+        siteName={siteName}
         type="website"
         jsonLd={jsonLd}
       />
