@@ -109,6 +109,35 @@ async function executePayment(baseUrl: string, idToken: string, paymentID: strin
   return data;
 }
 
+async function refundPayment(
+  baseUrl: string,
+  idToken: string,
+  paymentID: string,
+  trxID: string,
+  amount: string,
+  reason: string,
+) {
+  const appKey = Deno.env.get("BKASH_APP_KEY")!;
+  const res = await fetch(`${baseUrl}/tokenized/checkout/payment/refund`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      authorization: idToken,
+      "x-app-key": appKey,
+    },
+    body: JSON.stringify({
+      paymentID,
+      trxID,
+      amount,
+      sku: "refund",
+      reason: (reason || "Customer refund").slice(0, 255),
+    }),
+  });
+  const data = await res.json();
+  return { ok: res.ok, data };
+}
+
 // ── Main handler ───────────────────────────────────────────────
 
 Deno.serve(async (req) => {
@@ -295,6 +324,60 @@ Deno.serve(async (req) => {
         { success: false, message: result.statusMessage || result.errorMessage || "Payment not completed" },
         400
       );
+    }
+
+    // ── REFUND: admin-triggered refund (full or partial) ──
+    if (action === "refund" && req.method === "POST") {
+      const { orderId, amount, reason } = await req.json();
+      if (!orderId) return json({ error: "Missing orderId" }, 400);
+
+      const { data: order, error: ordErr } = await supabase
+        .from("orders")
+        .select("id, order_number, total, notes, bkash_response, payment_status")
+        .eq("id", orderId)
+        .single();
+      if (ordErr || !order) return json({ error: "Order not found" }, 404);
+      if (order.payment_status !== "paid") return json({ error: "Order is not paid" }, 400);
+
+      const paymentID = order.notes?.match(/bkash_paymentID:(\S+)/)?.[1];
+      const trxID = order.notes?.match(/bkash_trxID:(\S+)/)?.[1];
+      if (!paymentID || !trxID) return json({ error: "No bKash transaction on file" }, 400);
+
+      const refundAmt = amount ? Number(amount).toFixed(2) : Number(order.total).toFixed(2);
+      const baseUrl = await getBaseUrl(supabase);
+      const { idToken } = await grantToken(baseUrl);
+      const { ok, data: refundData } = await refundPayment(baseUrl, idToken, paymentID, trxID, refundAmt, reason || "");
+
+      const merged = {
+        ...(order.bkash_response as Record<string, unknown> || {}),
+        refund: refundData,
+      };
+
+      const isFullRefund = Math.abs(Number(refundAmt) - Number(order.total)) < 0.01;
+      await supabase
+        .from("orders")
+        .update({
+          bkash_response: merged,
+          payment_status: ok && isFullRefund ? "refunded" : order.payment_status,
+          status: ok && isFullRefund ? "refunded" : undefined,
+        })
+        .eq("id", orderId);
+
+      await supabase.from("transactions").insert({
+        order_id: orderId,
+        order_number: order.order_number,
+        payment_method: "bkash",
+        provider: "bKash PGW",
+        payment_id: paymentID,
+        trx_id: refundData?.refundTrxID || "",
+        amount: -Number(refundAmt),
+        currency: "BDT",
+        status: ok ? "refunded" : "failed",
+        raw_response: refundData,
+      });
+
+      if (!ok) return json({ success: false, error: refundData }, 400);
+      return json({ success: true, refund: refundData });
     }
 
     return json({ error: `Unknown action: ${action}` }, 400);

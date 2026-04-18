@@ -10,10 +10,21 @@ import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Navigate } from "react-router-dom";
 import {
-  Package, MapPin, User, Settings, Save, LogOut, Download, Lock,
+  Package, MapPin, User, Settings, Save, LogOut, Download, Lock, Mail,
 } from "lucide-react";
 import { DownloadLinks } from "@/components/DownloadLinks";
 import { CustomerDeliveries } from "@/components/CustomerDeliveries";
+
+async function resendDownloadEmail(orderId: string) {
+  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const res = await fetch(`https://${projectId}.supabase.co/functions/v1/send-order-confirmation`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+    body: JSON.stringify({ order_id: orderId, type: "order_confirmation", origin: window.location.origin }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/10 text-yellow-600",
@@ -284,9 +295,25 @@ export default function AccountPage() {
                 <div className="space-y-4">
                   {orders.filter((o: any) => o.payment_status === "paid").map((o: any) => (
                     <div key={o.id}>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Order <span className="font-mono">{o.order_number}</span> — {format(new Date(o.created_at), "PP")}
-                      </p>
+                      <div className="flex items-center justify-between mb-2 gap-2">
+                        <p className="text-sm text-muted-foreground">
+                          Order <span className="font-mono">{o.order_number}</span> — {format(new Date(o.created_at), "PP")}
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              await resendDownloadEmail(o.id);
+                              toast({ title: "Download link re-sent", description: `Check ${user.email}` });
+                            } catch (e: any) {
+                              toast({ title: "Failed to resend", description: e.message, variant: "destructive" });
+                            }
+                          }}
+                        >
+                          <Mail className="h-4 w-4 mr-1" /> Resend link
+                        </Button>
+                      </div>
                       <DownloadLinks orderId={o.id} />
                     </div>
                   ))}

@@ -5,10 +5,11 @@ import { uploadToStorage } from "@/lib/storage";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, X, Upload, ImageIcon } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Upload, ImageIcon, FileUp } from "lucide-react";
 import { AiGenerateButton } from "@/components/admin/AiGenerateButton";
 import { TranslateButton } from "@/components/admin/TranslateButton";
 import { MetaSeoFields } from "@/components/admin/MetaSeoFields";
+import { BulkBlogImport } from "@/components/admin/BulkBlogImport";
 import type { Database } from "@/integrations/supabase/types";
 
 type BlogPost = Database["public"]["Tables"]["blog_posts"]["Row"];
@@ -30,6 +31,7 @@ export default function AdminBlog() {
   const [isNew, setIsNew] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [activeLang, setActiveLang] = useState<"en" | "bn">("en");
+  const [showBulkImport, setShowBulkImport] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = async (file: File) => {
@@ -318,10 +320,17 @@ export default function AdminBlog() {
     <AdminLayout>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-display font-bold">Blog Posts</h2>
-        <Button variant="gradient" size="sm" onClick={() => openEditor()}>
-          <Plus className="h-4 w-4 mr-1" /> New Post
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setShowBulkImport((v) => !v)}>
+            <FileUp className="h-4 w-4 mr-1" /> Bulk import
+          </Button>
+          <Button variant="gradient" size="sm" onClick={() => openEditor()}>
+            <Plus className="h-4 w-4 mr-1" /> New Post
+          </Button>
+        </div>
       </div>
+
+      {showBulkImport && <div className="mb-6"><BulkBlogImport onClose={() => setShowBulkImport(false)} /></div>}
 
       {isLoading ? (
         <div className="text-muted-foreground">Loading...</div>
