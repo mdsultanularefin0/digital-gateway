@@ -83,6 +83,14 @@ const navStructure: NavEntry[] = [
     ],
   },
   {
+    label: "Diagnostics",
+    icon: Clock,
+    items: [
+      { label: "Activity Log", to: "/admin/activity", icon: Clock },
+      { label: "Edge Function Logs", to: "/admin/edge-function-logs", icon: Plug },
+    ],
+  },
+  {
     label: "System",
     icon: Settings,
     items: [
