@@ -106,6 +106,14 @@ export default function CheckoutPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabledMethods.join(",")]);
 
+  // Show sticky mobile place-order bar after user scrolls past hero
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  useEffect(() => {
+    const handler = () => setShowStickyBar(window.scrollY > 200);
+    window.addEventListener("scroll", handler, { passive: true });
+    return () => window.removeEventListener("scroll", handler);
+  }, []);
+
   if (orderPlaced) {
     return (
       <Layout>
