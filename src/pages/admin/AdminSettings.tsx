@@ -73,11 +73,14 @@ const settingGroups = [
     ],
   },
   {
-    title: "SEO & Analytics",
-    description: "Search engine and tracking configuration",
+    title: "SEO & Link Previews",
+    description: "Defaults used as fallback when a specific page hasn't set its own values",
     fields: [
       { key: "meta_title", label: "Default Meta Title", placeholder: "GiftCardVibe — Premium Gift Cards" },
       { key: "meta_description", label: "Default Meta Description", placeholder: "Discover curated digital tools...", type: "textarea" },
+      { key: "default_og_image_url", label: "Default Share Image", placeholder: "https://... or upload (1200×630 recommended)", type: "image" },
+      { key: "default_twitter_card", label: "Default Twitter Card", placeholder: "summary_large_image", type: "twitter_card" },
+      { key: "default_canonical_url", label: "Site Base URL", placeholder: "https://yourdomain.com" },
       { key: "google_analytics_id", label: "Google Analytics ID", placeholder: "G-XXXXXXXXXX" },
       { key: "facebook_pixel_id", label: "Facebook Pixel ID", placeholder: "e.g. 123456789012345" },
       { key: "facebook_capi_access_token", label: "Conversions API Access Token", placeholder: "EAAxxxxxxx...", type: "password" },
