@@ -432,41 +432,20 @@ function ThemeEditor({ values, update }: { values: SettingsMap; update: (k: stri
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold tracking-wider uppercase mb-1">Colors</h3>
-        <p className="text-xs text-muted-foreground mb-3">Pick colors directly. Stored as HSL so dark mode adapts gracefully.</p>
+        <h3 className="text-sm font-semibold tracking-wider uppercase mb-1">Light Mode Colors</h3>
+        <p className="text-xs text-muted-foreground mb-3">Pick colors directly. Stored as HSL triplets.</p>
         <div className="rounded-xl border border-border divide-y divide-border">
-          {colorFields.map((f) => {
-            const raw = values[f.key] || THEME_DEFAULTS[f.key];
-            const hex = hslToHex(raw);
-            return (
-              <div key={f.key} className="flex flex-col sm:flex-row sm:items-center gap-3 p-4">
-                <div className="w-40 shrink-0">
-                  <div className="text-sm font-medium">{f.label}</div>
-                  <div className="text-xs text-muted-foreground">{f.help}</div>
-                </div>
-                <div className="flex items-center gap-3 flex-1">
-                  <label className="relative cursor-pointer">
-                    <input
-                      type="color"
-                      value={hex}
-                      onChange={(e) => update(f.key, hexToHslStr(e.target.value))}
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                    />
-                    <span
-                      className="block h-10 w-10 rounded-xl border border-border shadow-sm"
-                      style={{ background: `hsl(${raw})` }}
-                    />
-                  </label>
-                  <input
-                    value={raw}
-                    onChange={(e) => update(f.key, e.target.value)}
-                    placeholder="e.g. 210 100% 45%"
-                    className="h-10 flex-1 rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary font-mono"
-                  />
-                </div>
-              </div>
-            );
-          })}
+          {colorFields.map(renderColorRow)}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold tracking-wider uppercase mb-1">Dark Mode Colors</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          Override tokens used when dark mode is active. Leave defaults if unsure.
+        </p>
+        <div className="rounded-xl border border-border divide-y divide-border">
+          {darkColorFields.map(renderColorRow)}
         </div>
       </div>
 
