@@ -178,7 +178,7 @@ export default function HomePage() {
                   <Link to="/products">View All <ArrowRight className="ml-2 h-4 w-4" /></Link>
                 </Button>
               </div>
-              <div className="grid gap-3 sm:gap-5 md:gap-8 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              <div className="grid gap-4 sm:gap-6 md:gap-8 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
                 {featured.map((p) => (
                   <ProductCard key={p.id} product={p} />
                 ))}
