@@ -124,6 +124,13 @@ export function Header() {
               </span>
             )}
           </button>
+          <Link
+            to="/account"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-foreground hover:bg-secondary"
+            aria-label="My Account"
+          >
+            <User className="h-5 w-5" />
+          </Link>
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="flex h-10 w-10 items-center justify-center rounded-xl text-foreground hover:bg-secondary"
@@ -160,13 +167,6 @@ export function Header() {
               >
                 <Search className="h-4 w-4" /> {t("nav.search") || "Search"}
               </button>
-              <div className="mt-2 border-t border-border pt-4 flex gap-2">
-                <Link to="/login" className="flex-1">
-                  <Button variant="outline" className="w-full gap-2 rounded-xl">
-                    <User className="h-4 w-4" /> Profile
-                  </Button>
-                </Link>
-              </div>
             </div>
           </motion.div>
         )}
