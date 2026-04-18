@@ -213,6 +213,39 @@ export default function AdminSettings() {
   const queryClient = useQueryClient();
   const [values, setValues] = useState<SettingsMap>({});
   const [uploading, setUploading] = useState(false);
+  const [seoGenerating, setSeoGenerating] = useState(false);
+
+  const generateSeoDefaults = async () => {
+    setSeoGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-generate", {
+        body: {
+          type: "page_meta",
+          language: "en",
+          pageName: values.site_name || "Home",
+          pageDescription: values.site_tagline || "",
+          siteName: values.site_name || "",
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const result: string = data?.result || "";
+      const t = result.match(/TITLE:\s*(.+)/i);
+      const d = result.match(/DESCRIPTION:\s*(.+)/i);
+      const k = result.match(/KEYWORDS:\s*(.+)/i);
+      const next: SettingsMap = { ...values };
+      if (t?.[1]) next.meta_title = t[1].trim();
+      if (d?.[1]) next.meta_description = d[1].trim();
+      if (k?.[1]) next.meta_keywords = k[1].trim();
+      if (!t && !d && !k) throw new Error("AI returned no parseable fields");
+      setValues(next);
+      toast({ title: "SEO defaults generated", description: "Review and click Save to persist." });
+    } catch (e: any) {
+      toast({ title: "AI failed", description: e?.message || String(e), variant: "destructive" });
+    } finally {
+      setSeoGenerating(false);
+    }
+  };
 
   const currencyOptions = currencies.map((c) => c.code);
   const currencyLabels: Record<string, string> = {};
