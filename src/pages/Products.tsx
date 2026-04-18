@@ -9,6 +9,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useProductTranslator } from "@/hooks/use-product-translation";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { usePageMeta } from "@/hooks/use-page-meta";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProductsPage() {
   const [category, setCategory] = useState("All");
