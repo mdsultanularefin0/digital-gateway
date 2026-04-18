@@ -46,15 +46,15 @@ function SendMoneyPanel({
   const inputClass = "h-10 w-full rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
 
   return (
-    <div className="border-t border-border p-4 space-y-4">
-      <div className={`rounded-xl p-4 ${isBkash ? "bg-pink-500/5 border border-pink-500/20" : "bg-orange-500/5 border border-orange-500/20"}`}>
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+    <div className="border-t border-border p-3 sm:p-4 space-y-3 sm:space-y-4">
+      <div className={`rounded-xl p-3 sm:p-4 ${isBkash ? "bg-pink-500/5 border border-pink-500/20" : "bg-orange-500/5 border border-orange-500/20"}`}>
+        <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
           Send {currencySymbol}{amount.toFixed(2)} to
         </p>
         {merchantNumber ? (
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-mono font-bold tracking-widest">{merchantNumber}</span>
-            <button type="button" onClick={copyNumber} className="p-1.5 rounded-lg hover:bg-muted transition-colors" title="Copy number">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-lg sm:text-2xl font-mono font-bold tracking-wider sm:tracking-widest break-all">{merchantNumber}</span>
+            <button type="button" onClick={copyNumber} className="p-1.5 rounded-lg hover:bg-muted transition-colors shrink-0" title="Copy number">
               {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
             </button>
           </div>
