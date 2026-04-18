@@ -143,7 +143,6 @@ export default function AdminPostGenerator() {
   const [headlineScale, setHeadlineScale] = useState(1); // 0.7 - 1.3
   const [textAlign, setTextAlign] = useState<TextAlign>("left");
   const [logoImage, setLogoImage] = useState<HTMLImageElement | null>(null);
-  const logoInputRef = useRef<HTMLInputElement>(null);
 
   // Load Google Fonts for the selected font pair
   useEffect(() => {
