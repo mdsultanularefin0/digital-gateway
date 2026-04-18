@@ -72,7 +72,7 @@ export default function ProductsPage() {
             <div className="py-20 text-center text-muted-foreground">{t("common.loading")}</div>
           ) : (
             <>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 sm:gap-5 md:gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {filtered.map((p, i) => (
                   <motion.div
                     key={p.id}
