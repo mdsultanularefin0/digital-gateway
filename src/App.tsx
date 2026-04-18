@@ -13,6 +13,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AdminGuard } from "@/components/AdminGuard";
 import { CartDrawer } from "@/components/CartDrawer";
 import { MetaPixelProvider } from "@/components/MetaPixelProvider";
+import { ThemeApplier } from "@/components/ThemeApplier";
 import { lazyRetry, ChunkErrorBoundary } from "@/components/LazyRetry";
 import Index from "./pages/Index";
 
@@ -85,6 +86,7 @@ const App = () => {
             
               <Toaster />
               <Sonner />
+              <ThemeApplier />
               <BrowserRouter>
                 <CartDrawer />
                 <MetaPixelProvider />
