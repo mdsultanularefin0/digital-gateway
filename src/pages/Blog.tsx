@@ -7,6 +7,7 @@ import { useBlogPosts, pickBlog } from "@/data/products";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Blog() {
   const { data: posts = [], isLoading } = useBlogPosts();
