@@ -16,6 +16,10 @@ import { Upload, Loader2, Send, Image as ImageIcon, Video, Calendar, Facebook, I
 import { uploadToStorage } from "@/lib/storage";
 import { format } from "date-fns";
 import { AiGenerateButton } from "@/components/admin/AiGenerateButton";
+import { getErrorMessage } from "@/lib/admin-utils";
+import type { Tables } from "@/integrations/supabase/types";
+
+type SocialPostRow = Tables<"social_posts">;
 
 type Target = "facebook" | "instagram" | "both";
 type Mode = "now" | "schedule";
@@ -68,8 +72,8 @@ export default function AdminSocialPoster() {
       setMediaUrl(result.url);
       setMediaType(isVideo ? "video" : "image");
       toast.success("Media uploaded");
-    } catch (err: any) {
-      toast.error(err.message || "Upload failed");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Upload failed"));
     } finally {
       setUploading(false);
       e.target.value = "";
@@ -94,7 +98,7 @@ export default function AdminSocialPoster() {
       setCaption(""); setMediaUrl("");
       qc.invalidateQueries({ queryKey: ["social-posts"] });
     },
-    onError: (err: any) => toast.error("Publish failed", { description: err.message }),
+    onError: (err: unknown) => toast.error("Publish failed", { description: getErrorMessage(err) }),
   });
 
   const cancelMutation = useMutation({
@@ -110,7 +114,7 @@ export default function AdminSocialPoster() {
       toast.success("Scheduled post cancelled");
       qc.invalidateQueries({ queryKey: ["social-posts"] });
     },
-    onError: (err: any) => toast.error("Cancel failed", { description: err.message }),
+    onError: (err: unknown) => toast.error("Cancel failed", { description: getErrorMessage(err) }),
   });
 
   const canSubmit = mediaUrl && caption && !publishMutation.isPending;
@@ -241,7 +245,7 @@ export default function AdminSocialPoster() {
           <TabsContent value="history" className="space-y-3">
             {(history || []).length === 0 ? (
               <Card className="p-8 text-center text-muted-foreground text-sm">No posts yet.</Card>
-            ) : (history || []).map((p: any) => (
+            ) : (history || []).map((p: SocialPostRow) => (
               <Card key={p.id} className="p-4 space-y-2">
                 <div className="flex items-center gap-2">
                   <Badge variant={p.status === "failed" ? "destructive" : p.status === "scheduled" ? "secondary" : "default"}>
