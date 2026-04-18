@@ -110,6 +110,17 @@ export function ProductCard({ product: rawProduct }: { product: Product }) {
             {t("product.out_of_stock")}
           </span>
         )}
+        {/* Hover overlay with name + tagline */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 pointer-events-none">
+          <h4 className="text-base sm:text-lg font-display font-semibold text-foreground line-clamp-2 leading-tight">
+            {product.name}
+          </h4>
+          {product.tagline && (
+            <p className="mt-1 text-xs sm:text-sm text-muted-foreground line-clamp-2">
+              {product.tagline}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-1 flex-col p-3 sm:p-6">
