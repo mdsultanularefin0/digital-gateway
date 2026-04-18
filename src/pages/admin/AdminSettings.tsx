@@ -5,7 +5,7 @@ import { uploadToStorage } from "@/lib/storage";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Save, Upload, ChevronDown, Search } from "lucide-react";
+import { Save, Upload, ChevronDown, Search, Sparkles, Loader2 } from "lucide-react";
 import { countries, currencies } from "@/data/countries-currencies";
 
 interface SettingsMap {
