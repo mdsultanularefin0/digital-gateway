@@ -63,4 +63,25 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            if (id.includes("react-router")) return "router";
+            if (id.includes("@tanstack/react-query")) return "query";
+            if (id.includes("recharts")) return "charts";
+            if (id.includes("@radix-ui")) return "radix";
+            if (id.includes("@tiptap")) return "tiptap";
+            if (id.includes("framer-motion")) return "motion";
+            if (id.includes("lucide-react")) return "icons";
+            return "vendor";
+          }
+          if (id.includes("/src/pages/admin/") || id.includes("/src/components/admin/")) {
+            return "admin";
+          }
+        },
+      },
+    },
+  },
 }));

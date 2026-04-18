@@ -17,6 +17,8 @@ import { exportToCSV } from "@/lib/admin-utils";
 import { format } from "date-fns";
 import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components/admin/DateRangeFilter";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { usePagination } from "@/hooks/use-pagination";
+import { PaginationBar } from "@/components/admin/PaginationBar";
 
 const statusConfig: Record<string, { icon: typeof CheckCircle2; color: string; label: string }> = {
   completed: { icon: CheckCircle2, color: "text-success", label: "Completed" },
@@ -71,6 +73,8 @@ export default function AdminTransactions() {
     const matchesMethod = methodFilter === "all" || t.payment_method === methodFilter;
     return matchesSearch && matchesStatus && matchesMethod;
   });
+
+  const pagination = usePagination(filtered, 25);
 
   // Stats
   const totalCount = dateFiltered.length;
@@ -196,7 +200,7 @@ export default function AdminTransactions() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((t) => {
+                  {pagination.paged.map((t) => {
                     const sc = statusConfig[t.status] || statusConfig.pending;
                     const StatusIcon = sc.icon;
                     const ml = methodLabels[t.payment_method] || { label: t.payment_method, icon: CreditCard };
@@ -244,6 +248,16 @@ export default function AdminTransactions() {
                   })}
                 </tbody>
               </table>
+            </div>
+            <div className="px-4 pb-3">
+              <PaginationBar
+                page={pagination.page}
+                pageCount={pagination.pageCount}
+                pageSize={pagination.pageSize}
+                total={pagination.total}
+                onPrev={pagination.prev}
+                onNext={pagination.next}
+              />
             </div>
           </div>
         )}
