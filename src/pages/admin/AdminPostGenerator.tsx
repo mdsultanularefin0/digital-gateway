@@ -71,21 +71,6 @@ function getMockupForProduct(name: string): string {
 }
 
 // ── Constants ──────────────────────────────────────────────────────────
-const TEMPLATES = [
-  { id: "square", label: "1080×1080", width: 1080, height: 1080 },
-  { id: "story", label: "1080×1920", width: 1080, height: 1920 },
-  { id: "landscape", label: "1920×1080", width: 1920, height: 1080 },
-  { id: "facebook", label: "1200×630", width: 1200, height: 630 },
-];
-
-const LAYOUTS = [
-  { id: "split", label: "Split Card", icon: "◧" },
-  { id: "centered", label: "Centered Hero", icon: "◉" },
-  { id: "bold-stack", label: "Bold Stack", icon: "▦" },
-  { id: "minimal", label: "Minimal Card", icon: "▢" },
-  { id: "diagonal", label: "Diagonal Cut", icon: "◤" },
-];
-
 const COLOR_PRESETS = [
   { name: "Midnight", bg: "#0d0d0d", accent: "#ff5722", text: "#ffffff", card: "#ffffff" },
   { name: "Ocean", bg: "#0a1628", accent: "#3b82f6", text: "#ffffff", card: "#f0f4ff" },
