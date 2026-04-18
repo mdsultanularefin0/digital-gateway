@@ -1466,6 +1466,153 @@ export default function AdminPostGenerator() {
 
 // ── Sub-components ──────────────────────────────────────────────────────
 
+// ── AI Poster Content Generator ─────────────────────────────────────────
+type PosterPatch = Partial<Pick<PostData, "productName" | "tagline" | "badge" | "ctaText" | "footerText" | "features" | "testimonialQuote" | "testimonialAuthor">>;
+
+const POSTER_PRESETS: { label: string; value: string }[] = [
+  { label: "Urgent sale", value: "Create urgency. Highlight scarcity and a limited-time discount. Punchy, action-driven words." },
+  { label: "Premium / luxury", value: "Refined, premium tone. Emphasize quality, exclusivity, and craftsmanship. Avoid discount language." },
+  { label: "Playful & bold", value: "Playful, witty, energetic. Sound fun and memorable. Light personality." },
+  { label: "Minimal & clean", value: "Extremely minimal and direct. Short power words. Zero filler." },
+  { label: "Bengali audience", value: "Write for a Bangladeshi audience. Use culturally relevant references and a tone that resonates locally. Light Banglish where natural." },
+  { label: "Problem → solution", value: "Lead with a relatable pain point, then position the product as the fix. Empathetic but confident." },
+];
+
+function PosterContentAi({
+  layoutId,
+  data,
+  currencySymbol,
+  onApply,
+}: {
+  layoutId: string;
+  data: PostData;
+  currencySymbol: string;
+  onApply: (patch: PosterPatch) => void;
+}) {
+  const [context, setContext] = useState("");
+  const [language, setLanguage] = useState<"en" | "bn">("en");
+  const [loading, setLoading] = useState(false);
+  const [lastResult, setLastResult] = useState<PosterPatch | null>(null);
+
+  const generate = async () => {
+    if (!data.productName?.trim() && !context.trim()) {
+      toast({ title: "Enter a product name or some context first", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    setLastResult(null);
+    try {
+      const { data: result, error } = await supabase.functions.invoke("ai-generate", {
+        body: {
+          type: "poster_content",
+          language,
+          layout: layoutId,
+          productName: data.productName,
+          tagline: data.tagline,
+          price: data.price,
+          currencySymbol,
+          posterContext: context,
+        },
+      });
+      if (error) throw error;
+      if (result?.error) throw new Error(result.error);
+
+      const raw = String(result?.result || "").replace(/^```[a-z]*\n?|\n?```$/g, "").trim();
+      const jsonStart = raw.indexOf("{");
+      const jsonEnd = raw.lastIndexOf("}");
+      if (jsonStart === -1 || jsonEnd === -1) throw new Error("AI did not return valid JSON");
+      const parsed = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
+
+      const patch: PosterPatch = {};
+      if (parsed.productName) patch.productName = String(parsed.productName);
+      if (parsed.tagline) patch.tagline = String(parsed.tagline);
+      if (parsed.badge) patch.badge = String(parsed.badge);
+      if (parsed.ctaText) patch.ctaText = String(parsed.ctaText);
+      if (parsed.footerText) patch.footerText = String(parsed.footerText);
+      if (Array.isArray(parsed.features)) {
+        const cleaned = parsed.features.map((f: any) => String(f || "").trim()).filter(Boolean);
+        if (cleaned.length) patch.features = cleaned;
+      }
+      if (parsed.testimonialQuote) patch.testimonialQuote = String(parsed.testimonialQuote);
+      if (parsed.testimonialAuthor) patch.testimonialAuthor = String(parsed.testimonialAuthor);
+
+      setLastResult(patch);
+      onApply(patch);
+      toast({ title: "Poster content generated!" });
+    } catch (e: any) {
+      console.error("poster ai error", e);
+      toast({ title: e?.message || "Generation failed", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2.5">
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        Describe what you want for THIS poster — tone, angle, audience, things to include or avoid. Fields are filled based on the active layout (<span className="font-bold">{layoutId}</span>).
+      </p>
+
+      <div>
+        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 block">Presets</label>
+        <div className="flex flex-wrap gap-1">
+          {POSTER_PRESETS.map((p) => (
+            <button
+              key={p.label}
+              type="button"
+              onClick={() => setContext(p.value)}
+              className="text-[10px] px-2 py-1 rounded-md border border-border/60 text-muted-foreground hover:text-foreground hover:border-foreground/20 hover:bg-accent/40 transition-colors"
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <textarea
+        value={context}
+        onChange={(e) => setContext(e.target.value)}
+        rows={4}
+        placeholder="e.g. Push the bKash discount, target students, urgent tone, mention 'today only'..."
+        className="w-full rounded-xl border border-border/60 bg-background px-2.5 py-2 text-xs font-body focus:outline-none focus:border-primary/50 transition-colors resize-y"
+      />
+
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setLanguage(language === "en" ? "bn" : "en")}
+          className="text-[10px] font-bold px-2 py-1 rounded-md border border-border/60 text-muted-foreground hover:text-foreground transition-colors"
+          title="Toggle language"
+        >
+          {language === "en" ? "EN" : "বাংলা"}
+        </button>
+        <Button
+          type="button"
+          size="sm"
+          onClick={generate}
+          disabled={loading}
+          className="flex-1 gap-1.5 text-xs h-8 rounded-xl"
+        >
+          {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+          {loading ? "Generating..." : "Generate poster content"}
+        </Button>
+      </div>
+
+      {lastResult && (
+        <div className="rounded-lg border border-border/60 bg-muted/20 p-2.5 text-[11px] space-y-1">
+          <p className="font-bold text-muted-foreground uppercase tracking-wider text-[9px]">Applied to fields:</p>
+          {Object.entries(lastResult).map(([k, v]) => (
+            <div key={k} className="flex gap-1.5">
+              <span className="text-muted-foreground shrink-0">{k}:</span>
+              <span className="truncate">{Array.isArray(v) ? v.join(" • ") : String(v)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const PLATFORMS = [
   { id: "facebook", label: "Facebook" },
   { id: "instagram", label: "Instagram" },
