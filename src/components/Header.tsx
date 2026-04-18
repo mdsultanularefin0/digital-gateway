@@ -112,7 +112,6 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-1 md:hidden">
-          <LanguageToggle compact />
           <ThemeToggle />
           <button
             onClick={() => setSearchOpen(true)}
