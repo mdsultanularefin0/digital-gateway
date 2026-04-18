@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Save, CreditCard, Smartphone } from "lucide-react";
+import { Save, CreditCard, Smartphone, Upload, X, Loader2 } from "lucide-react";
+import { uploadToStorage } from "@/lib/storage";
 
 interface SettingsMap {
   [key: string]: string;
@@ -80,6 +81,20 @@ export default function AdminPaymentSettings() {
 
   const inputClass = "h-9 w-full rounded-xl border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
 
+  const [uploadingLogo, setUploadingLogo] = useState<string | null>(null);
+  const handleLogoUpload = async (method: string, file: File) => {
+    setUploadingLogo(method);
+    try {
+      const result = await uploadToStorage(file, "assets");
+      update(`payment_logo_${method}`, result.url);
+      toast({ title: "Logo uploaded", description: "Save to apply changes." });
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploadingLogo(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <AdminLayout>
@@ -118,20 +133,61 @@ export default function AdminPaymentSettings() {
             </div>
           </div>
           <div className="p-4 space-y-2">
-            {AVAILABLE_PAYMENT_METHODS.map((m) => (
-              <label key={m.value} className={`flex items-center gap-3 rounded-xl border p-3 cursor-pointer transition-colors ${enabledMethods.includes(m.value) ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"}`}>
-                <input
-                  type="checkbox"
-                  checked={enabledMethods.includes(m.value)}
-                  onChange={() => toggleMethod(m.value)}
-                  className="h-4 w-4 accent-primary rounded"
-                />
-                <div>
-                  <span className="text-sm font-medium">{m.label}</span>
-                  <p className="text-xs text-muted-foreground">{m.description}</p>
+            {AVAILABLE_PAYMENT_METHODS.map((m) => {
+              const isEnabled = enabledMethods.includes(m.value);
+              const logoUrl = settings[`payment_logo_${m.value}`] || "";
+              const isUploading = uploadingLogo === m.value;
+              return (
+                <div key={m.value} className={`rounded-xl border p-3 transition-colors ${isEnabled ? "border-primary bg-primary/5" : "border-border"}`}>
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isEnabled}
+                      onChange={() => toggleMethod(m.value)}
+                      className="h-4 w-4 accent-primary rounded"
+                    />
+                    {logoUrl ? (
+                      <img src={logoUrl} alt={m.label} className="h-7 w-7 object-contain rounded" />
+                    ) : (
+                      <div className="h-7 w-7 rounded bg-muted flex items-center justify-center text-[9px] text-muted-foreground">No logo</div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium">{m.label}</span>
+                      <p className="text-xs text-muted-foreground">{m.description}</p>
+                    </div>
+                  </label>
+                  {isEnabled && (
+                    <div className="mt-3 ml-7 flex items-center gap-2">
+                      <label className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg border border-border hover:bg-muted cursor-pointer transition-colors">
+                        {isUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                        {logoUrl ? "Replace logo" : "Upload logo"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={isUploading}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) handleLogoUpload(m.value, f);
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
+                      {logoUrl && (
+                        <button
+                          type="button"
+                          onClick={() => update(`payment_logo_${m.value}`, "")}
+                          className="inline-flex items-center gap-1 px-2 py-1.5 text-xs rounded-lg border border-border text-destructive hover:bg-destructive/5"
+                        >
+                          <X className="h-3 w-3" /> Remove
+                        </button>
+                      )}
+                      <span className="text-[10px] text-muted-foreground">PNG/SVG, square recommended</span>
+                    </div>
+                  )}
                 </div>
-              </label>
-            ))}
+              );
+            })}
             {enabledMethods.length === 0 && (
               <p className="text-xs text-destructive">At least one payment method should be enabled.</p>
             )}
