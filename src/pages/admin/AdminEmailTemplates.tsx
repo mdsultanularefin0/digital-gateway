@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Save, X, Mail, Globe, Package, ShoppingBag, CreditCard, UserPlus, Truck, FileText } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, X, Mail, Globe, Package, ShoppingBag, CreditCard, UserPlus, Truck } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 
 interface EmailTemplate {

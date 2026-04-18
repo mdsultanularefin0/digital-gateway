@@ -16,7 +16,7 @@ interface Props {
 const inputCls = "h-10 w-full rounded-lg border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
 const textareaCls = "w-full rounded-lg border border-border bg-background p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]";
 
-const SECTION_TYPE_LABELS: Record<string, string> = {
+const _SECTION_TYPE_LABELS: Record<string, string> = {
   hero: "Hero Banner",
   features: "Features / Benefits",
   cta: "Call to Action",

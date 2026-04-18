@@ -92,7 +92,7 @@ function mapRow(headers: string[], values: string[]): ParsedProduct | null {
 
   const tiersRaw = get("tiers");
   const tiers: ParsedTier[] = tiersRaw
-    ? tiersRaw.split(";").map((t) => t.trim()).filter(Boolean).map((t, i) => {
+    ? tiersRaw.split(";").map((t) => t.trim()).filter(Boolean).map((t) => {
         const [label = "", priceStr = "0", badge = ""] = t.split(":");
         return { label: label.trim(), price: parseFloat(priceStr) || 0, badge: badge.trim() };
       })
@@ -238,8 +238,6 @@ export default function BulkProductImport({ onClose, onComplete }: Props) {
       onComplete();
     }
   };
-
-  const inputClass = "h-10 w-full rounded-xl border border-border bg-background px-4 text-sm";
 
   return (
     <div className="space-y-6">

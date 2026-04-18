@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Download, Search, CreditCard, CheckCircle2, XCircle, Clock, AlertCircle, RefreshCw } from "lucide-react";
+import { Download, Search, CreditCard, CheckCircle2, XCircle, Clock, RefreshCw } from "lucide-react";
 import { exportToCSV } from "@/lib/admin-utils";
 import { format } from "date-fns";
 import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components/admin/DateRangeFilter";

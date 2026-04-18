@@ -57,7 +57,7 @@ export function RepeaterField({
   const addItem = () => {
     const blank: Record<string, string> = {};
     fields.forEach((f) => (blank[f.key] = ""));
-    commit([...items, { ...blank, ...(defaultItem || {}) }]);
+    commit([...items, { ...blank, ...defaultItem }]);
   };
 
   const removeItem = (index: number) => {
