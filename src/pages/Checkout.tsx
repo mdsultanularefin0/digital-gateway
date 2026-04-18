@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -99,9 +99,12 @@ export default function CheckoutPage() {
   const paymentMethods = ALL_PAYMENT_METHODS.filter((m) => enabledMethods.includes(m.value));
 
   // Auto-select first method
-  if (paymentMethods.length > 0 && !form.paymentMethod) {
-    setTimeout(() => update("paymentMethod", paymentMethods[0].value), 0);
-  }
+  useEffect(() => {
+    if (paymentMethods.length > 0 && !form.paymentMethod) {
+      update("paymentMethod", paymentMethods[0].value);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabledMethods.join(",")]);
 
   if (orderPlaced) {
     return (
