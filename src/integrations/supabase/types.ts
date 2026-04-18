@@ -302,6 +302,42 @@ export type Database = {
           },
         ]
       }
+      edge_function_logs: {
+        Row: {
+          created_at: string
+          error: string
+          execution_time_ms: number
+          function_name: string
+          id: string
+          message: string
+          metadata: Json
+          method: string
+          status_code: number
+        }
+        Insert: {
+          created_at?: string
+          error?: string
+          execution_time_ms?: number
+          function_name: string
+          id?: string
+          message?: string
+          metadata?: Json
+          method?: string
+          status_code?: number
+        }
+        Update: {
+          created_at?: string
+          error?: string
+          execution_time_ms?: number
+          function_name?: string
+          id?: string
+          message?: string
+          metadata?: Json
+          method?: string
+          status_code?: number
+        }
+        Relationships: []
+      }
       email_logs: {
         Row: {
           created_at: string
