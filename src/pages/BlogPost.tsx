@@ -63,6 +63,7 @@ export default function BlogPost() {
         description={tr.meta_description?.trim() || tr.excerpt}
         keywords={tr.meta_keywords?.trim() || undefined}
         ogImage={ogImage}
+        canonical={typeof window !== "undefined" ? window.location.href : undefined}
         type="article"
       />
       <article className="py-16 md:py-24">
