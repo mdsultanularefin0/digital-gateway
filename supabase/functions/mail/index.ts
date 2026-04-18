@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { withLogging } from "../_shared/logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -143,7 +144,7 @@ async function smtpSend(cfg: Record<string, string>, to: string, subject: string
 
 // ---------- Handler ----------
 
-Deno.serve(async (req) => {
+Deno.serve(withLogging("mail", async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -207,4 +208,4 @@ Deno.serve(async (req) => {
     console.error("[mail]", err.message);
     return json({ error: err.message || "Internal error" }, 500);
   }
-});
+}));
