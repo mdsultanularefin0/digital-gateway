@@ -139,6 +139,39 @@ export default function AdminPostGenerator() {
   const [activeSection, setActiveSection] = useState<string | null>("products");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [layout, setLayout] = useState(LAYOUTS[0]);
+  const [fontPair, setFontPair] = useState<FontPair>(FONT_PAIRS[0]);
+  const [headlineScale, setHeadlineScale] = useState(1); // 0.7 - 1.3
+  const [textAlign, setTextAlign] = useState<TextAlign>("left");
+  const [logoImage, setLogoImage] = useState<HTMLImageElement | null>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
+  // Load Google Fonts for the selected font pair
+  useEffect(() => {
+    const families = Array.from(new Set(FONT_PAIRS.flatMap((p) => [p.display, p.body])))
+      .filter((f) => f !== "Plus Jakarta Sans") // already loaded
+      .map((f) => `family=${encodeURIComponent(f)}:wght@400;500;700;800;900`)
+      .join("&");
+    if (!document.getElementById("post-gen-fonts")) {
+      const link = document.createElement("link");
+      link.id = "post-gen-fonts";
+      link.rel = "stylesheet";
+      link.href = `https://fonts.googleapis.com/css2?${families}&display=swap`;
+      document.head.appendChild(link);
+    }
+  }, []);
+
+  // Load logo image when URL changes
+  useEffect(() => {
+    if (!data.logoUrl) {
+      setLogoImage(null);
+      return;
+    }
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => setLogoImage(img);
+    img.onerror = () => setLogoImage(null);
+    img.src = data.logoUrl;
+  }, [data.logoUrl]);
 
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "৳";
