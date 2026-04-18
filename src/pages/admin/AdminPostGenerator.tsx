@@ -23,7 +23,36 @@ interface PostData {
   badge: string;
   ctaText: string;
   footerText: string;
+  // Testimonial layout
+  testimonialQuote: string;
+  testimonialAuthor: string;
+  testimonialRating: number;
+  // Carousel layout
+  slideNumber: number;
+  slideTotal: number;
+  // Branding
+  logoUrl: string;
+  websiteUrl: string;
+  socialHandle: string;
+  showBranding: boolean;
 }
+
+type FontPair = {
+  id: string;
+  label: string;
+  display: string;
+  body: string;
+};
+
+const FONT_PAIRS: FontPair[] = [
+  { id: "jakarta", label: "Plus Jakarta", display: "Plus Jakarta Sans", body: "Plus Jakarta Sans" },
+  { id: "playfair", label: "Playfair / Inter", display: "Playfair Display", body: "Inter" },
+  { id: "bebas", label: "Bebas / Inter", display: "Bebas Neue", body: "Inter" },
+  { id: "space", label: "Space Grotesk", display: "Space Grotesk", body: "Space Grotesk" },
+  { id: "dmserif", label: "DM Serif / DM Sans", display: "DM Serif Display", body: "DM Sans" },
+];
+
+type TextAlign = "left" | "center" | "right";
 
 // ── Product → Mockup mapping ──────────────────────────────────────────
 const MOCKUP_MAP: Record<string, string> = {
@@ -70,6 +99,26 @@ const COLOR_PRESETS = [
   { name: "Warm", bg: "#fdf6e3", accent: "#d97706", text: "#1a1a1a", card: "#ffffff" },
 ];
 
+const TEMPLATES = [
+  { id: "square", label: "1080×1080", width: 1080, height: 1080 },
+  { id: "story", label: "1080×1920", width: 1080, height: 1920 },
+  { id: "landscape", label: "1920×1080", width: 1920, height: 1080 },
+  { id: "facebook", label: "1200×630", width: 1200, height: 630 },
+  { id: "pinterest", label: "1000×1500", width: 1000, height: 1500 },
+];
+
+const LAYOUTS = [
+  { id: "split", label: "Split Card", icon: "◧" },
+  { id: "centered", label: "Centered Hero", icon: "◉" },
+  { id: "bold-stack", label: "Bold Stack", icon: "▦" },
+  { id: "minimal", label: "Minimal Card", icon: "▢" },
+  { id: "diagonal", label: "Diagonal Cut", icon: "◤" },
+  { id: "quote", label: "Minimal Quote", icon: "❝" },
+  { id: "sale", label: "Price Drop", icon: "%" },
+  { id: "testimonial", label: "Testimonial", icon: "★" },
+  { id: "carousel", label: "Carousel Slide", icon: "▤" },
+];
+
 // SAMPLE_TEMPLATES removed — products are now loaded from the database
 
 const emptyData: PostData = {
@@ -81,6 +130,15 @@ const emptyData: PostData = {
   badge: "BEST DEAL",
   ctaText: "ORDER NOW",
   footerText: "",
+  testimonialQuote: "",
+  testimonialAuthor: "",
+  testimonialRating: 5,
+  slideNumber: 1,
+  slideTotal: 5,
+  logoUrl: "",
+  websiteUrl: "",
+  socialHandle: "",
+  showBranding: false,
 };
 
 // ── Component ──────────────────────────────────────────────────────────
