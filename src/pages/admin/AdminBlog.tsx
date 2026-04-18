@@ -320,10 +320,17 @@ export default function AdminBlog() {
     <AdminLayout>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-display font-bold">Blog Posts</h2>
-        <Button variant="gradient" size="sm" onClick={() => openEditor()}>
-          <Plus className="h-4 w-4 mr-1" /> New Post
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setShowBulkImport((v) => !v)}>
+            <FileUp className="h-4 w-4 mr-1" /> Bulk import
+          </Button>
+          <Button variant="gradient" size="sm" onClick={() => openEditor()}>
+            <Plus className="h-4 w-4 mr-1" /> New Post
+          </Button>
+        </div>
       </div>
+
+      {showBulkImport && <div className="mb-6"><BulkBlogImport onClose={() => setShowBulkImport(false)} /></div>}
 
       {isLoading ? (
         <div className="text-muted-foreground">Loading...</div>
