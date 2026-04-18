@@ -92,6 +92,8 @@ export function ProductCard({ product: rawProduct }: { product: Product }) {
   return (
     <Link
       to={`/products/${product.slug || product.id}`}
+      onMouseEnter={prefetchDetail}
+      onTouchStart={prefetchDetail}
       className="group relative flex flex-col overflow-hidden rounded-2xl glass-card transition-all duration-300 hover:shadow-card-hover hover:border-primary/30 h-full"
     >
       {/* Fixed aspect ratio image */}
