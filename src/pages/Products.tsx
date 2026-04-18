@@ -9,6 +9,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useProductTranslator } from "@/hooks/use-product-translation";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { usePageMeta } from "@/hooks/use-page-meta";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProductsPage() {
   const [category, setCategory] = useState("All");
@@ -88,7 +89,22 @@ export default function ProductsPage() {
           </div>
 
           {isLoading ? (
-            <div className="py-20 text-center text-muted-foreground">{t("common.loading")}</div>
+            <div className="grid gap-4 sm:gap-6 md:gap-7 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="rounded-2xl border border-border bg-card overflow-hidden">
+                  <Skeleton className="aspect-[4/3] w-full rounded-none" />
+                  <div className="p-4 space-y-3">
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                    <div className="flex items-center justify-between pt-2">
+                      <Skeleton className="h-6 w-16" />
+                      <Skeleton className="h-9 w-24 rounded-xl" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
             <>
               <div className="grid gap-4 sm:gap-6 md:gap-7 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
