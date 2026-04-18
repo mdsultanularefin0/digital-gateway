@@ -90,7 +90,6 @@ export default function CodePoolManager({ productId, deliveryType }: CodePoolMan
   };
 
   const lowStock = stats.available < 5;
-  const inputClass = "h-10 w-full rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
 
   if (!productId) {
     return (

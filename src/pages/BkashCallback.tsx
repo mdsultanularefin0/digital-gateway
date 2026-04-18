@@ -3,7 +3,6 @@ import { useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 
 export default function BkashCallback() {
@@ -63,7 +62,7 @@ export default function BkashCallback() {
         setErrorMsg(err.message || "Network error");
       }
     })();
-  }, []);
+  }, [searchParams]);
 
   return (
     <Layout>

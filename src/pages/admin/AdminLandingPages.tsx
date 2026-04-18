@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, X, Eye, Globe, Sparkles, Loader2 } from "lucide-react";
 import { SectionEditor } from "@/components/admin/SectionEditor";
-import { AiGenerateButton } from "@/components/admin/AiGenerateButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -32,7 +31,7 @@ interface LandingPage {
 
 type LandingPageInsert = Omit<LandingPage, "id" | "created_at" | "updated_at"> & { id?: string };
 
-type ProductOption = { id: string; name: string; slug: string };
+
 
 export default function AdminLandingPages() {
   const queryClient = useQueryClient();
@@ -462,7 +461,7 @@ function LandingAiToolbar({ editing, setEditing, activeLang, tmpl, products }: a
       const current = { ...editing[key] };
       for (const [sectionId, content] of Object.entries(parsed)) {
         if (typeof content === "object") {
-          current[sectionId] = { ...(current[sectionId] || {}), ...content };
+          current[sectionId] = { ...current[sectionId], ...content };
         }
       }
       setEditing({ ...editing, [key]: current });

@@ -45,7 +45,7 @@ export default function FulfillmentPanel({ orderId, paymentStatus }: Fulfillment
       const delivery = deliveries.find((d) => d.id === id);
       if (!delivery) throw new Error("Delivery not found");
       const newPayload = {
-        ...(delivery.payload || {}),
+        ...delivery.payload,
         ...(code && { code }),
         ...(extra && { credential_extra: extra }),
       };

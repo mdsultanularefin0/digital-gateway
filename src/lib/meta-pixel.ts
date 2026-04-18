@@ -9,7 +9,6 @@ declare global {
 
 let pixelId: string | null = null;
 let scriptLoaded = false;
-let scriptReady = false;
 
 /** Generate a unique event_id for deduplication between Pixel and CAPI */
 export function generateEventId(): string {
@@ -27,7 +26,11 @@ export function initMetaPixel(id: string) {
     const b = document;
     if (!f.fbq) {
       const n: any = (f.fbq = function (...args: any[]) {
-        n.callMethod ? n.callMethod.apply(n, args) : n.queue.push(args);
+        if (n.callMethod) {
+          n.callMethod.apply(n, args);
+        } else {
+          n.queue.push(args);
+        }
       });
       if (!f._fbq) f._fbq = n;
       n.push = n;
@@ -37,11 +40,8 @@ export function initMetaPixel(id: string) {
       const s = b.createElement("script");
       s.async = true;
       s.src = "https://connect.facebook.net/en_US/fbevents.js";
-      s.onload = () => { scriptReady = true; };
       const firstScript = b.getElementsByTagName("script")[0];
       firstScript?.parentNode?.insertBefore(s, firstScript);
-    } else {
-      scriptReady = true;
     }
   }
 
@@ -85,7 +85,7 @@ async function sendCAPIEvent(
             event_source_url: window.location.href,
             user_data: {
               client_user_agent: navigator.userAgent,
-              ...(userData || {}),
+              ...userData,
             },
             custom_data: customData || undefined,
           }),

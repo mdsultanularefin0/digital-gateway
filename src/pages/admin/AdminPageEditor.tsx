@@ -342,8 +342,8 @@ export default function AdminPageEditor() {
     setEdits((prev) => ({
       ...prev,
       [editLang]: {
-        ...(prev[editLang] || {}),
-        [activeTab]: { ...((prev[editLang] || {})[activeTab] || {}), [key]: value },
+        ...prev[editLang],
+        [activeTab]: { ...(prev[editLang]?.[activeTab]), [key]: value },
       },
     }));
   };

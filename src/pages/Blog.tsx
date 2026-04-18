@@ -10,7 +10,7 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 
 export default function Blog() {
   const { data: posts = [], isLoading } = useBlogPosts();
-  const { lang, t } = useLanguage();
+  const { lang } = useLanguage();
   const { data: pageMeta } = usePageMeta("blog");
   const { data: settings } = useSiteSettings();
   const blogTitle = lang === "bn" ? "ব্লগ" : "Blog";
