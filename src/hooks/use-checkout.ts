@@ -141,6 +141,24 @@ export function useCheckout() {
         .single();
       if (orderErr) throw orderErr;
 
+      // Validate product IDs still exist (cart may contain stale items from localStorage)
+      const productIds = Array.from(new Set(items.map((i) => i.productId)));
+      const { data: validProducts, error: prodErr } = await supabase
+        .from("products")
+        .select("id")
+        .in("id", productIds);
+      if (prodErr) throw prodErr;
+      const validIds = new Set((validProducts || []).map((p) => p.id));
+      const missing = items.filter((i) => !validIds.has(i.productId));
+      if (missing.length > 0) {
+        // Remove stale items from cart and abort with a helpful message
+        await supabase.from("orders").delete().eq("id", order.id);
+        clearCart();
+        throw new Error(
+          `Some items in your cart are no longer available (${missing.map((m) => m.productName).join(", ")}). Your cart has been cleared — please add products again.`
+        );
+      }
+
       const orderItems = items.map((item) => ({
         order_id: order.id,
         product_id: item.productId,
