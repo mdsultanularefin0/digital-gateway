@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { uploadToStorage } from "@/lib/storage";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { Save, Upload, ChevronDown, Search, Sparkles, Loader2 } from "lucide-react";
+import { Save, Upload, ChevronDown, Search, Sparkles, Loader2, Palette, RotateCcw } from "lucide-react";
 import { countries, currencies } from "@/data/countries-currencies";
 import { getErrorMessage } from "@/lib/admin-utils";
 
@@ -13,8 +14,23 @@ interface SettingsMap {
   [key: string]: string;
 }
 
-const settingGroups = [
+type FieldDef = {
+  key: string;
+  label: string;
+  placeholder: string;
+  type?: string;
+};
+
+type GroupDef = {
+  id: string;
+  title: string;
+  description: string;
+  fields: FieldDef[];
+};
+
+const settingGroups: GroupDef[] = [
   {
+    id: "general",
     title: "General",
     description: "Basic site identity and branding",
     fields: [
@@ -27,7 +43,8 @@ const settingGroups = [
     ],
   },
   {
-    title: "Contact Information",
+    id: "contact",
+    title: "Contact",
     description: "How customers can reach you",
     fields: [
       { key: "contact_email", label: "Primary Email", placeholder: "hello@example.com", type: "email" },
@@ -37,6 +54,7 @@ const settingGroups = [
     ],
   },
   {
+    id: "location",
     title: "Location",
     description: "Business address details",
     fields: [
@@ -48,6 +66,7 @@ const settingGroups = [
     ],
   },
   {
+    id: "currency",
     title: "Currency",
     description: "Pricing display preferences",
     fields: [
@@ -55,7 +74,8 @@ const settingGroups = [
     ],
   },
   {
-    title: "Digital Downloads",
+    id: "downloads",
+    title: "Downloads",
     description: "Configure download link expiry and limits for digital products",
     fields: [
       { key: "download_expiry_hours", label: "Link Expiry (hours)", placeholder: "168 (7 days). Set 0 for no expiry" },
@@ -63,7 +83,8 @@ const settingGroups = [
     ],
   },
   {
-    title: "Social Media",
+    id: "social",
+    title: "Social",
     description: "Links to your social profiles",
     fields: [
       { key: "facebook_url", label: "Facebook", placeholder: "https://facebook.com/..." },
@@ -74,7 +95,8 @@ const settingGroups = [
     ],
   },
   {
-    title: "SEO & Link Previews",
+    id: "seo",
+    title: "SEO",
     description: "Defaults used as fallback when a specific page hasn't set its own values",
     fields: [
       { key: "meta_title", label: "Default Meta Title", placeholder: "GiftCardVibe — Premium Gift Cards" },
@@ -90,6 +112,212 @@ const settingGroups = [
     ],
   },
 ];
+
+// ----- Theme tab definitions -----
+type ThemeKey = "theme_primary" | "theme_accent" | "theme_background" | "theme_foreground" | "theme_radius";
+
+const THEME_DEFAULTS: Record<ThemeKey, string> = {
+  theme_primary: "210 100% 45%",
+  theme_accent: "195 80% 45%",
+  theme_background: "210 30% 98%",
+  theme_foreground: "214 60% 10%",
+  theme_radius: "0.75rem",
+};
+
+const THEME_PRESETS: { name: string; values: Record<ThemeKey, string> }[] = [
+  { name: "Frost Blue (Default)", values: { theme_primary: "210 100% 45%", theme_accent: "195 80% 45%", theme_background: "210 30% 98%", theme_foreground: "214 60% 10%", theme_radius: "0.75rem" } },
+  { name: "Emerald", values: { theme_primary: "160 70% 38%", theme_accent: "175 65% 42%", theme_background: "150 30% 98%", theme_foreground: "160 50% 10%", theme_radius: "0.75rem" } },
+  { name: "Sunset Orange", values: { theme_primary: "20 90% 50%", theme_accent: "350 80% 55%", theme_background: "30 40% 98%", theme_foreground: "20 50% 10%", theme_radius: "1rem" } },
+  { name: "Royal Violet", values: { theme_primary: "265 75% 55%", theme_accent: "290 70% 55%", theme_background: "265 30% 98%", theme_foreground: "265 40% 10%", theme_radius: "0.5rem" } },
+  { name: "Mono Slate", values: { theme_primary: "215 25% 27%", theme_accent: "215 20% 50%", theme_background: "210 20% 98%", theme_foreground: "215 30% 10%", theme_radius: "0.375rem" } },
+];
+
+// hsl "h s% l%" <-> hex helpers
+function hslToHex(hslStr: string): string {
+  const m = hslStr.trim().match(/^(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%/);
+  if (!m) return "#000000";
+  const h = parseFloat(m[1]) / 360;
+  const s = parseFloat(m[2]) / 100;
+  const l = parseFloat(m[3]) / 100;
+  const k = (n: number) => (n + h * 12) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  const toHex = (x: number) => Math.round(x * 255).toString(16).padStart(2, "0");
+  return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
+}
+
+function hexToHslStr(hex: string): string {
+  const m = hex.replace("#", "");
+  if (m.length !== 6) return "0 0% 0%";
+  const r = parseInt(m.slice(0, 2), 16) / 255;
+  const g = parseInt(m.slice(2, 4), 16) / 255;
+  const b = parseInt(m.slice(4, 6), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+  return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+}
+
+function ThemeEditor({ values, update }: { values: SettingsMap; update: (k: string, v: string) => void }) {
+  const colorFields: { key: ThemeKey; label: string; help: string }[] = [
+    { key: "theme_primary", label: "Primary", help: "Main brand color (buttons, links)" },
+    { key: "theme_accent", label: "Accent", help: "Secondary highlight color" },
+    { key: "theme_background", label: "Background", help: "Page background" },
+    { key: "theme_foreground", label: "Foreground", help: "Default text color" },
+  ];
+
+  const applyPreset = (preset: typeof THEME_PRESETS[number]) => {
+    Object.entries(preset.values).forEach(([k, v]) => update(k, v));
+    toast({ title: `Applied "${preset.name}"`, description: "Click Save to persist." });
+  };
+
+  const resetTheme = () => {
+    Object.entries(THEME_DEFAULTS).forEach(([k, v]) => update(k, v));
+    toast({ title: "Theme reset", description: "Click Save to persist." });
+  };
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-sm font-semibold tracking-wider uppercase mb-1">Presets</h3>
+        <p className="text-xs text-muted-foreground mb-3">Quick-start with a curated palette, then fine-tune below.</p>
+        <div className="flex flex-wrap gap-2">
+          {THEME_PRESETS.map((p) => (
+            <button
+              key={p.name}
+              type="button"
+              onClick={() => applyPreset(p)}
+              className="group flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium hover:border-primary transition-colors"
+            >
+              <span className="flex gap-1">
+                <span className="h-4 w-4 rounded-full border border-border/50" style={{ background: `hsl(${p.values.theme_primary})` }} />
+                <span className="h-4 w-4 rounded-full border border-border/50" style={{ background: `hsl(${p.values.theme_accent})` }} />
+              </span>
+              {p.name}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={resetTheme}
+            className="flex items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium hover:border-destructive hover:text-destructive transition-colors ml-auto"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            Reset to default
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold tracking-wider uppercase mb-1">Colors</h3>
+        <p className="text-xs text-muted-foreground mb-3">Pick colors directly. Stored as HSL so dark mode adapts gracefully.</p>
+        <div className="rounded-xl border border-border divide-y divide-border">
+          {colorFields.map((f) => {
+            const raw = values[f.key] || THEME_DEFAULTS[f.key];
+            const hex = hslToHex(raw);
+            return (
+              <div key={f.key} className="flex flex-col sm:flex-row sm:items-center gap-3 p-4">
+                <div className="w-40 shrink-0">
+                  <div className="text-sm font-medium">{f.label}</div>
+                  <div className="text-xs text-muted-foreground">{f.help}</div>
+                </div>
+                <div className="flex items-center gap-3 flex-1">
+                  <label className="relative cursor-pointer">
+                    <input
+                      type="color"
+                      value={hex}
+                      onChange={(e) => update(f.key, hexToHslStr(e.target.value))}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                    />
+                    <span
+                      className="block h-10 w-10 rounded-xl border border-border shadow-sm"
+                      style={{ background: `hsl(${raw})` }}
+                    />
+                  </label>
+                  <input
+                    value={raw}
+                    onChange={(e) => update(f.key, e.target.value)}
+                    placeholder="e.g. 210 100% 45%"
+                    className="h-10 flex-1 rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary font-mono"
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold tracking-wider uppercase mb-1">Border Radius</h3>
+        <p className="text-xs text-muted-foreground mb-3">Controls roundness of cards, buttons, and inputs.</p>
+        <div className="rounded-xl border border-border p-4 flex items-center gap-4">
+          <input
+            type="range"
+            min={0}
+            max={1.5}
+            step={0.05}
+            value={parseFloat((values.theme_radius || THEME_DEFAULTS.theme_radius).replace("rem", "")) || 0.75}
+            onChange={(e) => update("theme_radius", `${e.target.value}rem`)}
+            className="flex-1 accent-primary"
+          />
+          <input
+            value={values.theme_radius || THEME_DEFAULTS.theme_radius}
+            onChange={(e) => update("theme_radius", e.target.value)}
+            className="h-10 w-28 rounded-xl border border-border bg-background px-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold tracking-wider uppercase mb-1">Live Preview</h3>
+        <p className="text-xs text-muted-foreground mb-3">Save changes to apply globally; this preview reflects current values.</p>
+        <div
+          className="rounded-2xl border border-border p-6 space-y-4"
+          style={{
+            background: `hsl(${values.theme_background || THEME_DEFAULTS.theme_background})`,
+            color: `hsl(${values.theme_foreground || THEME_DEFAULTS.theme_foreground})`,
+            borderRadius: values.theme_radius || THEME_DEFAULTS.theme_radius,
+          }}
+        >
+          <h4 className="text-xl font-display font-bold">Preview heading</h4>
+          <p className="text-sm opacity-80">A short paragraph of body text using your chosen colors.</p>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              className="px-4 h-10 text-sm font-medium text-white shadow-sm"
+              style={{
+                background: `hsl(${values.theme_primary || THEME_DEFAULTS.theme_primary})`,
+                borderRadius: values.theme_radius || THEME_DEFAULTS.theme_radius,
+              }}
+            >
+              Primary action
+            </button>
+            <button
+              type="button"
+              className="px-4 h-10 text-sm font-medium text-white shadow-sm"
+              style={{
+                background: `hsl(${values.theme_accent || THEME_DEFAULTS.theme_accent})`,
+                borderRadius: values.theme_radius || THEME_DEFAULTS.theme_radius,
+              }}
+            >
+              Accent action
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Searchable select dropdown component
 function SearchableSelect({
@@ -163,48 +391,6 @@ function SearchableSelect({
       )}
       {open && (
         <div className="fixed inset-0 z-40" onClick={() => { setOpen(false); setSearch(""); }} />
-      )}
-    </div>
-  );
-}
-
-const AVAILABLE_PAYMENT_METHODS = [
-  { value: "cod", label: "Cash on Delivery", description: "Customer pays on delivery" },
-  { value: "bkash", label: "bKash", description: "Mobile banking via bKash" },
-  { value: "nagad", label: "Nagad", description: "Mobile banking via Nagad" },
-  { value: "bank", label: "Bank Transfer", description: "Direct bank transfer" },
-  { value: "stripe", label: "Credit/Debit Card", description: "Online card payments via Stripe" },
-];
-
-function PaymentMethodsEditor({ value, onChange }: { value: string; onChange: (val: string) => void }) {
-  let enabled: string[] = [];
-  try { enabled = JSON.parse(value); } catch { enabled = ["cod"]; }
-
-  const toggle = (method: string) => {
-    const next = enabled.includes(method)
-      ? enabled.filter((m) => m !== method)
-      : [...enabled, method];
-    onChange(JSON.stringify(next));
-  };
-
-  return (
-    <div className="space-y-2">
-      {AVAILABLE_PAYMENT_METHODS.map((m) => (
-        <label key={m.value} className={`flex items-center gap-3 rounded-xl border p-3 cursor-pointer transition-colors ${enabled.includes(m.value) ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"}`}>
-          <input
-            type="checkbox"
-            checked={enabled.includes(m.value)}
-            onChange={() => toggle(m.value)}
-            className="h-4 w-4 accent-primary rounded"
-          />
-          <div>
-            <span className="text-sm font-medium">{m.label}</span>
-            <p className="text-xs text-muted-foreground">{m.description}</p>
-          </div>
-        </label>
-      ))}
-      {enabled.length === 0 && (
-        <p className="text-xs text-destructive">At least one payment method should be enabled.</p>
       )}
     </div>
   );
@@ -290,6 +476,7 @@ export default function AdminSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["site-settings-admin"] });
       queryClient.invalidateQueries({ queryKey: ["site-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["theme-overrides"] });
       toast({ title: "Settings saved successfully" });
     },
     onError: (err: Error) => {
@@ -331,11 +518,99 @@ export default function AdminSettings() {
     );
   }
 
+  const renderField = (field: FieldDef) => (
+    <div key={field.key} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 p-4">
+      <label className="text-sm font-medium w-40 shrink-0">{field.label}</label>
+      <div className="flex-1">
+        {field.type === "country" ? (
+          <SearchableSelect
+            value={values[field.key] || ""}
+            onChange={(val) => update(field.key, val)}
+            options={countries}
+            placeholder={field.placeholder}
+          />
+        ) : field.type === "currency" ? (
+          <SearchableSelect
+            value={values[field.key] || ""}
+            onChange={handleCurrencyChange}
+            options={currencyOptions}
+            placeholder={field.placeholder}
+            renderOption={(opt) => currencyLabels[opt]}
+          />
+        ) : field.type === "twitter_card" ? (
+          <select
+            value={values[field.key] || ""}
+            onChange={(e) => update(field.key, e.target.value)}
+            className={inputClass}
+          >
+            <option value="">Auto (large image when image set)</option>
+            <option value="summary_large_image">Summary, Large Image</option>
+            <option value="summary">Summary (small thumbnail)</option>
+          </select>
+        ) : field.type === "textarea" ? (
+          <textarea
+            value={values[field.key] || ""}
+            onChange={(e) => update(field.key, e.target.value)}
+            placeholder={field.placeholder}
+            className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]"
+          />
+        ) : field.type === "image" ? (
+          <div className="flex items-center gap-3">
+            {values[field.key] && (
+              <img
+                src={values[field.key]}
+                alt={field.label}
+                className="h-10 w-10 rounded-xl border border-border object-contain bg-muted"
+              />
+            )}
+            <input
+              value={values[field.key] || ""}
+              onChange={(e) => update(field.key, e.target.value)}
+              placeholder={field.placeholder}
+              className={`${inputClass} flex-1`}
+            />
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImageUpload(field.key, file);
+                }}
+              />
+              <span className="inline-flex items-center gap-1 rounded-xl border border-border px-3 h-10 text-xs font-medium hover:bg-muted transition-colors">
+                <Upload className="h-3.5 w-3.5" />
+                {uploading ? "..." : "Upload"}
+              </span>
+            </label>
+          </div>
+        ) : field.type === "password" ? (
+          <input
+            type="password"
+            value={values[field.key] || ""}
+            onChange={(e) => update(field.key, e.target.value)}
+            placeholder={field.placeholder}
+            className={inputClass}
+          />
+        ) : (
+          <input
+            type={field.type || "text"}
+            value={values[field.key] || ""}
+            onChange={(e) => update(field.key, e.target.value)}
+            placeholder={field.placeholder}
+            className={inputClass}
+          />
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <div>
-          <h2 className="text-xl font-display font-bold">General Settings</h2>
+          <h2 className="text-xl font-display font-bold">Site Settings</h2>
           <p className="text-sm text-muted-foreground mt-1">Manage your site configuration</p>
         </div>
         <Button
@@ -349,15 +624,27 @@ export default function AdminSettings() {
         </Button>
       </div>
 
-      <div className="max-w-3xl space-y-10">
+      <Tabs defaultValue="general" className="max-w-4xl">
+        <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/40 p-1 rounded-xl">
+          {settingGroups.map((g) => (
+            <TabsTrigger key={g.id} value={g.id} className="text-xs">
+              {g.title}
+            </TabsTrigger>
+          ))}
+          <TabsTrigger value="theme" className="text-xs gap-1.5">
+            <Palette className="h-3.5 w-3.5" />
+            Theme
+          </TabsTrigger>
+        </TabsList>
+
         {settingGroups.map((group) => (
-          <div key={group.title}>
+          <TabsContent key={group.id} value={group.id} className="mt-6">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <h3 className="text-sm font-semibold tracking-executive uppercase">{group.title}</h3>
+                <h3 className="text-sm font-semibold tracking-wider uppercase">{group.title}</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">{group.description}</p>
               </div>
-              {group.title === "SEO & Link Previews" && (
+              {group.id === "seo" && (
                 <Button
                   type="button"
                   variant="outline"
@@ -372,115 +659,23 @@ export default function AdminSettings() {
               )}
             </div>
             <div className="rounded-xl border border-border divide-y divide-border">
-              {group.fields.map((field) => (
-                <div key={field.key} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 p-4">
-                  <label className="text-sm font-medium w-40 shrink-0">{field.label}</label>
-                  <div className="flex-1">
-                    {field.type === "country" ? (
-                      <SearchableSelect
-                        value={values[field.key] || ""}
-                        onChange={(val) => update(field.key, val)}
-                        options={countries}
-                        placeholder={field.placeholder}
-                      />
-                    ) : field.type === "currency" ? (
-                      <SearchableSelect
-                        value={values[field.key] || ""}
-                        onChange={handleCurrencyChange}
-                        options={currencyOptions}
-                        placeholder={field.placeholder}
-                        renderOption={(opt) => currencyLabels[opt]}
-                      />
-                    ) : field.type === "twitter_card" ? (
-                      <select
-                        value={values[field.key] || ""}
-                        onChange={(e) => update(field.key, e.target.value)}
-                        className={inputClass}
-                      >
-                        <option value="">Auto (large image when image set)</option>
-                        <option value="summary_large_image">Summary, Large Image</option>
-                        <option value="summary">Summary (small thumbnail)</option>
-                      </select>
-                    ) : field.type === "payment_methods" ? (
-                      <PaymentMethodsEditor
-                        value={values[field.key] || '["cod"]'}
-                        onChange={(val) => update(field.key, val)}
-                      />
-                    ) : field.type === "toggle" ? (
-                      <div className="flex items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() => update(field.key, values[field.key] === "false" ? "true" : "false")}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${values[field.key] !== "false" ? "bg-primary" : "bg-muted"}`}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm transition-transform ${values[field.key] !== "false" ? "translate-x-6" : "translate-x-1"}`} />
-                        </button>
-                        <span className="text-sm text-muted-foreground">{values[field.key] !== "false" ? "Enabled" : "Disabled"}</span>
-                      </div>
-                    ) : field.type === "textarea" ? (
-                      <textarea
-                        value={values[field.key] || ""}
-                        onChange={(e) => update(field.key, e.target.value)}
-                        placeholder={field.placeholder}
-                        className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px]"
-                      />
-                    ) : field.type === "image" ? (
-                      <div className="flex items-center gap-3">
-                        {values[field.key] && (
-                          <img
-                            src={values[field.key]}
-                            alt={field.label}
-                            className="h-10 w-10 rounded-xl border border-border object-contain bg-muted"
-                          />
-                        )}
-                        <input
-                          value={values[field.key] || ""}
-                          onChange={(e) => update(field.key, e.target.value)}
-                          placeholder={field.placeholder}
-                          className={`${inputClass} flex-1`}
-                        />
-                        <label className="cursor-pointer">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleImageUpload(field.key, file);
-                            }}
-                          />
-                          <span className="inline-flex items-center gap-1 rounded-xl border border-border px-3 h-10 text-xs font-medium hover:bg-muted transition-colors">
-                            <Upload className="h-3.5 w-3.5" />
-                            {uploading ? "..." : "Upload"}
-                          </span>
-                        </label>
-                      </div>
-                    ) : field.type === "password" ? (
-                      <input
-                        type="password"
-                        value={values[field.key] || ""}
-                        onChange={(e) => update(field.key, e.target.value)}
-                        placeholder={field.placeholder}
-                        className={inputClass}
-                      />
-                    ) : (
-                      <input
-                        type={field.type || "text"}
-                        value={values[field.key] || ""}
-                        onChange={(e) => update(field.key, e.target.value)}
-                        placeholder={field.placeholder}
-                        className={inputClass}
-                      />
-                    )}
-                  </div>
-                </div>
-              ))}
+              {group.fields.map(renderField)}
             </div>
-          </div>
+          </TabsContent>
         ))}
-      </div>
 
-      <div className="max-w-3xl mt-8 pt-6 border-t border-border flex justify-end">
+        <TabsContent value="theme" className="mt-6">
+          <div className="mb-4">
+            <h3 className="text-sm font-semibold tracking-wider uppercase">Theme Editor</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Customize brand colors, accents, and roundness. Changes apply site-wide after saving.
+            </p>
+          </div>
+          <ThemeEditor values={values} update={update} />
+        </TabsContent>
+      </Tabs>
+
+      <div className="max-w-4xl mt-8 pt-6 border-t border-border flex justify-end">
         <Button
           variant="gradient"
           size="lg"
