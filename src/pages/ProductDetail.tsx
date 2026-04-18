@@ -20,6 +20,7 @@ import { trackViewContent, trackAddToCart } from "@/lib/meta-pixel";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useProductTranslator } from "@/hooks/use-product-translation";
 import DOMPurify from "dompurify";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Tier {
   id: string;
