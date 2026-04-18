@@ -262,6 +262,49 @@ ${tone ? `Tone: ${tone}` : ""}
 
 ${guide}`;
 
+    } else if (type === "poster_content") {
+      const { layout, productName, tagline, price, currencySymbol, posterContext } = body;
+
+      systemPrompt = `You are an expert visual social-media poster copywriter. You write extremely short, punchy, scroll-stopping copy for Instagram/Facebook posters. Output ONLY a single valid JSON object — no preamble, no markdown, no code fences, no commentary. Keep every value SHORT — designed to fit on a poster, not a paragraph. ${langInstruction}`;
+
+      const layoutGuide: Record<string, string> = {
+        split: "Standard product card. Need: punchy productName (1-4 words), tagline (max 8 words), badge (2-4 words ALL CAPS), ctaText (1-3 words ALL CAPS), 3-5 short feature bullets (max 4 words each), footerText (short call-to-action line).",
+        centered: "Centered hero. Same fields as split but bolder/shorter. Headline must be a single power statement.",
+        "bold-stack": "Bold typographic stack. Headline = 1-3 BIG words. Tagline = supporting line.",
+        minimal: "Minimal card. Clean, restrained copy.",
+        diagonal: "Diagonal cut design. Bold headline, short tagline.",
+        quote: "Minimal quote layout. The MAIN field is tagline — write it as a strong, memorable QUOTE / one-liner / hot take (max 12 words). productName becomes the attribution. No features needed.",
+        sale: "Price drop. Badge MUST be a discount % or 'SALE'. Headline short and urgent. ctaText urgent. 2-3 short benefit bullets.",
+        testimonial: "Customer testimonial. MAIN fields are testimonialQuote (1-2 short sentences, sounds like a real customer) and testimonialAuthor (realistic first name + last initial, e.g. 'Sarah K.'). Keep tagline empty or very short.",
+        carousel: "Carousel slide. productName = slide title (3-6 words). tagline = body text for THIS slide (1 short sentence). No price/cta needed.",
+      };
+
+      const guide = layoutGuide[layout] || layoutGuide.split;
+
+      userPrompt = `Generate poster copy for layout: "${layout}".
+${guide}
+
+Existing context (use as inspiration, you may rewrite if context below conflicts):
+- Product: ${productName || "(none)"}
+- Current tagline: ${tagline || "(none)"}
+- Price: ${price || "(none)"}
+- Currency: ${currencySymbol || "৳"}
+
+User instructions for THIS poster:
+${posterContext?.trim() || "(none — improvise based on the product)"}
+
+Return ONLY this JSON object (omit fields that don't apply to the layout, but include the keys with empty string ""):
+{
+  "productName": "",
+  "tagline": "",
+  "badge": "",
+  "ctaText": "",
+  "footerText": "",
+  "features": ["", "", ""],
+  "testimonialQuote": "",
+  "testimonialAuthor": ""
+}`;
+
     } else {
       return new Response(
         JSON.stringify({ error: "Invalid type." }),
