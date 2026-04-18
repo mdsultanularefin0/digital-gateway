@@ -62,7 +62,7 @@ export default function BkashCallback() {
         setErrorMsg(err.message || "Network error");
       }
     })();
-  }, []);
+  }, [searchParams]);
 
   return (
     <Layout>
