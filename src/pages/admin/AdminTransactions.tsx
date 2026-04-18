@@ -17,6 +17,8 @@ import { exportToCSV } from "@/lib/admin-utils";
 import { format } from "date-fns";
 import { DateRangeFilter, filterByDateRange, type DateRange } from "@/components/admin/DateRangeFilter";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { usePagination } from "@/hooks/use-pagination";
+import { PaginationBar } from "@/components/admin/PaginationBar";
 
 const statusConfig: Record<string, { icon: typeof CheckCircle2; color: string; label: string }> = {
   completed: { icon: CheckCircle2, color: "text-success", label: "Completed" },
