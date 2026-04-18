@@ -279,6 +279,27 @@ function ThemeEditor({ values, update }: { values: SettingsMap; update: (k: stri
       </div>
 
       <div>
+        <h3 className="text-sm font-semibold tracking-wider uppercase mb-1">Typography</h3>
+        <p className="text-xs text-muted-foreground mb-3">Pick Google Fonts for headings and body text. They load on save.</p>
+        <div className="rounded-xl border border-border divide-y divide-border">
+          <FontPickerRow
+            label="Heading Font"
+            help="Used for titles, hero, and product names"
+            value={values.theme_font_heading || ""}
+            onChange={(v) => update("theme_font_heading", v)}
+            placeholder="Plus Jakarta Sans (default)"
+          />
+          <FontPickerRow
+            label="Body Font"
+            help="Used for paragraphs, descriptions, and UI text"
+            value={values.theme_font_body || ""}
+            onChange={(v) => update("theme_font_body", v)}
+            placeholder="Plus Jakarta Sans (default)"
+          />
+        </div>
+      </div>
+
+      <div>
         <h3 className="text-sm font-semibold tracking-wider uppercase mb-1">Live Preview</h3>
         <p className="text-xs text-muted-foreground mb-3">Save changes to apply globally; this preview reflects current values.</p>
         <div
