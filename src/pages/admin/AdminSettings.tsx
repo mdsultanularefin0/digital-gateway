@@ -341,6 +341,16 @@ export default function AdminSettings() {
                         placeholder={field.placeholder}
                         renderOption={(opt) => currencyLabels[opt]}
                       />
+                    ) : field.type === "twitter_card" ? (
+                      <select
+                        value={values[field.key] || ""}
+                        onChange={(e) => update(field.key, e.target.value)}
+                        className={inputClass}
+                      >
+                        <option value="">Auto (large image when image set)</option>
+                        <option value="summary_large_image">Summary, Large Image</option>
+                        <option value="summary">Summary (small thumbnail)</option>
+                      </select>
                     ) : field.type === "payment_methods" ? (
                       <PaymentMethodsEditor
                         value={values[field.key] || '["cod"]'}
