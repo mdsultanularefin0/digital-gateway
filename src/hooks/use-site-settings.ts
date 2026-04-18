@@ -62,6 +62,7 @@ const defaults: SiteSettings = {
   youtube_url: "",
   meta_title: "",
   meta_description: "",
+  meta_keywords: "",
   default_og_image_url: "",
   default_twitter_card: "",
   default_canonical_url: "",
