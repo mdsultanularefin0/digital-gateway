@@ -37,6 +37,7 @@ const DARK_VAR_MAP: Record<string, string> = {
 };
 
 const GOOGLE_FONT_LINK_ID = "theme-google-fonts";
+const LIGHT_STYLE_ID = "theme-light-overrides";
 const DARK_STYLE_ID = "theme-dark-overrides";
 
 function ensureGoogleFontsLoaded(families: string[]) {
@@ -58,28 +59,39 @@ function ensureGoogleFontsLoaded(families: string[]) {
   if (link.href !== href) link.href = href;
 }
 
-function applyDarkOverrides(data: Record<string, string>) {
-  const lines: string[] = [];
-  Object.entries(DARK_VAR_MAP).forEach(([k, cssVar]) => {
-    const v = data[k];
-    if (v) lines.push(`  ${cssVar}: ${v};`);
-  });
-  // Mirror primary into ring for focus consistency
-  if (data.theme_dark_primary) {
-    lines.push(`  --ring: ${data.theme_dark_primary};`);
-  }
-
-  let style = document.getElementById(DARK_STYLE_ID) as HTMLStyleElement | null;
+function setScopedStyle(id: string, selector: string, lines: string[]) {
+  let style = document.getElementById(id) as HTMLStyleElement | null;
   if (lines.length === 0) {
     if (style) style.textContent = "";
     return;
   }
   if (!style) {
     style = document.createElement("style");
-    style.id = DARK_STYLE_ID;
+    style.id = id;
     document.head.appendChild(style);
   }
-  style.textContent = `.dark {\n${lines.join("\n")}\n}`;
+  style.textContent = `${selector} {\n${lines.join("\n")}\n}`;
+}
+
+function applyLightOverrides(data: Record<string, string>) {
+  const lines: string[] = [];
+  Object.entries(LIGHT_VAR_MAP).forEach(([k, cssVar]) => {
+    const v = data[k];
+    if (v) lines.push(`  ${cssVar}: ${v};`);
+  });
+  if (data.theme_primary) lines.push(`  --ring: ${data.theme_primary};`);
+  // Scope to light mode only so dark-class overrides win in dark mode
+  setScopedStyle(LIGHT_STYLE_ID, ":root:not(.dark)", lines);
+}
+
+function applyDarkOverrides(data: Record<string, string>) {
+  const lines: string[] = [];
+  Object.entries(DARK_VAR_MAP).forEach(([k, cssVar]) => {
+    const v = data[k];
+    if (v) lines.push(`  ${cssVar}: ${v};`);
+  });
+  if (data.theme_dark_primary) lines.push(`  --ring: ${data.theme_dark_primary};`);
+  setScopedStyle(DARK_STYLE_ID, ".dark", lines);
 }
 
 /**
