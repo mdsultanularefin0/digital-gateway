@@ -861,7 +861,7 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
 
                 {/* Send Money Instructions Panel */}
                 {(form.paymentMethod === "bkash_send" || form.paymentMethod === "nagad_send") && (
-                  <LandingSendMoneyPanel
+                  <SendMoneyPanel
                     provider={form.paymentMethod}
                     amount={Math.max(total, 0)}
                     currencySymbol={sym}
