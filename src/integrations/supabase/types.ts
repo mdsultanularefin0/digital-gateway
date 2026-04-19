@@ -74,6 +74,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_models: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean
+          label: string
+          model_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label: string
+          model_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label?: string
+          model_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           active: boolean
