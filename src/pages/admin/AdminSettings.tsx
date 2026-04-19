@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { Save, Upload, ChevronDown, Search, Sparkles, Loader2, Palette, RotateCcw, Info } from "lucide-react";
 import { countries, currencies } from "@/data/countries-currencies";
 import { getErrorMessage } from "@/lib/admin-utils";
+import { AiContextPicker } from "@/components/admin/AiContextPicker";
 
 interface SettingsMap {
   [key: string]: string;
@@ -630,6 +631,7 @@ export default function AdminSettings() {
   const [values, setValues] = useState<SettingsMap>({});
   const [uploading, setUploading] = useState(false);
   const [seoGenerating, setSeoGenerating] = useState(false);
+  const [seoUserContext, setSeoUserContext] = useState("");
 
   const generateSeoDefaults = async () => {
     setSeoGenerating(true);
@@ -638,6 +640,7 @@ export default function AdminSettings() {
         body: {
           type: "page_meta",
           language: "en",
+          userContext: seoUserContext,
           pageName: values.site_name || "Home",
           pageDescription: values.site_tagline || "",
           siteName: values.site_name || "",
