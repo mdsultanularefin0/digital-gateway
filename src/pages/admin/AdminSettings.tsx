@@ -6,7 +6,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { Save, Upload, ChevronDown, Search, Sparkles, Loader2, Palette, RotateCcw } from "lucide-react";
+import { Save, Upload, ChevronDown, Search, Sparkles, Loader2, Palette, RotateCcw, Info } from "lucide-react";
 import { countries, currencies } from "@/data/countries-currencies";
 import { getErrorMessage } from "@/lib/admin-utils";
 
@@ -444,6 +444,12 @@ function ThemeEditor({ values, update }: { values: SettingsMap; update: (k: stri
         <p className="text-xs text-muted-foreground mb-3">
           Override tokens used when dark mode is active. Leave defaults if unsure.
         </p>
+        <div className="mb-3 flex gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200">
+          <Info className="h-4 w-4 shrink-0 mt-0.5" />
+          <span>
+            Any dark color field left empty will fall back to the built-in default dark theme. Set all four for a fully custom dark palette.
+          </span>
+        </div>
         <div className="rounded-xl border border-border divide-y divide-border">
           {darkColorFields.map(renderColorRow)}
         </div>
