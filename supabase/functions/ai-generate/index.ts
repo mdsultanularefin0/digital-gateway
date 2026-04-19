@@ -52,9 +52,12 @@ serve(withLogging("ai-generate", async (req) => {
       ? "IMPORTANT: Write the ENTIRE response in Bengali (বাংলা). Use Bengali script throughout."
       : "Write the response in English.";
 
-    const contextInstruction = (userContext && typeof userContext === "string" && userContext.trim())
-      ? `\n\nADDITIONAL USER INSTRUCTIONS (highest priority — follow these carefully):\n${userContext.trim()}`
-      : "";
+    const contextInstruction = [
+      globalContext ? `\n\nBRAND CONTEXT (always apply — this is who we are and what we sell):\n${globalContext}` : "",
+      (userContext && typeof userContext === "string" && userContext.trim())
+        ? `\n\nADDITIONAL USER INSTRUCTIONS (highest priority — follow these carefully):\n${userContext.trim()}`
+        : "",
+    ].join("");
 
     let systemPrompt = "";
     let userPrompt = "";
