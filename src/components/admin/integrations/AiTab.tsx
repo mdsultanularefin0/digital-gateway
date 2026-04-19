@@ -327,3 +327,51 @@ function PresetRow({
     </div>
   );
 }
+
+function ModelRow({
+  model,
+  onSave,
+  onDelete,
+}: {
+  model: AiModel;
+  onSave: (model_id: string, label: string) => void;
+  onDelete: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [modelId, setModelId] = useState(model.model_id);
+  const [label, setLabel] = useState(model.label);
+
+  if (!editing) {
+    return (
+      <div className="rounded-lg border border-border/60 bg-muted/10 p-3 flex items-start gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">{model.label}</p>
+          <code className="text-[10px] text-muted-foreground font-mono">{model.model_id}</code>
+        </div>
+        <div className="flex gap-1 shrink-0">
+          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setModelId(model.model_id); setLabel(model.label); setEditing(true); }}>
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive hover:text-destructive" onClick={onDelete}>
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 space-y-2">
+      <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Display label (e.g. Gemini 2.5 Flash)" className="h-8 text-sm" />
+      <Input value={modelId} onChange={(e) => setModelId(e.target.value)} placeholder="OpenRouter model ID (e.g. google/gemini-2.5-flash)" className="h-8 text-xs font-mono" />
+      <div className="flex gap-1 justify-end">
+        <Button size="sm" variant="ghost" className="h-7 gap-1" onClick={() => setEditing(false)}>
+          <X className="h-3.5 w-3.5" /> Cancel
+        </Button>
+        <Button size="sm" className="h-7 gap-1" onClick={() => { onSave(modelId, label); setEditing(false); }}>
+          <Save className="h-3.5 w-3.5" /> Save
+        </Button>
+      </div>
+    </div>
+  );
+}
