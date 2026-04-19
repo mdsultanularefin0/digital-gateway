@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Globe, ArrowRight, CheckCircle, Star, HelpCircle, BarChart3, Shield, Gift, Clock, Loader2, Copy, Check } from "lucide-react";
+import { Globe, ArrowRight, CheckCircle, Star, HelpCircle, BarChart3, Shield, Gift, Clock, Loader2 } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { Layout } from "@/components/Layout";
 import { SEOHead } from "@/components/SEOHead";
@@ -13,6 +13,9 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 import { toast } from "@/hooks/use-toast";
 import { DownloadLinks } from "@/components/DownloadLinks";
 import { OrderSuccessInstructions } from "@/components/OrderSuccessInstructions";
+import { SendMoneyPanel } from "@/components/SendMoneyPanel";
+import { fireEdge, callEdge } from "@/lib/edge";
+import { trackPurchase } from "@/lib/meta-pixel";
 import paymentBkash from "@/assets/payment-bkash.png";
 import paymentNagad from "@/assets/payment-nagad.png";
 import paymentCod from "@/assets/payment-cod.png";
@@ -553,51 +556,6 @@ const emptyCheckoutForm: CheckoutForm = {
   senderNumber: "", trxId: "",
 };
 
-function LandingSendMoneyPanel({
-  provider, amount, currencySymbol, senderNumber, trxId, onSenderChange, onTrxIdChange, settings,
-}: {
-  provider: string; amount: number; currencySymbol: string; senderNumber: string; trxId: string;
-  onSenderChange: (v: string) => void; onTrxIdChange: (v: string) => void; settings: any;
-}) {
-  const [copied, setCopied] = useState(false);
-  const isBkash = provider === "bkash_send";
-  const merchantNumber = isBkash ? settings?.bkash_send_number || "" : settings?.nagad_send_number || "";
-  const instructions = isBkash
-    ? settings?.bkash_send_instructions || "1. Open bKash app\n2. Tap Send Money\n3. Enter the number shown\n4. Enter the exact amount\n5. Submit your sender number and TrxID below"
-    : settings?.nagad_send_instructions || "1. Open Nagad app\n2. Tap Send Money\n3. Enter the number shown\n4. Enter the exact amount\n5. Submit your sender number and TrxID below";
-  const copyNumber = () => { navigator.clipboard.writeText(merchantNumber); setCopied(true); setTimeout(() => setCopied(false), 2000); };
-  const inputClass = "h-10 w-full rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
-
-  return (
-    <div className="border-t border-border p-4 space-y-4">
-      <div className={`rounded-xl p-4 ${isBkash ? "bg-pink-500/5 border border-pink-500/20" : "bg-orange-500/5 border border-orange-500/20"}`}>
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Send {currencySymbol}{amount.toFixed(2)} to</p>
-        {merchantNumber ? (
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-mono font-bold tracking-widest">{merchantNumber}</span>
-            <button type="button" onClick={copyNumber} className="p-1.5 rounded-lg hover:bg-muted transition-colors" title="Copy number">
-              {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
-            </button>
-          </div>
-        ) : (
-          <p className="text-sm text-destructive">Merchant number not configured.</p>
-        )}
-      </div>
-      <div className="text-sm text-muted-foreground whitespace-pre-line bg-muted/50 rounded-xl p-3">{instructions}</div>
-      <div className="space-y-3">
-        <div>
-          <label className="text-xs font-medium mb-1 block">Your {isBkash ? "bKash" : "Nagad"} Number *</label>
-          <input value={senderNumber} onChange={(e) => onSenderChange(e.target.value)} className={inputClass} placeholder="01XXXXXXXXX" />
-        </div>
-        <div>
-          <label className="text-xs font-medium mb-1 block">Transaction ID (TrxID) *</label>
-          <input value={trxId} onChange={(e) => onTrxIdChange(e.target.value)} className={inputClass} placeholder="e.g. BIxxxxxxxx" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct }: { content: SectionContent; allSections: SectionsData; pageTitle: string; linkedProduct?: { id: string; name: string; price: number; image: string; slug: string } | null }) {
   const { data: settings } = useSiteSettings();
   const sym = settings?.currency_symbol || "৳";
@@ -731,58 +689,60 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
       });
       if (itemsErr) throw itemsErr;
 
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      const fnHeaders = {
-        "Content-Type": "application/json",
-        "apikey": anonKey,
-        "Authorization": `Bearer ${anonKey}`,
-      };
-      fetch(`https://${projectId}.supabase.co/functions/v1/order-webhook`, {
-        method: "POST",
-        headers: fnHeaders,
-        body: JSON.stringify({ order_id: order.id, event: "order.created" }),
-      }).catch(() => {});
-      fetch(`https://${projectId}.supabase.co/functions/v1/send-order-confirmation`, {
-        method: "POST",
-        headers: fnHeaders,
-        body: JSON.stringify({ order_id: order.id, type: "order_confirmation", origin: window.location.origin }),
-      }).catch(() => {});
+      // Referral attribution if cookie is set (parity with Checkout flow)
+      const refCode = (typeof document !== "undefined" && document.cookie.match(/ref_code=([^;]+)/)?.[1]) || "";
+      if (refCode) {
+        await supabase.from("referral_attributions").insert({
+          referral_code: refCode,
+          order_id: order.id,
+          customer_email: form.email.trim(),
+          amount: finalTotal,
+          event_type: "order",
+        }).then(() => {});
+      }
+
+      const currency = settings?.currency || "BDT";
+
+      fireEdge("order-webhook", { order_id: order.id, event: "order.created" });
+      fireEdge("send-order-confirmation", {
+        order_id: order.id,
+        type: "order_confirmation",
+        origin: window.location.origin,
+      });
 
       if (form.paymentMethod === "bkash") {
         const callbackURL = `${window.location.origin}/bkash/callback`;
-        const res = await fetch(`https://${projectId}.supabase.co/functions/v1/bkash-payment?action=create`, {
-          method: "POST",
-          headers: fnHeaders,
-          body: JSON.stringify({ orderId: order.id, callbackURL, payerReference: form.phone }),
-        });
-        const bkashData = await res.json();
+        const bkashData = await callEdge<{ bkashURL?: string; error?: string }>(
+          "bkash-payment",
+          { orderId: order.id, callbackURL, payerReference: form.phone },
+          { query: "action=create" }
+        );
         if (bkashData.bkashURL) {
           localStorage.setItem("bkash_order_id", order.id);
           localStorage.setItem("bkash_order_number", order.order_number);
           window.location.href = bkashData.bkashURL;
           return;
-        } else {
-          throw new Error(bkashData.error || "Failed to initiate bKash payment");
         }
+        throw new Error(bkashData.error || "Failed to initiate bKash payment");
       }
 
       // Handle Send Money (bkash_send / nagad_send)
       if (form.paymentMethod === "bkash_send" || form.paymentMethod === "nagad_send") {
-        const res = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/verify-send-money`,
-          {
-            method: "POST",
-            headers: fnHeaders,
-            body: JSON.stringify({
-              orderId: order.id,
-              senderNumber: form.senderNumber.trim(),
-              trxId: form.trxId.trim(),
-              provider: form.paymentMethod,
-            }),
-          }
-        );
-        const sendResult = await res.json();
+        const sendResult = await callEdge<{ verified?: boolean }>("verify-send-money", {
+          orderId: order.id,
+          senderNumber: form.senderNumber.trim(),
+          trxId: form.trxId.trim(),
+          provider: form.paymentMethod,
+        });
+        if (sendResult.verified && linkedProductId) {
+          trackPurchase({
+            content_ids: [linkedProductId],
+            content_type: "product",
+            num_items: 1,
+            value: finalTotal,
+            currency,
+          });
+        }
         setPlacedOrderId(order.id);
         setOrderPlaced(order.order_number);
         if (!sendResult.verified) {
@@ -791,6 +751,15 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
         return;
       }
 
+      if (linkedProductId) {
+        trackPurchase({
+          content_ids: [linkedProductId],
+          content_type: "product",
+          num_items: 1,
+          value: finalTotal,
+          currency,
+        });
+      }
       setPlacedOrderId(order.id);
       setOrderPlaced(order.order_number);
     } catch (err: any) {
@@ -892,7 +861,7 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
 
                 {/* Send Money Instructions Panel */}
                 {(form.paymentMethod === "bkash_send" || form.paymentMethod === "nagad_send") && (
-                  <LandingSendMoneyPanel
+                  <SendMoneyPanel
                     provider={form.paymentMethod}
                     amount={Math.max(total, 0)}
                     currencySymbol={sym}

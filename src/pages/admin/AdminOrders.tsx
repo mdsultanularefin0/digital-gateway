@@ -72,7 +72,7 @@ export default function AdminOrders() {
         body: JSON.stringify({ order_id: orderId, type, origin: window.location.origin }),
       });
     } catch (e) {
-      console.error("Email trigger failed:", e);
+      if (import.meta.env.DEV) console.error("Email trigger failed:", e);
     }
   };
 

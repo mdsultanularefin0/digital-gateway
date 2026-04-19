@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
+import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { callEdge } from "@/lib/edge";
 
 export default function BkashCallback() {
   const [searchParams] = useSearchParams();
@@ -29,22 +31,11 @@ export default function BkashCallback() {
     // Execute the payment
     (async () => {
       try {
-        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-        const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-        const res = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/bkash-payment?action=execute`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "apikey": anonKey,
-              "Authorization": `Bearer ${anonKey}`,
-            },
-            body: JSON.stringify({ paymentID, orderId }),
-          }
+        const data = await callEdge<{ success?: boolean; trxID?: string; message?: string; error?: string }>(
+          "bkash-payment",
+          { paymentID, orderId },
+          { query: "action=execute" }
         );
-
-        const data = await res.json();
         if (import.meta.env.DEV) console.log("bKash execute result:", data);
         if (data.success) {
           setTrxID(data.trxID);
@@ -66,6 +57,7 @@ export default function BkashCallback() {
 
   return (
     <Layout>
+      <SEOHead title="Verifying Payment" description="Confirming your bKash payment." noIndex disableHreflang />
       <section className="py-20 md:py-32">
         <div className="container max-w-lg text-center">
           {status === "loading" && (

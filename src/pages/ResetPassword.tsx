@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/Layout";
+import { SEOHead } from "@/components/SEOHead";
 import { toast } from "@/hooks/use-toast";
 
 export default function ResetPassword() {
@@ -49,6 +50,7 @@ export default function ResetPassword() {
 
   return (
     <Layout>
+      <SEOHead title="Reset Password" description="Set a new password for your account." noIndex disableHreflang />
       <section className="py-16 md:py-24">
         <div className="container max-w-md">
           <div className="rounded-xl border border-border bg-card p-8 shadow-card">
