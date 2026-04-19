@@ -121,17 +121,13 @@ export function ThemeApplier() {
     if (!data) return;
     const root = document.documentElement;
 
-    // Light tokens
-    Object.entries(LIGHT_VAR_MAP).forEach(([k, cssVar]) => {
-      const v = data[k];
-      if (v) root.style.setProperty(cssVar, v);
-    });
-    if (data.theme_primary) root.style.setProperty("--ring", data.theme_primary);
+    // Light tokens (scoped via :root:not(.dark) so they don't override dark mode)
+    applyLightOverrides(data);
 
     // Dark tokens (scoped via .dark selector)
     applyDarkOverrides(data);
 
-    // Fonts
+    // Fonts (these are mode-agnostic — safe to set inline)
     const headingFont = data.theme_font_heading;
     const bodyFont = data.theme_font_body;
     if (headingFont) root.style.setProperty("--font-display", `'${headingFont}'`);
