@@ -16,6 +16,12 @@ interface ContextPreset {
   is_system: boolean;
 }
 
+interface AiModel {
+  id: string;
+  model_id: string;
+  label: string;
+}
+
 interface AiGenerateButtonProps {
   type: string;
   payload: Record<string, any>;
