@@ -35,6 +35,53 @@ export function AiTab({ settings, update }: Props) {
   const qc = useQueryClient();
   const enabled = (settings.ai_global_context_enabled ?? "true") !== "false";
 
+  const { data: models = [] } = useQuery<AiModel[]>({
+    queryKey: ["ai-models"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ai_models")
+        .select("*")
+        .order("sort_order", { ascending: true })
+        .order("label", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as AiModel[];
+    },
+  });
+
+  const saveModel = useMutation({
+    mutationFn: async (m: Partial<AiModel> & { id?: string }) => {
+      if (m.id) {
+        const { error } = await supabase
+          .from("ai_models")
+          .update({ model_id: m.model_id, label: m.label })
+          .eq("id", m.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("ai_models")
+          .insert({ model_id: m.model_id || "", label: m.label || "Untitled", sort_order: 1000 });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["ai-models"] });
+      toast({ title: "Model saved" });
+    },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+
+  const deleteModel = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("ai_models").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["ai-models"] });
+      toast({ title: "Model deleted" });
+    },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+
   const { data: presets = [] } = useQuery<Preset[]>({
     queryKey: ["ai-context-presets"],
     queryFn: async () => {
