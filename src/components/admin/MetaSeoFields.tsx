@@ -9,6 +9,7 @@ import { MetaTextFields } from "@/components/admin/meta-seo/MetaTextFields";
 import { OgImagePicker } from "@/components/admin/meta-seo/OgImagePicker";
 import { AdvancedSeoFields } from "@/components/admin/meta-seo/AdvancedSeoFields";
 import { AiContextPicker } from "@/components/admin/AiContextPicker";
+import { AiModelPicker } from "@/components/admin/AiModelPicker";
 
 export interface MetaSeoValues {
   meta_title: string;
@@ -46,12 +47,13 @@ export function MetaSeoFields({
 }: Props) {
   const [generating, setGenerating] = useState(false);
   const [userContext, setUserContext] = useState("");
+  const [modelOverride, setModelOverride] = useState("");
 
   const handleGenerate = async () => {
     setGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("ai-generate", {
-        body: { type: aiType, language: "en", userContext, ...aiPayload },
+        body: { type: aiType, language: "en", userContext, modelOverride: modelOverride || undefined, ...aiPayload },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -79,6 +81,7 @@ export function MetaSeoFields({
         </div>
         <div className="flex items-center gap-2">
           {translateAction}
+          <AiModelPicker value={modelOverride} onChange={setModelOverride} />
           <AiContextPicker value={userContext} onChange={setUserContext} />
           <Button type="button" variant="outline" size="sm" onClick={handleGenerate} disabled={generating} className="gap-1.5">
             {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
