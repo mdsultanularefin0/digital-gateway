@@ -18,10 +18,22 @@ serve(withLogging("ai-generate", async (req) => {
     const { data: settingsRows } = await sb
       .from("site_settings")
       .select("key, value")
-      .in("key", ["openrouter_api_key", "openrouter_model", "openrouter_custom_model"]);
+      .in("key", [
+        "openrouter_api_key",
+        "openrouter_model",
+        "openrouter_custom_model",
+        "ai_global_context",
+        "ai_global_context_enabled",
+      ]);
 
     const cfg: Record<string, string> = {};
     (settingsRows || []).forEach((r: any) => (cfg[r.key] = r.value));
+
+    // Build global context block (auto-applied unless explicitly disabled)
+    const globalContextEnabled = (cfg.ai_global_context_enabled ?? "true") !== "false";
+    const globalContext = globalContextEnabled && cfg.ai_global_context?.trim()
+      ? cfg.ai_global_context.trim()
+      : "";
 
     const apiKey = cfg.openrouter_api_key;
     if (!apiKey) {
