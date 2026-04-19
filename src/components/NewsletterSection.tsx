@@ -26,7 +26,7 @@ export function NewsletterSection() {
     setLoading(false);
 
     if (error) {
-      console.error("Newsletter error:", error);
+      if (import.meta.env.DEV) console.error("Newsletter error:", error);
       toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
       return;
     }

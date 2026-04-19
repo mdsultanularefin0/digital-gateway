@@ -103,9 +103,10 @@ export function ProductCard({ product: rawProduct }: { product: Product }) {
         {firstImage ? (
           <img
             src={firstImage}
-            alt={product.name}
+            alt={product.name || "Product image"}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="flex h-full items-center justify-center">
