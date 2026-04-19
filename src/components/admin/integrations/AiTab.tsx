@@ -155,25 +155,61 @@ export function AiTab({ settings, update }: Props) {
           <div className="space-y-2">
             <Label className="text-xs font-bold uppercase tracking-wider">Default Model</Label>
             <Select
-              value={settings.openrouter_model || "google/gemini-2.5-flash"}
+              value={settings.openrouter_model || (models[0]?.model_id ?? "google/gemini-2.5-flash")}
               onValueChange={(v) => update("openrouter_model", v)}
             >
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {MODELS.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
+                {models.map((m) => (
+                  <SelectItem key={m.id} value={m.model_id}>{m.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            <p className="text-[11px] text-muted-foreground">Manage the available list below.</p>
           </div>
           <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-wider">Custom Model ID (optional)</Label>
+            <Label className="text-xs font-bold uppercase tracking-wider">Custom Model ID (override)</Label>
             <Input
               value={settings.openrouter_custom_model || ""}
               onChange={(e) => update("openrouter_custom_model", e.target.value)}
-              placeholder="e.g. deepseek/deepseek-r1"
+              placeholder="e.g. deepseek/deepseek-r1 — overrides Default Model when set"
             />
           </div>
+        </div>
+      </section>
+
+      {/* Models registry */}
+      <section className="border-t border-border/60 pt-6">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-sm font-bold">Available Models</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Models that appear in the Default Model dropdown. Use any{" "}
+              <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className="text-primary underline">OpenRouter model ID</a>.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5"
+            onClick={() => saveModel.mutate({ model_id: "provider/model", label: "New model" })}
+          >
+            <Plus className="h-3.5 w-3.5" /> Add model
+          </Button>
+        </div>
+
+        <div className="space-y-2">
+          {models.map((m) => (
+            <ModelRow
+              key={m.id}
+              model={m}
+              onSave={(model_id, label) => saveModel.mutate({ id: m.id, model_id, label })}
+              onDelete={() => deleteModel.mutate(m.id)}
+            />
+          ))}
+          {models.length === 0 && (
+            <p className="text-xs text-muted-foreground italic">No models yet — add one to get started.</p>
+          )}
         </div>
       </section>
 
