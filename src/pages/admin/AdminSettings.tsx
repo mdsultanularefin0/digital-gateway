@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { Save, Upload, ChevronDown, Search, Sparkles, Loader2, Palette, RotateCcw, Info } from "lucide-react";
 import { countries, currencies } from "@/data/countries-currencies";
 import { getErrorMessage } from "@/lib/admin-utils";
+import { AiContextPicker } from "@/components/admin/AiContextPicker";
 
 interface SettingsMap {
   [key: string]: string;
@@ -630,6 +631,7 @@ export default function AdminSettings() {
   const [values, setValues] = useState<SettingsMap>({});
   const [uploading, setUploading] = useState(false);
   const [seoGenerating, setSeoGenerating] = useState(false);
+  const [seoUserContext, setSeoUserContext] = useState("");
 
   const generateSeoDefaults = async () => {
     setSeoGenerating(true);
@@ -638,6 +640,7 @@ export default function AdminSettings() {
         body: {
           type: "page_meta",
           language: "en",
+          userContext: seoUserContext,
           pageName: values.site_name || "Home",
           pageDescription: values.site_tagline || "",
           siteName: values.site_name || "",
@@ -874,17 +877,20 @@ export default function AdminSettings() {
                 <p className="text-xs text-muted-foreground mt-0.5">{group.description}</p>
               </div>
               {group.id === "seo" && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={generateSeoDefaults}
-                  disabled={seoGenerating}
-                  className="gap-1.5 shrink-0"
-                >
-                  {seoGenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                  {seoGenerating ? "Generating..." : "AI Generate"}
-                </Button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <AiContextPicker value={seoUserContext} onChange={setSeoUserContext} />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={generateSeoDefaults}
+                    disabled={seoGenerating}
+                    className="gap-1.5"
+                  >
+                    {seoGenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                    {seoGenerating ? "Generating..." : "AI Generate"}
+                  </Button>
+                </div>
               )}
             </div>
             <div className="rounded-xl border border-border divide-y divide-border">
