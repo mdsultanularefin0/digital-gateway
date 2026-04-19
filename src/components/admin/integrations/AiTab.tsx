@@ -15,14 +15,13 @@ interface Props {
   update: (key: string, value: string) => void;
 }
 
-const MODELS = [
-  { id: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash (fast, cheap)" },
-  { id: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro (best quality)" },
-  { id: "openai/gpt-4o-mini", label: "GPT-4o Mini (balanced)" },
-  { id: "openai/gpt-4o", label: "GPT-4o (powerful)" },
-  { id: "anthropic/claude-sonnet-4", label: "Claude Sonnet 4" },
-  { id: "meta-llama/llama-4-maverick", label: "Llama 4 Maverick (free)" },
-];
+interface AiModel {
+  id: string;
+  model_id: string;
+  label: string;
+  is_default: boolean;
+  sort_order: number;
+}
 
 interface Preset {
   id: string;
