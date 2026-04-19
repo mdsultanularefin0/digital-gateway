@@ -78,15 +78,15 @@ export function AiGenerateButton({ type, payload, onResult, label = "AI Generate
         <PopoverTrigger asChild>
           <button
             type="button"
-            className={`text-[10px] font-medium px-2 py-1 rounded-lg border transition-colors flex items-center gap-1 ${
+            className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-colors flex items-center gap-1 ${
               userContext.trim()
-                ? "border-primary/40 text-primary bg-primary/5"
-                : "border-border/60 text-muted-foreground hover:text-foreground hover:border-foreground/20"
+                ? "border-primary text-primary bg-primary/10"
+                : "border-primary/30 text-primary/80 hover:text-primary hover:border-primary/60 hover:bg-primary/5"
             }`}
-            title="Add context / instructions"
+            title="Pick a preset or add custom context"
           >
-            <MessageSquarePlus className="h-3 w-3" />
-            Context{userContext.trim() ? " ✓" : ""}
+            <MessageSquarePlus className="h-3.5 w-3.5" />
+            Preset / Context{userContext.trim() ? " ✓" : ""}
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-80 p-3" align="end">
