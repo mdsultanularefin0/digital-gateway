@@ -43,10 +43,11 @@ serve(withLogging("ai-generate", async (req) => {
       );
     }
 
-    const model = cfg.openrouter_custom_model || cfg.openrouter_model || "google/gemini-2.5-flash";
-
     const body = await req.json();
-    const { type, language, userContext } = body;
+    const { type, language, userContext, modelOverride } = body;
+    const model = (typeof modelOverride === "string" && modelOverride.trim())
+      ? modelOverride.trim()
+      : (cfg.openrouter_custom_model || cfg.openrouter_model || "google/gemini-2.5-flash");
     const lang = language === "bn" ? "bn" : "en";
     const langInstruction = lang === "bn"
       ? "IMPORTANT: Write the ENTIRE response in Bengali (বাংলা). Use Bengali script throughout."
