@@ -10,6 +10,7 @@ import { Save, Upload, ChevronDown, Search, Sparkles, Loader2, Palette, RotateCc
 import { countries, currencies } from "@/data/countries-currencies";
 import { getErrorMessage } from "@/lib/admin-utils";
 import { AiContextPicker } from "@/components/admin/AiContextPicker";
+import { AiModelPicker } from "@/components/admin/AiModelPicker";
 
 interface SettingsMap {
   [key: string]: string;
@@ -632,6 +633,7 @@ export default function AdminSettings() {
   const [uploading, setUploading] = useState(false);
   const [seoGenerating, setSeoGenerating] = useState(false);
   const [seoUserContext, setSeoUserContext] = useState("");
+  const [seoModelOverride, setSeoModelOverride] = useState("");
 
   const generateSeoDefaults = async () => {
     setSeoGenerating(true);
@@ -641,6 +643,7 @@ export default function AdminSettings() {
           type: "page_meta",
           language: "en",
           userContext: seoUserContext,
+          modelOverride: seoModelOverride || undefined,
           pageName: values.site_name || "Home",
           pageDescription: values.site_tagline || "",
           siteName: values.site_name || "",
@@ -878,6 +881,7 @@ export default function AdminSettings() {
               </div>
               {group.id === "seo" && (
                 <div className="flex items-center gap-2 shrink-0">
+                  <AiModelPicker value={seoModelOverride} onChange={setSeoModelOverride} />
                   <AiContextPicker value={seoUserContext} onChange={setSeoUserContext} />
                   <Button
                     type="button"
