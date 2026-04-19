@@ -44,6 +44,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_context_presets: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_system: boolean
+          label: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_system?: boolean
+          label: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_system?: boolean
+          label?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           active: boolean
