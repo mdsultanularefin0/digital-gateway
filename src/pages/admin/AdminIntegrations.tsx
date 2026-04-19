@@ -120,27 +120,27 @@ export default function AdminIntegrations() {
           </TabsList>
 
           <TabsContent value="mail">
-            <MailTab />
+            <div><MailTab /></div>
           </TabsContent>
 
           <TabsContent value="sms">
-            <SmsTab settings={settings} update={update} />
+            <div><SmsTab settings={settings} update={update} /></div>
           </TabsContent>
 
           <TabsContent value="webhook">
-            <WebhookTab settings={settings} update={update} />
+            <div><WebhookTab settings={settings} update={update} /></div>
           </TabsContent>
 
           <TabsContent value="storage">
-            <StorageTab settings={settings} update={update} />
+            <div><StorageTab settings={settings} update={update} /></div>
           </TabsContent>
 
           <TabsContent value="ai">
-            <AiTab settings={settings} update={update} />
+            <div><AiTab settings={settings} update={update} /></div>
           </TabsContent>
 
           <TabsContent value="social">
-            <SocialMetaTab settings={settings} update={update} />
+            <div><SocialMetaTab settings={settings} update={update} /></div>
           </TabsContent>
         </Tabs>
       </div>
