@@ -1,45 +1,19 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2, Check, Copy, Globe, MessageSquarePlus } from "lucide-react";
+import { Sparkles, Loader2, Check, Copy, Globe, MessageSquarePlus, Settings2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 
-const CONTEXT_PRESETS: { label: string; value: string }[] = [
-  {
-    label: "Friendly & casual",
-    value: "Use a friendly, casual, conversational tone. Write like you're talking to a friend. Keep it warm, approachable, and easy to read. Avoid jargon.",
-  },
-  {
-    label: "Professional B2B",
-    value: "Use a professional, authoritative B2B tone. Focus on ROI, efficiency, and business outcomes. Be concise, data-driven, and avoid hype or slang.",
-  },
-  {
-    label: "Urgent sale",
-    value: "Create urgency and excitement. Highlight scarcity, limited-time offers, and immediate benefits. Use strong action verbs and persuasive language. Push the reader to act now.",
-  },
-  {
-    label: "Luxury & premium",
-    value: "Use a refined, elegant, premium tone. Emphasize craftsmanship, exclusivity, and quality. Use sophisticated vocabulary. Avoid discounts or aggressive sales language.",
-  },
-  {
-    label: "Playful & fun",
-    value: "Use a playful, witty, and fun tone. Add light humor and personality. Keep it energetic and memorable. Use emojis sparingly where appropriate.",
-  },
-  {
-    label: "Minimal & direct",
-    value: "Be extremely concise and direct. No fluff, no filler. Short sentences. Get to the point immediately. Maximum clarity, minimum words.",
-  },
-  {
-    label: "Storytelling",
-    value: "Use a narrative, storytelling approach. Paint a picture, evoke emotion, and connect with the reader through vivid scenarios and relatable moments.",
-  },
-  {
-    label: "Bengali audience",
-    value: "Write for a Bangladeshi audience. Use culturally relevant references, local examples, and a tone that resonates with Bengali readers. Mix in light Banglish where it feels natural.",
-  },
-];
+interface ContextPreset {
+  id: string;
+  label: string;
+  content: string;
+  is_system: boolean;
+}
 
 interface AiGenerateButtonProps {
   type: string;
@@ -53,6 +27,21 @@ export function AiGenerateButton({ type, payload, onResult, label = "AI Generate
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState<"en" | "bn">("en");
   const [userContext, setUserContext] = useState("");
+
+  const { data: presets = [] } = useQuery<ContextPreset[]>({
+    queryKey: ["ai-context-presets"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ai_context_presets")
+        .select("id, label, content, is_system")
+        .order("is_system", { ascending: false })
+        .order("sort_order", { ascending: true })
+        .order("label", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as ContextPreset[];
+    },
+    staleTime: 60_000,
+  });
 
   const generate = async () => {
     setLoading(true);
