@@ -236,9 +236,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-muted-foreground hover:text-foreground">
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="font-display font-semibold text-base sm:text-lg truncate">
+          <h1 className="font-display font-semibold text-base sm:text-lg truncate flex-1">
             {allLinks.find((l) => isLinkActive(l.to, location.pathname))?.label ?? "Admin"}
           </h1>
+          <ThemeToggle />
         </header>
         <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-x-hidden">{children}</main>
       </div>
