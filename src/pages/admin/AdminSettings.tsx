@@ -877,17 +877,20 @@ export default function AdminSettings() {
                 <p className="text-xs text-muted-foreground mt-0.5">{group.description}</p>
               </div>
               {group.id === "seo" && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={generateSeoDefaults}
-                  disabled={seoGenerating}
-                  className="gap-1.5 shrink-0"
-                >
-                  {seoGenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                  {seoGenerating ? "Generating..." : "AI Generate"}
-                </Button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <AiContextPicker value={seoUserContext} onChange={setSeoUserContext} />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={generateSeoDefaults}
+                    disabled={seoGenerating}
+                    className="gap-1.5"
+                  >
+                    {seoGenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                    {seoGenerating ? "Generating..." : "AI Generate"}
+                  </Button>
+                </div>
               )}
             </div>
             <div className="rounded-xl border border-border divide-y divide-border">
