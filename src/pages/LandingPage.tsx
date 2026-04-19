@@ -689,58 +689,60 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
       });
       if (itemsErr) throw itemsErr;
 
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      const fnHeaders = {
-        "Content-Type": "application/json",
-        "apikey": anonKey,
-        "Authorization": `Bearer ${anonKey}`,
-      };
-      fetch(`https://${projectId}.supabase.co/functions/v1/order-webhook`, {
-        method: "POST",
-        headers: fnHeaders,
-        body: JSON.stringify({ order_id: order.id, event: "order.created" }),
-      }).catch(() => {});
-      fetch(`https://${projectId}.supabase.co/functions/v1/send-order-confirmation`, {
-        method: "POST",
-        headers: fnHeaders,
-        body: JSON.stringify({ order_id: order.id, type: "order_confirmation", origin: window.location.origin }),
-      }).catch(() => {});
+      // Referral attribution if cookie is set (parity with Checkout flow)
+      const refCode = (typeof document !== "undefined" && document.cookie.match(/ref_code=([^;]+)/)?.[1]) || "";
+      if (refCode) {
+        await supabase.from("referral_attributions").insert({
+          referral_code: refCode,
+          order_id: order.id,
+          customer_email: form.email.trim(),
+          amount: finalTotal,
+          event_type: "order",
+        }).then(() => {});
+      }
+
+      const currency = settings?.currency || "BDT";
+
+      fireEdge("order-webhook", { order_id: order.id, event: "order.created" });
+      fireEdge("send-order-confirmation", {
+        order_id: order.id,
+        type: "order_confirmation",
+        origin: window.location.origin,
+      });
 
       if (form.paymentMethod === "bkash") {
         const callbackURL = `${window.location.origin}/bkash/callback`;
-        const res = await fetch(`https://${projectId}.supabase.co/functions/v1/bkash-payment?action=create`, {
-          method: "POST",
-          headers: fnHeaders,
-          body: JSON.stringify({ orderId: order.id, callbackURL, payerReference: form.phone }),
-        });
-        const bkashData = await res.json();
+        const bkashData = await callEdge<{ bkashURL?: string; error?: string }>(
+          "bkash-payment",
+          { orderId: order.id, callbackURL, payerReference: form.phone },
+          { query: "action=create" }
+        );
         if (bkashData.bkashURL) {
           localStorage.setItem("bkash_order_id", order.id);
           localStorage.setItem("bkash_order_number", order.order_number);
           window.location.href = bkashData.bkashURL;
           return;
-        } else {
-          throw new Error(bkashData.error || "Failed to initiate bKash payment");
         }
+        throw new Error(bkashData.error || "Failed to initiate bKash payment");
       }
 
       // Handle Send Money (bkash_send / nagad_send)
       if (form.paymentMethod === "bkash_send" || form.paymentMethod === "nagad_send") {
-        const res = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/verify-send-money`,
-          {
-            method: "POST",
-            headers: fnHeaders,
-            body: JSON.stringify({
-              orderId: order.id,
-              senderNumber: form.senderNumber.trim(),
-              trxId: form.trxId.trim(),
-              provider: form.paymentMethod,
-            }),
-          }
-        );
-        const sendResult = await res.json();
+        const sendResult = await callEdge<{ verified?: boolean }>("verify-send-money", {
+          orderId: order.id,
+          senderNumber: form.senderNumber.trim(),
+          trxId: form.trxId.trim(),
+          provider: form.paymentMethod,
+        });
+        if (sendResult.verified && linkedProductId) {
+          trackPurchase({
+            content_ids: [linkedProductId],
+            content_type: "product",
+            num_items: 1,
+            value: finalTotal,
+            currency,
+          });
+        }
         setPlacedOrderId(order.id);
         setOrderPlaced(order.order_number);
         if (!sendResult.verified) {
@@ -749,6 +751,15 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
         return;
       }
 
+      if (linkedProductId) {
+        trackPurchase({
+          content_ids: [linkedProductId],
+          content_type: "product",
+          num_items: 1,
+          value: finalTotal,
+          currency,
+        });
+      }
       setPlacedOrderId(order.id);
       setOrderPlaced(order.order_number);
     } catch (err: any) {
