@@ -6,7 +6,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { Save, Upload, ChevronDown, Search, Sparkles, Loader2, Palette, RotateCcw } from "lucide-react";
+import { Save, Upload, ChevronDown, Search, Sparkles, Loader2, Palette, RotateCcw, Info } from "lucide-react";
 import { countries, currencies } from "@/data/countries-currencies";
 import { getErrorMessage } from "@/lib/admin-utils";
 
