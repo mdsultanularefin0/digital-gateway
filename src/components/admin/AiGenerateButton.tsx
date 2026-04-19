@@ -34,6 +34,7 @@ export function AiGenerateButton({ type, payload, onResult, label = "AI Generate
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState<"en" | "bn">("en");
   const [userContext, setUserContext] = useState("");
+  const [modelOverride, setModelOverride] = useState<string>("");
 
   const { data: presets = [] } = useQuery<ContextPreset[]>({
     queryKey: ["ai-context-presets"],
@@ -50,11 +51,25 @@ export function AiGenerateButton({ type, payload, onResult, label = "AI Generate
     staleTime: 60_000,
   });
 
+  const { data: models = [] } = useQuery<AiModel[]>({
+    queryKey: ["ai-models-picker"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ai_models")
+        .select("id, model_id, label")
+        .order("sort_order", { ascending: true })
+        .order("label", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as AiModel[];
+    },
+    staleTime: 60_000,
+  });
+
   const generate = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("ai-generate", {
-        body: { type, language, userContext, ...payload },
+        body: { type, language, userContext, modelOverride: modelOverride || undefined, ...payload },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
