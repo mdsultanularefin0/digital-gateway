@@ -91,18 +91,30 @@ export function AiGenerateButton({ type, payload, onResult, label = "AI Generate
         </PopoverTrigger>
         <PopoverContent className="w-80 p-3" align="end">
           <div className="space-y-2">
-            <p className="text-xs font-semibold">Custom instructions for the AI</p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold">Custom instructions for the AI</p>
+              <Link
+                to="/admin/integrations"
+                className="text-[10px] text-primary hover:underline flex items-center gap-1"
+                title="Manage presets in Integrations → AI"
+              >
+                <Settings2 className="h-2.5 w-2.5" /> Manage
+              </Link>
+            </div>
             <p className="text-[11px] text-muted-foreground">
-              Pick a preset or write your own — tone, length, audience, things to include or avoid.
+              Pick a preset or write your own. The Global Brand Context is auto-applied.
             </p>
             <div>
               <p className="text-[10px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wide">Presets</p>
-              <div className="flex flex-wrap gap-1">
-                {CONTEXT_PRESETS.map((preset) => (
+              <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto">
+                {presets.length === 0 && (
+                  <span className="text-[10px] text-muted-foreground italic">No presets yet — add some in Integrations → AI.</span>
+                )}
+                {presets.map((preset) => (
                   <button
-                    key={preset.label}
+                    key={preset.id}
                     type="button"
-                    onClick={() => setUserContext(preset.value)}
+                    onClick={() => setUserContext(preset.content)}
                     className="text-[10px] px-2 py-1 rounded-md border border-border/60 text-muted-foreground hover:text-foreground hover:border-foreground/20 hover:bg-accent/40 transition-colors"
                   >
                     {preset.label}
