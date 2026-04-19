@@ -15,6 +15,7 @@ import { CartDrawer } from "@/components/CartDrawer";
 import { MetaPixelProvider } from "@/components/MetaPixelProvider";
 import { ThemeApplier } from "@/components/ThemeApplier";
 import { lazyRetry, ChunkErrorBoundary } from "@/components/LazyRetry";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 
 // Lazy-loaded routes with retry logic
@@ -77,6 +78,7 @@ function PageLoader() {
 const App = () => {
   useEffect(() => { captureReferralFromUrl().catch(() => {}); }, []);
   return (
+  <ErrorBoundary>
   <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -149,6 +151,7 @@ const App = () => {
       </TooltipProvider>
     </QueryClientProvider>
   </ThemeProvider>
+  </ErrorBoundary>
   );
 };
 
