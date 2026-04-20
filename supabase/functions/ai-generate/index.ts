@@ -320,6 +320,35 @@ Return ONLY this JSON object (omit fields that don't apply to the layout, but in
   "testimonialAuthor": ""
 }`;
 
+    } else if (type === "translate") {
+      const { text, target, context } = body;
+      const targetLang = target === "en" ? "en" : "bn";
+      const directionLabel = targetLang === "bn" ? "Bangla (Bengali)" : "English";
+      const ctxMap: Record<string, string> = {
+        product: "Digital e-commerce product copy (name, tagline, description, features).",
+        page: "CMS website page content (headings, paragraphs, FAQ items). May contain HTML — preserve tags.",
+        blog: "A blog post. Preserve formatting and paragraph structure.",
+        generic: "General marketing copy.",
+      };
+      systemPrompt = `You are a professional bilingual translator for a Bangladeshi digital commerce site (gift cards, subscriptions, digital products).
+
+TASK: Translate the given text into ${directionLabel}.
+CONTEXT: ${ctxMap[context as string] ?? ctxMap.generic}
+
+RULES:
+- Translate naturally, not literally. Sound like a native speaker writing marketing copy.
+- Preserve HTML tags, markdown, emoji, URLs, brand names, and product names (e.g. "Netflix", "bKash", "Spotify") exactly.
+- Preserve currency symbols and numbers.
+- For Bangla: use modern conversational Bangla, not overly formal "sadhu" style. Tech terms can stay in English inside Bangla sentences if that's how people actually speak (e.g. "সাবস্ক্রিপশন", "অ্যাকাউন্ট").
+- Return ONLY the translated text. No preamble, no quotes, no explanations.`;
+      userPrompt = String(text || "").trim();
+      if (!userPrompt) {
+        return new Response(
+          JSON.stringify({ error: "text is required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
     } else {
       return new Response(
         JSON.stringify({ error: "Invalid type." }),
