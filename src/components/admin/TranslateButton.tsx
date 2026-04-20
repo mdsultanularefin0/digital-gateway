@@ -33,12 +33,12 @@ export function TranslateButton({
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("translate", {
-        body: { text: sourceText, target, context },
+      const { data, error } = await supabase.functions.invoke("ai-generate", {
+        body: { type: "translate", text: sourceText, target, context, language: target },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      const result = (data?.translated || "").trim();
+      const result = (data?.result || "").trim();
       if (!result) throw new Error("Empty translation");
       onTranslated(result);
       toast({ title: "Translated", description: `→ ${target === "bn" ? "Bangla" : "English"}` });
@@ -53,7 +53,7 @@ export function TranslateButton({
     <Button
       type="button"
       variant="outline"
-      size={size === "xs" ? "sm" : "sm"}
+      size="sm"
       onClick={run}
       disabled={loading || disabled}
       className={size === "xs" ? "h-7 text-xs gap-1" : "gap-1.5"}

@@ -373,12 +373,12 @@ export default function AdminPageEditor() {
       return;
     }
     try {
-      const { data, error } = await supabase.functions.invoke("translate", {
-        body: { text: enContent, target: "bn", context: "page" },
+      const { data, error } = await supabase.functions.invoke("ai-generate", {
+        body: { type: "translate", text: enContent, target: "bn", context: "page", language: "bn" },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      updateField(sectionKey, (data?.translated || "").trim());
+      updateField(sectionKey, (data?.result || "").trim());
       toast({ title: "Translated section to Bangla" });
     } catch (err: any) {
       toast({ title: "Translation failed", description: err?.message || String(err), variant: "destructive" });
