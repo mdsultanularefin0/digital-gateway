@@ -249,12 +249,12 @@ export default function AdminOrders() {
 
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h2 className="text-xl font-display font-bold">Orders</h2>
           <p className="text-sm text-muted-foreground mt-1">Manage customer orders</p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => {
+        <Button variant="outline" size="sm" className="self-start" onClick={() => {
           exportToCSV(
             orders.map((o: any) => ({
               order_number: o.order_number,
@@ -302,8 +302,8 @@ export default function AdminOrders() {
 
       {/* Bulk Actions Bar */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5">
-          <span className="text-sm font-medium">{selectedIds.size} selected</span>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5">
+          <span className="text-sm font-medium w-full sm:w-auto">{selectedIds.size} selected</span>
           <select
             value={bulkAction}
             onChange={(e) => setBulkAction(e.target.value)}
@@ -347,7 +347,7 @@ export default function AdminOrders() {
         </div>
       ) : (
         <div className="rounded-xl border border-border overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm min-w-[720px]">
             <thead>
               <tr className="border-b border-border bg-muted/50">
                 <th className="p-3 w-10">

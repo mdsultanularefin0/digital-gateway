@@ -76,7 +76,7 @@ export default function AdminIntegrations() {
   return (
     <AdminLayout>
       <div className="max-w-3xl space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h2 className="text-xl font-display font-bold">Integrations</h2>
             <p className="text-sm text-muted-foreground">Manage payment, mail, SMS, webhook, and storage integrations</p>
@@ -84,7 +84,7 @@ export default function AdminIntegrations() {
           <Button
             onClick={() => saveMutation.mutate(settings)}
             disabled={!dirty || saveMutation.isPending}
-            className="gap-2"
+            className="gap-2 w-full sm:w-auto"
           >
             <Save className="h-4 w-4" />
             {saveMutation.isPending ? "Saving..." : "Save All"}
@@ -92,30 +92,30 @@ export default function AdminIntegrations() {
         </div>
 
         <Tabs defaultValue="mail" className="w-full">
-          <TabsList className="w-full grid grid-cols-6">
-            <TabsTrigger value="mail" className="gap-1.5 text-xs sm:text-sm">
+          <TabsList className="w-full h-auto flex flex-wrap gap-1 p-1 sm:grid sm:grid-cols-6">
+            <TabsTrigger value="mail" className="flex-1 min-w-[30%] gap-1.5 text-xs sm:text-sm">
               <Mail className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Mail</span>
+              <span className="sm:inline">Mail</span>
             </TabsTrigger>
-            <TabsTrigger value="sms" className="gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="sms" className="flex-1 min-w-[30%] gap-1.5 text-xs sm:text-sm">
               <MessageSquare className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">SMS</span>
+              <span className="sm:inline">SMS</span>
             </TabsTrigger>
-            <TabsTrigger value="webhook" className="gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="webhook" className="flex-1 min-w-[30%] gap-1.5 text-xs sm:text-sm">
               <Webhook className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Webhook</span>
+              <span className="sm:inline">Webhook</span>
             </TabsTrigger>
-            <TabsTrigger value="storage" className="gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="storage" className="flex-1 min-w-[30%] gap-1.5 text-xs sm:text-sm">
               <HardDrive className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Storage</span>
+              <span className="sm:inline">Storage</span>
             </TabsTrigger>
-            <TabsTrigger value="ai" className="gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="ai" className="flex-1 min-w-[30%] gap-1.5 text-xs sm:text-sm">
               <Brain className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">AI</span>
+              <span className="sm:inline">AI</span>
             </TabsTrigger>
-            <TabsTrigger value="social" className="gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="social" className="flex-1 min-w-[30%] gap-1.5 text-xs sm:text-sm">
               <Share2 className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Social</span>
+              <span className="sm:inline">Social</span>
             </TabsTrigger>
           </TabsList>
 
