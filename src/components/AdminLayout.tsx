@@ -170,7 +170,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background">
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-[85vw] max-w-xs sm:w-64 border-r glass-strong transform transition-transform duration-200 lg:relative lg:translate-x-0 lg:w-64 ${
+        className={`fixed inset-y-0 left-0 z-50 w-[85vw] max-w-xs sm:w-64 border-r glass-strong transform transition-transform duration-200 lg:relative lg:translate-x-0 lg:w-64 flex flex-col ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
