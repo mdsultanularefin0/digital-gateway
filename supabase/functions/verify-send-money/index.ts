@@ -128,7 +128,11 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
       fetch(`${supabaseUrl}/functions/v1/send-order-confirmation`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseKey}` },
-        body: JSON.stringify({ order_id: orderId, type: "payment_verified" }),
+        body: JSON.stringify({ 
+          order_id: orderId, 
+          type: "payment_verified",
+          origin: req.headers.get("origin") || new URL(req.url).origin
+        }),
       }).catch(() => {});
 
       return json({

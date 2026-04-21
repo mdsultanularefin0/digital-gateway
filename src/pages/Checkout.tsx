@@ -54,6 +54,7 @@ export default function CheckoutPage() {
   })();
   const paymentMethods = ALL_PAYMENT_METHODS.filter((m) => enabledMethods.includes(m.value)).map((m) => ({
     ...m,
+    label: (settings as any)?.[`payment_label_${m.value}`] || m.label,
     logo: (settings as any)?.[`payment_logo_${m.value}`] || DEFAULT_LOGOS[m.value],
   }));
 

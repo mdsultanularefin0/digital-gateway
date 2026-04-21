@@ -164,20 +164,16 @@ Review: ${reviewContent}`;
         ? "Fill in any empty or incomplete fields in the existing content below. Keep existing content that is already good."
         : "Generate completely new, high-converting content from scratch. Ignore any existing content.";
       
-      systemPrompt = `You are an expert landing page copywriter specializing in high-converting digital product sales pages. Write persuasive, benefit-driven copy. ${langInstruction}
+      systemPrompt = `You are an expert landing page copywriter for a high-converting digital product sales page. Write persuasive, benefit-driven copy. ${langInstruction}
 
-Output MUST be valid JSON matching this structure (include only relevant fields for the section type):
-{
-  "heading": "...",
-  "subheading": "...",
-  "body": "...",
-  "buttonText": "...",
-  "badge": "...",
-  "price": "...",
-  "originalPrice": "...",
-  "items": [{"title": "...", "description": "..."}]
-}
-Only include fields that are relevant for a "${sectionType}" section. For items, generate 3-5 entries.`;
+CRITICAL OUTPUT RULES:
+- Output ONLY a single raw JSON object — nothing else.
+- Do NOT wrap in markdown code fences (no triple backticks).
+- Do NOT add any explanation, preamble, or commentary before or after the JSON.
+- Only include fields relevant to the "${sectionType}" section type.
+- For "items" arrays, generate 3-5 entries each with "title" and "description" keys.
+
+Allowed fields: heading, subheading, body, buttonText, badge, price, originalPrice, items`;
 
       userPrompt = `${actionGuide}
 
@@ -185,7 +181,9 @@ Section type: ${sectionType}
 Product: ${productName || "Digital Product"}
 Tagline: ${tagline || ""}
 Features: ${(features || []).join(", ")}
-${existingContent ? `\nExisting content:\n${JSON.stringify(existingContent)}` : ""}`;
+${existingContent ? `\nExisting content:\n${JSON.stringify(existingContent)}` : ""}
+
+Respond with ONLY the JSON object.`;
 
     } else if (type === "page_section") {
       const { pageSlug, sectionKey, sectionLabel, fieldType, currentValue, repeaterFields, itemLabel, siteName } = body;
@@ -226,19 +224,23 @@ ${currentValue ? `Existing value (rewrite & improve):\n${currentValue}\n` : "No 
     } else if (type === "landing_full") {
       const { sections, productName, tagline, features } = body;
       systemPrompt = `You are an expert landing page copywriter. Generate complete content for ALL sections of a landing page. ${langInstruction}
+The output MUST be a single JSON object where each key is an EXACT section ID provided by the user.
+Do NOT nest all sections inside a generic "sections" key. The root keys should be the section IDs.
 
-Output MUST be valid JSON where each key is a section ID mapping to content:
-{
-  "sectionId": {
-    "heading": "...",
-    "subheading": "...",
-    "body": "...",
-    "buttonText": "...",
-    "badge": "...",
-    "items": [{"title": "...", "description": "..."}]
-  }
-}
-For each section, only include fields relevant to its type. For items, generate 3-5 entries.`;
+Allowed fields per section: heading, subheading, body, buttonText, badge, price, originalPrice, items (array of {title, description}), images (array of URLs), imageRatio, imageUrl, countdownDate.
+
+CRITICAL OUTPUT RULES:
+- Output ONLY a single raw JSON object — nothing else.
+- Do NOT wrap in markdown code fences (no triple backticks).
+- Do NOT add any explanation, preamble, or commentary before or after the JSON.
+- For each section value, include only the fields relevant to that section type.
+- Keep the tone persuasive and conversion-focused.
+
+Example structure:
+{ 
+  "hero-123": { "heading": "...", "subheading": "...", "buttonText": "..." }, 
+  "features-456": { "heading": "...", "items": [{"title": "...", "description": "..."}] } 
+}`;
 
       const sectionList = (sections || []).map((s: any) => `- ${s.id} (type: ${s.type}, label: ${s.label})`).join("\n");
       userPrompt = `Generate complete high-converting landing page content for ALL these sections:
@@ -249,7 +251,9 @@ Product: ${productName || "Digital Product"}
 Tagline: ${tagline || ""}
 Features: ${(features || []).join(", ")}
 
-Make it persuasive and conversion-focused. Use urgency, social proof, and clear CTAs.`;
+Make it persuasive and conversion-focused. Use urgency, social proof, and clear CTAs.
+
+Respond with ONLY the JSON object.`;
 
     } else if (type === "social_caption") {
       const { platform, mediaType, target, topic, productName, tone } = body;

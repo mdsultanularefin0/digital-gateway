@@ -84,45 +84,84 @@ export default function DigitalFilesEditor({ files, onChange }: Props) {
   return (
     <div className="rounded-xl border border-border p-5">
       <div className="flex items-center justify-between mb-4">
-        <h4 className="text-xs font-medium tracking-executive uppercase text-muted-foreground">Digital Files (Downloads)</h4>
-        <label className="cursor-pointer">
-          <input type="file" multiple onChange={handleUpload} className="hidden" />
-          <Button type="button" variant="outline-primary" size="sm" asChild disabled={uploading}>
-            <span>{uploading ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Uploading...</> : <><Upload className="h-3 w-3 mr-1" /> Upload File</>}</span>
+        <h4 className="text-xs font-medium tracking-executive uppercase text-muted-foreground">Digital Files & Links</h4>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const name = prompt("Enter Link Name (e.g. Google Drive Folder)");
+              const url = prompt("Enter External URL (e.g. https://drive.google.com/...)");
+              if (name && url) {
+                onChange([...files, {
+                  filename: name,
+                  file_url: url,
+                  file_type: "link",
+                  file_size: 0
+                }]);
+              }
+            }}
+          >
+            <Upload className="h-3 w-3 mr-1 rotate-180" /> Add Link
           </Button>
-        </label>
+          <label className="cursor-pointer">
+            <input type="file" multiple onChange={handleUpload} className="hidden" />
+            <Button type="button" variant="outline-primary" size="sm" asChild disabled={uploading}>
+              <span>{uploading ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Uploading...</> : <><Upload className="h-3 w-3 mr-1" /> Upload File</>}</span>
+            </Button>
+          </label>
+        </div>
       </div>
 
       {files.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-4">
-          No digital files. Upload eBooks, videos, or other downloadable content.
+          No digital content. Upload files or add external links (Drive, Mega, etc.)
         </p>
       ) : (
         <div className="space-y-3">
           {files.map((file, i) => (
             <div key={i} className="flex items-center gap-3 rounded-lg border border-border p-3 bg-muted/30">
-              {fileTypeIcon(file.file_type)}
+              {file.file_type === "link" ? (
+                <Upload className="h-4 w-4 text-green-500 rotate-180 shrink-0" />
+              ) : (
+                fileTypeIcon(file.file_type)
+              )}
               <div className="flex-1 min-w-0 space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium truncate">{file.filename}</span>
-                  <span className="text-xs text-muted-foreground">{formatSize(file.file_size)}</span>
+                  {file.file_type !== "link" && (
+                    <span className="text-xs text-muted-foreground">{formatSize(file.file_size)}</span>
+                  )}
+                  {file.file_type === "link" && (
+                    <span className="text-[10px] bg-green-500/10 text-green-600 px-1 rounded uppercase font-bold">Link</span>
+                  )}
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      value={file.filename}
+                      onChange={(e) => updateFile(i, "filename", e.target.value)}
+                      className={inputClass}
+                      placeholder="Display name"
+                    />
+                    <select
+                      value={file.file_type}
+                      onChange={(e) => updateFile(i, "file_type", e.target.value)}
+                      className={inputClass}
+                    >
+                      {FILE_TYPE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                      <option value="link">External Link (Drive/Mega)</option>
+                    </select>
+                  </div>
                   <input
-                    value={file.filename}
-                    onChange={(e) => updateFile(i, "filename", e.target.value)}
+                    value={file.file_url}
+                    onChange={(e) => updateFile(i, "file_url", e.target.value)}
                     className={inputClass}
-                    placeholder="Display name"
+                    placeholder="File or Link URL"
                   />
-                  <select
-                    value={file.file_type}
-                    onChange={(e) => updateFile(i, "file_type", e.target.value)}
-                    className={inputClass}
-                  >
-                    {FILE_TYPE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
                 </div>
               </div>
               <Button type="button" variant="ghost" size="icon" onClick={() => removeFile(i)}>

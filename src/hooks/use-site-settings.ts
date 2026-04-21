@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export interface SiteSettings {
+export interface SiteSettings extends Record<string, any> {
   site_name: string;
   site_tagline: string;
   logo_url: string;
@@ -83,13 +83,11 @@ export function useSiteSettings() {
     queryFn: async () => {
       const { data, error } = await supabase.from("site_settings").select("key, value");
       if (error) throw error;
-      const map = { ...defaults };
+      const map = { ...defaults } as Record<string, any>;
       (Array.isArray(data) ? data : []).forEach((row: { key: string; value: string }) => {
-        if (row.key in map) {
-          (map as any)[row.key] = row.value;
-        }
+        map[row.key] = row.value;
       });
-      return map;
+      return map as SiteSettings;
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });

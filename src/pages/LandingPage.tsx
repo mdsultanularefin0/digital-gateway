@@ -585,7 +585,11 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
     } catch {}
     return ["cod"];
   })();
-  const paymentMethods = ALL_PAYMENT_METHODS.filter((m) => enabledMethods.includes(m.value));
+  const paymentMethods = ALL_PAYMENT_METHODS.filter((m) => enabledMethods.includes(m.value)).map((m) => ({
+    ...m,
+    label: (settings as any)?.[`payment_label_${m.value}`] || m.label,
+    logo: (settings as any)?.[`payment_logo_${m.value}`] || ALL_PAYMENT_METHODS.find(am => am.value === m.value)?.logo,
+  }));
 
   useEffect(() => {
     if (paymentMethods.length > 0 && !form.paymentMethod) {

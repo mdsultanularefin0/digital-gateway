@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 deploy.sh
+vite.config - Copy.ts
+Dockerfiledev
+imgcrt.sh

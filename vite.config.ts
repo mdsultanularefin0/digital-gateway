@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => ({
       "www.giftcardvibe.xyz",
       "file.giftcardvibe.xyz",
       "giftcardvibe.xyz",
+	  "dev.giftcardvibe.xyz"
     ],
     // -----------------
     watch: {

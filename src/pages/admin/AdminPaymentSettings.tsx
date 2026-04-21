@@ -157,32 +157,44 @@ export default function AdminPaymentSettings() {
                     </div>
                   </label>
                   {isEnabled && (
-                    <div className="mt-3 ml-7 flex items-center gap-2">
-                      <label className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg border border-border hover:bg-muted cursor-pointer transition-colors">
-                        {isUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
-                        {logoUrl ? "Replace logo" : "Upload logo"}
+                    <div className="mt-4 ml-7 space-y-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 block">Display Name (Label)</label>
                         <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          disabled={isUploading}
-                          onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) handleLogoUpload(m.value, f);
-                            e.target.value = "";
-                          }}
+                          value={settings[`payment_label_${m.value}`] || m.label}
+                          onChange={(e) => update(`payment_label_${m.value}`, e.target.value)}
+                          className={inputClass}
+                          placeholder={m.label}
                         />
-                      </label>
-                      {logoUrl && (
-                        <button
-                          type="button"
-                          onClick={() => update(`payment_logo_${m.value}`, "")}
-                          className="inline-flex items-center gap-1 px-2 py-1.5 text-xs rounded-lg border border-border text-destructive hover:bg-destructive/5"
-                        >
-                          <X className="h-3 w-3" /> Remove
-                        </button>
-                      )}
-                      <span className="text-[10px] text-muted-foreground">PNG/SVG, square recommended</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <label className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg border border-border hover:bg-muted cursor-pointer transition-colors">
+                          {isUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                          {logoUrl ? "Replace logo" : "Upload logo"}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            disabled={isUploading}
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) handleLogoUpload(m.value, f);
+                              e.target.value = "";
+                            }}
+                          />
+                        </label>
+                        {logoUrl && (
+                          <button
+                            type="button"
+                            onClick={() => update(`payment_logo_${m.value}`, "")}
+                            className="inline-flex items-center gap-1 px-2 py-1.5 text-xs rounded-lg border border-border text-destructive hover:bg-destructive/5"
+                          >
+                            <X className="h-3 w-3" /> Remove
+                          </button>
+                        )}
+                        <span className="text-[10px] text-muted-foreground">PNG/SVG, square recommended</span>
+                      </div>
                     </div>
                   )}
                 </div>

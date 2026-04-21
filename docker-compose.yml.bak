@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  giftcardvibe:
+    build:
+      context: /root/docker/giftcardvibe
+      dockerfile: Dockerfile
+    container_name: giftcardvibe-dev
+    ports:
+      - "5172:5172"
+    volumes:
+      - /root/docker/giftcardvibe:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    command: npm run dev -- --host 0.0.0.0 --port 5172
+    networks:
+      - webnet
+
+networks:
+  webnet:
+    external: true

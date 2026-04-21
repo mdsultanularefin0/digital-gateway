@@ -318,6 +318,17 @@ Deno.serve(withLogging("bkash-payment", async (req) => {
         .eq("payment_id", paymentID);
 
       if (isPaid) {
+        // Send confirmation/fulfillment email (non-blocking)
+        fetch(`${supabaseUrl}/functions/v1/send-order-confirmation`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseKey}` },
+          body: JSON.stringify({ 
+            order_id: orderId, 
+            type: "payment_verified", 
+            origin: req.headers.get("origin") || origin
+          }),
+        }).catch(() => {});
+
         return json({ success: true, trxID: result.trxID });
       }
 

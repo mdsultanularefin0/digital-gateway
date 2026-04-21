@@ -14,6 +14,8 @@ import {
   getDefaultSections,
   type SectionsData,
 } from "@/data/landing-templates";
+import { AiModelPicker } from "@/components/admin/AiModelPicker";
+import { AiContextPicker } from "@/components/admin/AiContextPicker";
 
 interface LandingPage {
   id: string;
@@ -57,7 +59,7 @@ export default function AdminLandingPages() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, name, slug")
+        .select("id, name, slug, tagline, description")
         .order("name");
       if (error) throw error;
       return data as { id: string; name: string; slug: string }[];
@@ -67,7 +69,7 @@ export default function AdminLandingPages() {
   const saveMutation = useMutation({
     mutationFn: async (page: LandingPageInsert) => {
       if (page.id) {
-        const { error } = await supabase.from("landing_pages").update({
+        const { data, error } = await supabase.from("landing_pages").update({
           title: page.title,
           slug: page.slug,
           template: page.template,
@@ -76,22 +78,27 @@ export default function AdminLandingPages() {
           published: page.published,
           product_id: page.product_id,
           language_mode: page.language_mode,
-        }).eq("id", page.id);
+        }).eq("id", page.id).select().single();
         if (error) throw error;
+        return data;
       } else {
         const { id: _, ...payload } = page;
-        const { error } = await supabase.from("landing_pages").insert({
+        const { data, error } = await supabase.from("landing_pages").insert({
           ...payload,
           sections_en: payload.sections_en as any,
           sections_bn: payload.sections_bn as any,
-        });
+        }).select().single();
         if (error) throw error;
+        return data;
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["admin-landing-pages"] });
-      setEditing(null);
-      setStep("template");
+      // Update editing state with returned data (gets ID for new pages)
+      if (data) {
+        setEditing(data as any);
+        setIsNew(false);
+      }
       toast({ title: "Landing page saved" });
     },
     onError: (err: Error) => {
@@ -144,6 +151,15 @@ export default function AdminLandingPages() {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editing) return;
+    
+    // Final defensive check to ensure sections are objects
+    if (typeof editing.sections_en !== "object" || editing.sections_en === null) {
+      editing.sections_en = {};
+    }
+    if (typeof editing.sections_bn !== "object" || editing.sections_bn === null) {
+      editing.sections_bn = {};
+    }
+
     if (!editing.product_id) {
       toast({ title: "Product required", description: "Please select a product for this landing page.", variant: "destructive" });
       return;
@@ -309,9 +325,13 @@ export default function AdminLandingPages() {
                 lang={activeLang}
                 onChange={(content) => {
                   const key = activeLang === "en" ? "sections_en" : "sections_bn";
-                  setEditing({
-                    ...editing,
-                    [key]: { ...editing[key], [sec.id]: content },
+                  setEditing((prev) => {
+                    if (!prev) return prev;
+                    const sections = (prev[key] as any) || {};
+                    return {
+                      ...prev,
+                      [key]: { ...sections, [sec.id]: content },
+                    };
                   });
                 }}
                 productName={products?.find(p => p.id === editing.product_id)?.name}
@@ -330,8 +350,9 @@ export default function AdminLandingPages() {
           </label>
 
           <div className="flex gap-3">
-            <Button variant="gradient" size="lg" type="submit" disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? "Saving..." : "Save Landing Page"}
+            <Button variant="gradient" size="lg" type="submit" disabled={saveMutation.isPending} className="flex-1">
+              {saveMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+              {saveMutation.isPending ? "Saving..." : (isNew ? "Create Landing Page" : "Save Landing Page")}
             </Button>
             {editing.id && editing.published && (
               <Button type="button" variant="outline" size="lg" asChild>
@@ -340,6 +361,27 @@ export default function AdminLandingPages() {
                 </a>
               </Button>
             )}
+          </div>
+
+          {/* Floating Save Button */}
+          <div className="fixed bottom-8 right-8 z-50 flex flex-col items-center gap-2 group animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-primary text-primary-foreground text-[10px] font-bold px-2 py-1 rounded shadow-lg uppercase tracking-wider mb-1">
+              Quick Save
+            </div>
+            <Button
+              type="button"
+              size="lg"
+              onClick={handleSave}
+              disabled={saveMutation.isPending}
+              className="h-14 w-14 rounded-full shadow-2xl bg-primary hover:bg-primary/90 transition-all hover:scale-110 active:scale-95 p-0"
+              title="Save changes"
+            >
+              {saveMutation.isPending ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                <Sparkles className="h-6 w-6 group-hover:animate-pulse" />
+              )}
+            </Button>
           </div>
         </form>
       </AdminLayout>
@@ -422,7 +464,7 @@ function LandingAiToolbar({ editing, setEditing, activeLang, tmpl, products }: a
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState<"en" | "bn">(activeLang);
   const [userContext, setUserContext] = useState("");
-  const [showContext, setShowContext] = useState(false);
+  const [modelOverride, setModelOverride] = useState("");
 
   const product = products?.find((p: any) => p.id === editing?.product_id);
 
@@ -436,13 +478,13 @@ function LandingAiToolbar({ editing, setEditing, activeLang, tmpl, products }: a
     try {
       const { data, error } = await supabase.functions.invoke("ai-generate", {
         body: {
-          type: "landing_full",
           language,
           userContext,
+          modelOverride: modelOverride || undefined,
           sections: tmpl.sections,
           productName: product.name,
-          tagline: "",
-          features: [],
+          tagline: product.tagline || "",
+          features: product.description ? [product.description] : [],
         },
       });
       if (error) throw error;
@@ -450,21 +492,27 @@ function LandingAiToolbar({ editing, setEditing, activeLang, tmpl, products }: a
 
       let parsed: Record<string, any>;
       try {
-        const raw = data.result.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-        parsed = JSON.parse(raw);
+        const raw = (data.result ?? "").replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+        // Extract the first {...} block in case the model added prose around it
+        const jsonMatch = raw.match(/{[\s\S]*}/);
+        parsed = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
       } catch {
         toast({ title: "AI returned invalid format. Try again.", variant: "destructive" });
         return;
       }
 
-      const key = activeLang === "en" ? "sections_en" : "sections_bn";
-      const current = { ...editing[key] };
-      for (const [sectionId, content] of Object.entries(parsed)) {
-        if (typeof content === "object") {
-          current[sectionId] = { ...current[sectionId], ...content };
+      const key = language === "en" ? "sections_en" : "sections_bn";
+      setEditing((prev) => {
+        if (!prev) return prev;
+        const sections = (prev[key] as any) || {};
+        const current = { ...sections };
+        for (const [sectionId, content] of Object.entries(parsed)) {
+          if (typeof content === "object") {
+            current[sectionId] = { ...current[sectionId], ...content };
+          }
         }
-      }
-      setEditing({ ...editing, [key]: current });
+        return { ...prev, [key]: current };
+      });
       toast({ title: "All sections generated!" });
     } catch (e: any) {
       toast({ title: e.message || "AI generation failed", variant: "destructive" });
@@ -490,36 +538,16 @@ function LandingAiToolbar({ editing, setEditing, activeLang, tmpl, products }: a
             <Globe className="h-3 w-3" />
             {language === "en" ? "EN" : "বা"}
           </button>
-          <button
-            type="button"
-            onClick={() => setShowContext((v) => !v)}
-            className={`text-[10px] font-medium px-2 py-1 rounded-lg border transition-colors flex items-center gap-1 ${
-              userContext.trim() || showContext
-                ? "border-primary/40 text-primary bg-primary/10"
-                : "border-border/60 text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            + Context{userContext.trim() ? " ✓" : ""}
-          </button>
+          
+          <AiModelPicker value={modelOverride} onChange={setModelOverride} />
+          <AiContextPicker value={userContext} onChange={setUserContext} />
+
           <Button type="button" variant="outline" size="sm" onClick={generateAll} disabled={loading} className="gap-1.5 text-xs">
             {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
             {loading ? "Generating All..." : "Generate All Sections"}
           </Button>
         </div>
       </div>
-      {showContext && (
-        <div className="space-y-1">
-          <p className="text-[11px] text-muted-foreground">
-            Custom instructions for the AI — tone, audience, key points, things to include or avoid.
-          </p>
-          <textarea
-            value={userContext}
-            onChange={(e) => setUserContext(e.target.value)}
-            placeholder="e.g. Target audience is freelance designers in Bangladesh. Emphasize lifetime access and instant download. Use a friendly conversational tone with light humor."
-            className="w-full text-xs rounded-lg border border-border/60 bg-background p-2 min-h-[70px] resize-y"
-          />
-        </div>
-      )}
     </div>
   );
 }
@@ -528,7 +556,7 @@ function LandingAiToolbar({ editing, setEditing, activeLang, tmpl, products }: a
 function SectionEditorWithAi({ section, content, lang, onChange, productName }: any) {
   const [loading, setLoading] = useState(false);
   const [userContext, setUserContext] = useState("");
-  const [showContext, setShowContext] = useState(false);
+  const [modelOverride, setModelOverride] = useState("");
 
   const generateSection = async (action: "fill" | "rewrite" | "recreate") => {
     setLoading(true);
@@ -538,6 +566,7 @@ function SectionEditorWithAi({ section, content, lang, onChange, productName }: 
           type: "landing_section",
           language: lang,
           userContext,
+          modelOverride: modelOverride || undefined,
           sectionType: section.type,
           productName: productName || "Digital Product",
           existingContent: action !== "recreate" ? content : undefined,
@@ -549,8 +578,10 @@ function SectionEditorWithAi({ section, content, lang, onChange, productName }: 
 
       let parsed: any;
       try {
-        const raw = data.result.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-        parsed = JSON.parse(raw);
+        const raw = (data.result ?? "").replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+        // Extract the first {...} block in case the model added prose around it
+        const jsonMatch = raw.match(/{[\s\S]*}/);
+        parsed = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
       } catch {
         toast({ title: "AI returned invalid format. Try again.", variant: "destructive" });
         return;
@@ -573,23 +604,14 @@ function SectionEditorWithAi({ section, content, lang, onChange, productName }: 
 
   return (
     <div className="relative">
-      <div className="absolute top-3 right-3 z-10 flex gap-1 items-start">
+      <div className="absolute top-3 right-3 z-10 flex gap-1.5 items-start">
         {loading ? (
           <span className="text-xs text-muted-foreground flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Generating...</span>
         ) : (
           <>
-            <button
-              type="button"
-              onClick={() => setShowContext((v) => !v)}
-              className={`text-[10px] font-medium px-2 h-6 rounded-md border transition-colors flex items-center gap-1 ${
-                userContext.trim() || showContext
-                  ? "border-primary/40 text-primary bg-primary/10"
-                  : "border-border/60 text-muted-foreground hover:text-foreground"
-              }`}
-              title="Add custom instructions"
-            >
-              + Context{userContext.trim() ? " ✓" : ""}
-            </button>
+            <AiModelPicker value={modelOverride} onChange={setModelOverride} />
+            <AiContextPicker value={userContext} onChange={setUserContext} />
+            
             <Button type="button" variant="ghost" size="sm" className="h-6 text-[10px] gap-1" onClick={() => generateSection("fill")}>
               <Sparkles className="h-3 w-3" /> Fill
             </Button>
@@ -602,17 +624,6 @@ function SectionEditorWithAi({ section, content, lang, onChange, productName }: 
           </>
         )}
       </div>
-      {showContext && (
-        <div className="mb-2 mt-10 rounded-lg border border-primary/20 bg-primary/5 p-2 space-y-1">
-          <p className="text-[10px] font-semibold text-primary uppercase tracking-widest">Section AI Context</p>
-          <textarea
-            value={userContext}
-            onChange={(e) => setUserContext(e.target.value)}
-            placeholder="e.g. Focus on the time-saving benefit. Use bullet-point style. Mention bKash payment."
-            className="w-full text-xs rounded-md border border-border/60 bg-background p-2 min-h-[50px] resize-y"
-          />
-        </div>
-      )}
       <SectionEditor section={section} content={content} lang={lang} onChange={onChange} />
     </div>
   );
