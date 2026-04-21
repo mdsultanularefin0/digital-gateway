@@ -162,9 +162,30 @@ function LogCard({ row }: { row: LogRow }) {
           {row.message && (
             <DetailBlock title="Message" content={row.message} />
           )}
-          {row.metadata !== undefined && row.metadata !== null && (
-            <DetailBlock title="Metadata" content={safeStringify(row.metadata)} mono />
-          )}
+          {(() => {
+            const meta = row.metadata as Record<string, unknown> | null | undefined;
+            if (!meta || typeof meta !== "object") return null;
+            const { request_body, response_body, request, stack, ...rest } = meta as Record<string, unknown>;
+            return (
+              <>
+                {request_body !== undefined && request_body !== "" && (
+                  <DetailBlock title="Request body" content={safeStringify(request_body)} mono />
+                )}
+                {response_body !== undefined && response_body !== "" && (
+                  <DetailBlock title="Response body" content={safeStringify(response_body)} mono />
+                )}
+                {request !== undefined && (
+                  <DetailBlock title="Request meta" content={safeStringify(request)} mono collapsed />
+                )}
+                {stack !== undefined && (
+                  <DetailBlock title="Stack trace" content={safeStringify(stack)} mono tone="destructive" collapsed />
+                )}
+                {Object.keys(rest).length > 0 && (
+                  <DetailBlock title="Metadata" content={safeStringify(rest)} mono collapsed />
+                )}
+              </>
+            );
+          })()}
           {row.raw && (
             <DetailBlock title="Full record" content={safeStringify(row.raw)} mono collapsed />
           )}
