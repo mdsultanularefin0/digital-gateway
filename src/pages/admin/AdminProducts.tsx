@@ -48,6 +48,7 @@ const emptyProduct: ProductInsert = {
   category: "General",
   tags: [],
   price: 0,
+  compare_at_price: null,
   price_label: "৳0",
   billing_cycle: "monthly",
   features: [],
@@ -567,8 +568,26 @@ export default function AdminProducts() {
           />
           <div className="grid gap-4 md:grid-cols-3">
             <div>
-              <label className="text-sm font-medium mb-1 block">Base Price</label>
+              <label className="text-sm font-medium mb-1 block">Selling Price</label>
               <input type="number" step="0.01" value={editing.price ?? 0} onChange={(e) => setEditing({ ...editing, price: parseFloat(e.target.value) })} className={inputClass} />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">
+                Compare At Price
+                <span className="ml-1.5 text-[11px] font-normal text-muted-foreground">(base / crossed-out)</span>
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={(editing as any).compare_at_price ?? ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setEditing({ ...editing, compare_at_price: val === "" ? null : parseFloat(val) } as any);
+                }}
+                className={inputClass}
+                placeholder="Leave blank for no discount"
+              />
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">Price Label</label>

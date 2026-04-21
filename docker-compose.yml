@@ -1,24 +1,31 @@
 services:
   giftcardvibe:
-    container_name: giftcardvibe-app
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8080:80"
-    env_file:
-      - .env
-    restart: always
+    container_name: giftcardvibe
+    image: giftcardvibe:latest
+    restart: unless-stopped
+    
+    # Network configuration for Nginx Proxy Manager
     networks:
       - webnet
-    volumes:
-      - ./dist:/usr/share/nginx/html:ro
+      
+    # Internal port for NPM to reach
+    expose:
+      - "80"
+
+    # Production resource limits for your i7-5500U LXC
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+    # Log management to prevent filling up your LXC disk
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
-        max-file: "3"
+        max-file: "5"
+
 
 networks:
   webnet:
-    external: true
+    external: true  # Uses the shared network created in Step 1

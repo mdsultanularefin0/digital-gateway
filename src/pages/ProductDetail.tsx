@@ -182,6 +182,11 @@ export default function ProductDetailPage() {
   }
 
   const displayPrice = activeTier ? activeTier.price : product.price;
+  const compareAtPrice = !hasTiers ? (product.compareAtPrice ?? null) : null;
+  const hasProductDiscount = compareAtPrice != null && compareAtPrice > displayPrice;
+  const productDiscountPct = hasProductDiscount
+    ? Math.round(((compareAtPrice! - displayPrice) / compareAtPrice!) * 100)
+    : 0;
 
   const siteUrl = window.location.origin;
   const canonicalUrl = `${siteUrl}/products/${product.slug || product.id}`;
@@ -315,6 +320,16 @@ export default function ProductDetailPage() {
                       {currencySymbol}{Number(displayPrice).toFixed(2)}
                     </motion.span>
                   </AnimatePresence>
+                  {hasProductDiscount && (
+                    <span className="text-lg sm:text-xl text-muted-foreground line-through">
+                      {currencySymbol}{Number(compareAtPrice).toFixed(2)}
+                    </span>
+                  )}
+                  {hasProductDiscount && (
+                    <span className="rounded-xl bg-destructive/90 px-2.5 py-1 text-xs font-bold text-destructive-foreground">
+                      -{productDiscountPct}% OFF
+                    </span>
+                  )}
                   {activeTier && <span className="text-sm sm:text-base text-muted-foreground">/ {activeTier.label.toLowerCase()}</span>}
                   {!activeTier && product.billingCycle && <span className="text-sm sm:text-base text-muted-foreground">/ {product.billingCycle}</span>}
                 </div>

@@ -72,6 +72,9 @@ export function ProductCard({ product: rawProduct }: { product: Product }) {
   });
 
   const displayPrice = defaultTier ? Number(defaultTier.price) : product.price;
+  const compareAtPrice = product.compareAtPrice;
+  const hasDiscount = compareAtPrice != null && compareAtPrice > displayPrice;
+  const discountPct = hasDiscount ? Math.round(((compareAtPrice! - displayPrice) / compareAtPrice!) * 100) : 0;
   const inStock = (product as any).inStock !== false;
 
   const handleBuyNow = (e: React.MouseEvent) => {
@@ -149,10 +152,22 @@ export function ProductCard({ product: rawProduct }: { product: Product }) {
 
 
       {/* Price row (pushed to bottom) */}
-      <div className="mt-auto flex items-center justify-between gap-2 pt-3 sm:pt-4">
-        <span className="text-base sm:text-xl font-bold text-foreground">
-          {currencySymbol}{displayPrice}
-        </span>
+      <div className="mt-auto flex items-end justify-between gap-2 pt-3 sm:pt-4">
+        <div className="flex flex-col gap-0.5">
+          {hasDiscount && (
+            <span className="text-xs sm:text-sm text-muted-foreground line-through">
+              {currencySymbol}{compareAtPrice}
+            </span>
+          )}
+          <span className="text-base sm:text-xl font-bold text-foreground">
+            {currencySymbol}{displayPrice}
+          </span>
+        </div>
+        {hasDiscount && (
+          <span className="shrink-0 rounded-xl bg-destructive/90 px-2 py-0.5 text-[11px] sm:text-xs font-bold text-destructive-foreground">
+            -{discountPct}%
+          </span>
+        )}
       </div>
 
       {/* CTA row */}
