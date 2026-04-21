@@ -186,7 +186,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        <nav className="flex flex-col gap-1 p-4 overflow-y-auto flex-1 pb-20">
+        <nav className="flex flex-col gap-1 p-4 overflow-y-auto flex-1 min-h-0">
           {navStructure.map((entry) =>
             isGroup(entry) ? (
               <NavGroupSection
@@ -213,7 +213,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           )}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 border-t border-border/50 p-4 glass-surface">
+        <div className="shrink-0 border-t border-border/50 p-4 glass-surface">
           <div className="text-xs text-muted-foreground truncate mb-2">{user?.email}</div>
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" asChild className="flex-1">
