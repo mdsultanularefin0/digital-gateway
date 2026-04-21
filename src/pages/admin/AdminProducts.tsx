@@ -750,9 +750,9 @@ export default function AdminProducts() {
 
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <h2 className="text-xl font-display font-bold">Products</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => setShowBulkImport(true)}>
             <FileUp className="h-4 w-4 mr-1" /> Bulk Import
           </Button>
@@ -800,8 +800,8 @@ export default function AdminProducts() {
 
       {/* Bulk Actions Bar */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5">
-          <span className="text-sm font-medium">{selectedIds.size} selected</span>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5">
+          <span className="text-sm font-medium w-full sm:w-auto">{selectedIds.size} selected</span>
           <Button size="sm" variant="outline" onClick={() => bulkPublishMutation.mutate({ ids: Array.from(selectedIds), published: true })}>
             Publish
           </Button>
@@ -824,8 +824,8 @@ export default function AdminProducts() {
           No products yet. Click "Add Product" to create one.
         </div>
       ) : (
-        <div className="rounded-xl border border-border overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-xl border border-border overflow-x-auto">
+          <table className="w-full text-sm min-w-[480px]">
             <thead className="bg-muted/50">
               <tr>
                 <th className="w-10 px-3 py-3">
