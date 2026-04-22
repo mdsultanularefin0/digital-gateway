@@ -732,12 +732,21 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
 
       // Handle Send Money (bkash_send / nagad_send)
       if (form.paymentMethod === "bkash_send" || form.paymentMethod === "nagad_send") {
-        const sendResult = await callEdge<{ verified?: boolean }>("verify-send-money", {
+        const sendResult = await callEdge<{ verified?: boolean; error?: string }>("verify-send-money", {
           orderId: order.id,
           senderNumber: form.senderNumber.trim(),
           trxId: form.trxId.trim(),
           provider: form.paymentMethod,
         });
+        if (sendResult.error) {
+          // Surface duplicate / replay / mismatch errors so customer can re-enter correct TrxID
+          toast({
+            title: "Transaction ID problem",
+            description: sendResult.error + " Please double-check your TrxID and submit again — do not reuse a TrxID from another order.",
+            variant: "destructive",
+          });
+          return;
+        }
         if (sendResult.verified && linkedProductId) {
           trackPurchase({
             content_ids: [linkedProductId],
