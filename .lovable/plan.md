@@ -1,64 +1,70 @@
 
-The user wants the 37 improvement suggestions from the overview file presented as selectable checkboxes so they can pick which to implement.
 
-Best UX: use `ask_questions` with a multi-select `choice` question. But max 4 options per question — too few for 37 items.
+## Plan: Fix build errors + Email control center + Universal digital download
 
-Better: group the 37 suggestions into themed batches and present a summary list here as a checklist preview, then ask the user to reply with the numbers/labels they want. Actually, the cleanest approach is to use multiple `ask_questions` calls grouped by category, each with multiSelect=true and up to 4 options. That gives real checkboxes.
+### Part 1 — Fix build errors (blocking)
 
-Plan: present the suggestions organized into 7 themed groups, each a multi-select checkbox question (Security, Performance, SEO, Code Health, Payments, Admin UX, Features). Then once approved, switch to default mode where I'll actually render those checkbox groups via `ask_questions`.
+1. **`src/components/DownloadLinks.tsx`** — Replace missing `Upload` icon with `ExternalLink` (already-available lucide icon) and replace the unsupported `outline-success` button variant with `outline` plus a green text class. This unblocks the TS build.
 
-## Plan: Show improvement suggestions as checkboxes
+2. **`supabase/functions/ai-generate/index.ts`** — Pin the Supabase import to a version that exists on the deploy CDN (`@supabase/supabase-js@2`) — same pattern as the working `mail` function. (The "Bundle generation timed out" error chain ends with this missing-package error.)
 
-I'll present the 37 suggestions from `giftcardvibe-site-overview.txt` as **multi-select checkbox groups**, organized by theme. You tick the ones you want, and I implement only those.
+### Part 2 — Email "Mailing Order" control center
 
-### Checkbox groups I'll show
+Goal: full control over which template fires for which product, in what order, plus a global default sequence.
 
-**1. Security & Hardening** (4 options)
-- Harden `download_tokens` against enumeration (longer tokens + IP binding)
-- Add rate-limiting to newsletter subscription endpoint
-- Add CAPTCHA to checkout / signup to block bots
-- Audit RLS policies on `customers` and `transactions` tables
+**Schema changes** (one migration):
+- Add `sort_order INT DEFAULT 0` to `product_email_templates` (per-template position in its category).
+- New table `email_send_plan`:
+  ```
+  id, product_id (nullable = global default), category, template_id,
+  step_order INT, delay_minutes INT DEFAULT 0, enabled BOOL, created_at
+  ```
+  Lets admins build an ordered sequence per product (or one global default plan) — e.g. step 1: order_confirmation immediately → step 2: post_purchase after 0 min → step 3: follow-up after 1440 min.
+- New table `email_outbox` (queue): `id, order_id, template_id, send_at, status (pending|sent|failed|skipped), attempts, last_error, created_at, sent_at`. Used for delayed/sequenced sends.
 
-**2. Performance** (4 options)
-- Add pagination to AdminOrders, AdminTransactions, AdminCustomers
-- Convert product images to WebP/AVIF on upload
-- Add React Query prefetching for product detail pages
-- Lazy-load admin route bundles
+**Edge function changes**:
+- Refactor `send-order-confirmation` → resolve "send plan" for the order: per-product plan first, fall back to global default plan, fall back to existing single-template logic. Emails with `delay_minutes = 0` send immediately; non-zero rows are inserted into `email_outbox`.
+- New function `process-email-outbox` (cron-callable, also manually triggerable) that drains due outbox rows. Cron added via migration: every 5 min.
 
-**3. SEO** (4 options)
-- Auto-generate `sitemap.xml` via Edge Function from products + blog + pages
-- Add `hreflang` tags for EN/BN bilingual pages
-- Add JSON-LD breadcrumbs site-wide
-- Add a global default OG image upload in Settings
+**Admin UI** (`/admin/email-templates` gets a new "Send Plans" tab):
+- **Global Default Plan** editor — drag-to-reorder list of category+template+delay rows. Used for any product with no custom plan.
+- **Per-Product Plan** editor — pick a product, build its ordered list of templates with delays. Same drag-reorder UI.
+- New tab on each template card: "Test send" — input email → invokes `send-order-confirmation` with `dry_run=false, override_recipient`.
+- Existing template list keeps `sort_order` as secondary fallback ordering.
 
-**4. Code Health / Refactor** (4 options)
-- Split `AdminProducts.tsx` (~880 lines) into sub-components
-- Split `MetaSeoFields.tsx` into smaller pieces
-- Extract checkout logic into a custom hook
-- Add Vitest coverage for cart + checkout flows
+**Trigger surface (events)** — confirmed touchpoints, all already wired:
+- Order placed (`useCheckout` → `send-order-confirmation`)
+- Payment verified (`AdminOrders` payment status flip + `verify-send-money` + `bkash-payment` callback)
+- Account auto-created (inside `send-order-confirmation`)
+- Manual resend (`Account.tsx` "Resend link" + `OrderDetail`)
 
-**5. Payments** (4 options)
-- Expose bKash refund flow in admin order detail
-- Implement Nagad PGW (currently manual only)
-- Add partial refund support
-- Add payment receipt PDF download for customers
+All paths route through the new plan resolver, so admins control everything from one place.
 
-**6. Admin UX** (4 options)
-- Persist sidebar expanded state across navigations
-- Add global keyboard shortcuts panel (`?` key)
-- Add bulk CSV import for blog posts
-- Add a unified "Recent Activity" widget on Dashboard
+### Part 3 — Digital download for ALL downloadable + link products
 
-**7. Customer Features** (4 options)
-- Add product reviews with photo upload
-- Add "Resend download link" self-service in /account
-- Add referral / affiliate tracking
-- Add wishlist (note: previously scoped out — confirm if reversing)
+Today `DownloadLinks` only shows `download_tokens` rows (created only for `delivery_type=download`). Link/external products produce `order_deliveries` rows, not tokens, so customers see nothing on `/account` for those.
 
-### How this will work
-1. Switch to default mode.
-2. Call `ask_questions` 7 times (one per group) with `type: "choice"`, `multiSelect: true`, `allowOther: true`.
-3. You tick the items you want across all groups.
-4. I collect your selections and implement them in priority order (security first, then perf, then features), creating tasks per item.
+Changes:
+- Update `DownloadLinks.tsx` to also fetch `order_deliveries` for the order and render delivered link/code/account payloads alongside token-based downloads.
+  - For `delivery_type='download'` files with `file_type='link'` → render "Open Link" button (already partly done — fixes the missing icon while we're there).
+  - For deliveries with `delivery_type IN ('code','account','service')` → render code/credentials with copy + show/hide (mirrors existing `CustomerDeliveries` pattern).
+  - Pending deliveries → "Awaiting fulfillment" notice.
+- Add same combined view to `OrderSuccessInstructions` so the post-checkout screen immediately shows the delivered content for link/code products too (today only download tokens appear).
+- Email rendering in `send-order-confirmation` already merges `product_files` into `productContentHtml`; extend it to also render `order_deliveries.payload.code` / `credential_extra` / external links so the email is complete for every delivery type.
 
-Note: the wishlist option contradicts a Core memory rule ("No physical shipping, wishlist, tracking"). I included it only so you can explicitly confirm/reverse — if you don't tick it, the rule stays.
+### Files touched
+- `src/components/DownloadLinks.tsx` (fix + extend to all delivery types)
+- `src/components/OrderSuccessInstructions.tsx` (use extended view)
+- `src/pages/admin/AdminEmailTemplates.tsx` (add Send Plans tab + Test Send)
+- New: `src/components/admin/EmailSendPlanEditor.tsx`
+- `supabase/functions/ai-generate/index.ts` (pin import — fixes deploy)
+- `supabase/functions/send-order-confirmation/index.ts` (plan resolver + outbox enqueue + deliveries in HTML)
+- New: `supabase/functions/process-email-outbox/index.ts`
+- `supabase/config.toml` (register new function with `verify_jwt = false`)
+- New migration: `email_send_plan`, `email_outbox`, `product_email_templates.sort_order`, pg_cron entry for outbox processor.
+
+### Out of scope (ask if you want them)
+- Per-customer-segment plans (e.g. VIP-only flow)
+- A/B template variants
+- HTML email designer beyond current Tiptap
+
