@@ -121,17 +121,18 @@ export function EmailTemplatePreview({ open, onOpenChange, subject, bodyHtml, ca
 
       let deliveriesHtml = "";
       for (const d of deliveries || []) {
-        const pname = d.payload?.product_name || "Item";
+        const payload = (d.payload || {}) as Record<string, any>;
+        const pname = payload.product_name || "Item";
         if (d.status !== "delivered") {
           deliveriesHtml += `<li><strong>${pname}</strong>: <em>Awaiting fulfillment — you'll receive an update shortly.</em></li>`;
           continue;
         }
-        if (d.delivery_type === "code" && d.payload?.code) {
-          deliveriesHtml += `<li><strong>${pname}</strong> — Code: <code>${d.payload.code}</code>${d.payload.credential_extra ? ` · Extra: <code>${d.payload.credential_extra}</code>` : ""}</li>`;
-        } else if (d.delivery_type === "account" && d.payload?.code) {
-          deliveriesHtml += `<li><strong>${pname}</strong> — Username: <code>${d.payload.code}</code>${d.payload.credential_extra ? ` · Password: <code>${d.payload.credential_extra}</code>` : ""}</li>`;
-        } else if (d.payload?.url || d.payload?.link) {
-          const url = d.payload.url || d.payload.link;
+        if (d.delivery_type === "code" && payload.code) {
+          deliveriesHtml += `<li><strong>${pname}</strong> — Code: <code>${payload.code}</code>${payload.credential_extra ? ` · Extra: <code>${payload.credential_extra}</code>` : ""}</li>`;
+        } else if (d.delivery_type === "account" && payload.code) {
+          deliveriesHtml += `<li><strong>${pname}</strong> — Username: <code>${payload.code}</code>${payload.credential_extra ? ` · Password: <code>${payload.credential_extra}</code>` : ""}</li>`;
+        } else if (payload.url || payload.link) {
+          const url = payload.url || payload.link;
           deliveriesHtml += `<li><strong>${pname}</strong>: <a href="${url}">${url}</a></li>`;
         }
       }
