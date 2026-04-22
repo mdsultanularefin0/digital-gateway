@@ -230,14 +230,21 @@ export function useCheckout() {
         });
         const sendResult = await res.json();
         if (!res.ok || sendResult.error) {
-          // Surface duplicate / replay / mismatch errors so the customer can re-enter the correct TrxID
-          const msg = sendResult.error || "Could not verify your payment. Please check your Transaction ID and try again.";
+          // Surface duplicate / replay / mismatch errors so the customer can re-enter the correct TrxID.
+          // Order + cart are kept intact so they can retry without re-doing checkout.
+          const rawMsg = String(sendResult.error || "").trim();
+          const isDuplicate = /already|used|submitted|claimed/i.test(rawMsg);
+          const description = rawMsg
+            ? isDuplicate
+              ? `${rawMsg} Please enter the TrxID from a new Send Money to this order — do not reuse one from another payment.`
+              : rawMsg
+            : "We couldn't verify your payment. Please double-check your Transaction ID and try again.";
           toast({
-            title: "Transaction ID problem",
-            description: msg + " Please double-check your TrxID and submit again — do not reuse a TrxID from another order.",
+            title: isDuplicate ? "Transaction ID already used" : "Payment verification failed",
+            description,
             variant: "destructive",
           });
-          return; // keep cart + order intact so customer can retry with correct TrxID
+          return;
         }
         if (sendResult.verified) {
           trackPurchase({
