@@ -740,9 +740,13 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
         });
         if (sendResult.error) {
           // Surface duplicate / replay / mismatch errors so customer can re-enter correct TrxID
+          const rawMsg = String(sendResult.error).trim();
+          const isDuplicate = /already|used|submitted|claimed/i.test(rawMsg);
           toast({
-            title: "Transaction ID problem",
-            description: sendResult.error + " Please double-check your TrxID and submit again — do not reuse a TrxID from another order.",
+            title: isDuplicate ? "Transaction ID already used" : "Payment verification failed",
+            description: isDuplicate
+              ? `${rawMsg} Please enter the TrxID from a new Send Money to this order — do not reuse one from another payment.`
+              : rawMsg,
             variant: "destructive",
           });
           return;
