@@ -72,13 +72,20 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
     const transactionProvider = provider === "bkash_send" ? "bKash" : "Nagad";
 
     // FIX #1 (replay): reject if this trxId+provider was already used on ANY non-rejected transaction.
-    const { data: existingTxn } = await supabase
+    const { data: existingTxns, error: existingTxnErr } = await supabase
       .from("transactions")
       .select("id, order_id, status")
       .eq("trx_id", cleanTrx)
       .eq("provider", transactionProvider)
       .neq("status", "rejected")
-      .maybeSingle();
+      .limit(2);
+
+    if (existingTxnErr) {
+      console.error("Duplicate transaction lookup failed:", existingTxnErr);
+      return json({ error: "Unable to validate this Transaction ID right now. Please try again." }, 500);
+    }
+
+    const existingTxn = existingTxns?.[0] ?? null;
 
     if (existingTxn && existingTxn.order_id !== orderId) {
       return json({ error: "This Transaction ID has already been used for another order." }, 409);
