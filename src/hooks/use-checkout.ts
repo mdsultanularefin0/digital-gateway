@@ -229,6 +229,16 @@ export function useCheckout() {
           }),
         });
         const sendResult = await res.json();
+        if (!res.ok || sendResult.error) {
+          // Surface duplicate / replay / mismatch errors so the customer can re-enter the correct TrxID
+          const msg = sendResult.error || "Could not verify your payment. Please check your Transaction ID and try again.";
+          toast({
+            title: "Transaction ID problem",
+            description: msg + " Please double-check your TrxID and submit again — do not reuse a TrxID from another order.",
+            variant: "destructive",
+          });
+          return; // keep cart + order intact so customer can retry with correct TrxID
+        }
         if (sendResult.verified) {
           trackPurchase({
             content_ids: items.map((i) => i.productId),
