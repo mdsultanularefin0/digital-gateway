@@ -67,7 +67,7 @@ function mapDBProduct(p: DBProduct): Product {
     category: p.category,
     tags: Array.isArray(p.tags) ? p.tags : [],
     price: Number(p.price),
-    compareAtPrice: p.compare_at_price != null ? Number(p.compare_at_price) : null,
+    compareAtPrice: (p as any).compare_at_price != null ? Number((p as any).compare_at_price) : null,
     priceLabel: p.price_label,
     billingCycle: p.billing_cycle ?? undefined,
     features: Array.isArray(p.features) ? p.features : [],

@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Download, FileText, Film, Clock, AlertCircle } from "lucide-react";
+import { Download, FileText, Film, Clock, AlertCircle, ExternalLink, Copy, Eye, EyeOff, CheckCircle2, AlertTriangle, Hourglass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { toast } from "@/hooks/use-toast";
 
 interface DownloadToken {
   id: string;
@@ -18,21 +20,56 @@ interface DownloadToken {
   };
 }
 
+interface Delivery {
+  id: string;
+  delivery_type: string;
+  status: string;
+  payload: any;
+}
+
 function formatSize(bytes: number) {
   if (bytes === 0) return "";
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function CodeReveal({ label, value }: { label: string; value: string }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="flex items-center gap-2 text-xs">
+      <span className="text-muted-foreground w-20 shrink-0">{label}:</span>
+      <code className="font-mono bg-muted/60 rounded px-2 py-1 flex-1 break-all">
+        {show ? value : "•".repeat(Math.min(value.length, 16))}
+      </code>
+      <button
+        type="button"
+        onClick={() => setShow((s) => !s)}
+        className="text-muted-foreground hover:text-foreground"
+        aria-label={show ? "Hide" : "Show"}
+      >
+        {show ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          navigator.clipboard.writeText(value);
+          toast({ title: "Copied to clipboard" });
+        }}
+        className="text-muted-foreground hover:text-foreground"
+        aria-label="Copy"
+      >
+        <Copy className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
 export function DownloadLinks({ orderId }: { orderId: string }) {
-  const { data: tokens = [], isLoading } = useQuery({
+  const { data: tokens = [], isLoading: tokensLoading } = useQuery({
     queryKey: ["download-tokens", orderId],
     staleTime: 0,
     gcTime: 0,
-    refetchInterval: (query) => {
-      // If we have no tokens yet, check every 3 seconds
-      return query.state.data?.length === 0 ? 3000 : false;
-    },
+    refetchInterval: (query) => (query.state.data?.length === 0 ? 3000 : false),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("download_tokens")
@@ -41,7 +78,6 @@ export function DownloadLinks({ orderId }: { orderId: string }) {
       if (error) throw error;
       if (!data || data.length === 0) return [];
 
-      // Fetch file info for each token
       const fileIds = data.map((t: any) => t.product_file_id);
       const { data: files } = await supabase
         .from("product_files")
@@ -57,6 +93,26 @@ export function DownloadLinks({ orderId }: { orderId: string }) {
     },
   });
 
+  const { data: deliveries = [], isLoading: delivLoading } = useQuery({
+    queryKey: ["order-deliveries", orderId],
+    staleTime: 0,
+    gcTime: 0,
+    refetchInterval: (query) => {
+      const list = query.state.data as Delivery[] | undefined;
+      // poll while anything is pending
+      return list && list.some((d) => d.status === "pending") ? 5000 : false;
+    },
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("order_deliveries")
+        .select("id, delivery_type, status, payload")
+        .eq("order_id", orderId)
+        .order("created_at");
+      if (error) throw error;
+      return (data || []) as Delivery[];
+    },
+  });
+
   const handleAction = (token: DownloadToken) => {
     const { file_url, file_type } = token.product_file;
     if (file_type === "link" || file_url.startsWith("http")) {
@@ -68,6 +124,11 @@ export function DownloadLinks({ orderId }: { orderId: string }) {
     window.open(url, "_blank");
   };
 
+  const isLoading = tokensLoading || delivLoading;
+
+  // Filter deliveries that aren't already represented by token-based downloads
+  const nonDownloadDeliveries = deliveries.filter((d) => d.delivery_type !== "download");
+
   if (isLoading) return (
     <div className="mt-6 rounded-xl border border-border p-5 bg-muted/20 animate-pulse">
       <div className="h-4 w-32 bg-muted rounded mb-3"></div>
@@ -77,7 +138,7 @@ export function DownloadLinks({ orderId }: { orderId: string }) {
     </div>
   );
 
-  if (tokens.length === 0) return null;
+  if (tokens.length === 0 && nonDownloadDeliveries.length === 0) return null;
 
   return (
     <div className="mt-6 rounded-xl border border-border p-5 bg-muted/20">
@@ -96,7 +157,7 @@ export function DownloadLinks({ orderId }: { orderId: string }) {
             <div key={token.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3 bg-background">
               <div className="flex items-center gap-3 min-w-0">
                 {isLink ? (
-                  <Upload className="h-4 w-4 text-green-500 rotate-180 shrink-0" />
+                  <ExternalLink className="h-4 w-4 text-green-600 shrink-0" />
                 ) : token.product_file.file_type === "video" ? (
                   <Film className="h-4 w-4 text-purple-500 shrink-0" />
                 ) : (
@@ -132,13 +193,58 @@ export function DownloadLinks({ orderId }: { orderId: string }) {
                   {expired ? "Expired" : "Limit reached"}
                 </span>
               ) : (
-                <Button size="sm" variant={isLink ? "outline-success" : "outline-primary"} onClick={() => handleAction(token)} className="shrink-0">
+                <Button
+                  size="sm"
+                  variant={isLink ? "outline" : "outline-primary"}
+                  onClick={() => handleAction(token)}
+                  className={isLink ? "shrink-0 text-green-600 border-green-600/40 hover:bg-green-600/10 hover:text-green-700" : "shrink-0"}
+                >
                   {isLink ? (
-                    <><Upload className="h-3 w-3 mr-1 rotate-180" /> Open Link</>
+                    <><ExternalLink className="h-3 w-3 mr-1" /> Open Link</>
                   ) : (
                     <><Download className="h-3 w-3 mr-1" /> Download</>
                   )}
                 </Button>
+              )}
+            </div>
+          );
+        })}
+
+        {nonDownloadDeliveries.map((d) => {
+          const productName = d.payload?.product_name || "Item";
+          const code = d.payload?.code as string | undefined;
+          const extra = d.payload?.credential_extra as string | undefined;
+          const isAccount = d.delivery_type === "account";
+
+          return (
+            <div key={d.id} className="rounded-lg border border-border p-3 bg-background space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium truncate">{productName}</span>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1 shrink-0 ${
+                    d.status === "delivered"
+                      ? "bg-green-500/10 text-green-700 dark:text-green-400"
+                      : d.status === "failed"
+                      ? "bg-destructive/10 text-destructive"
+                      : "bg-yellow-500/10 text-yellow-700 dark:text-yellow-500"
+                  }`}
+                >
+                  {d.status === "delivered" ? <CheckCircle2 className="h-3 w-3" /> :
+                   d.status === "failed" ? <AlertTriangle className="h-3 w-3" /> :
+                   <Hourglass className="h-3 w-3" />}
+                  {d.status === "pending" ? "Awaiting fulfillment" : d.status}
+                </span>
+              </div>
+              {d.status === "delivered" && code && (
+                <div className="rounded bg-muted/40 p-2 space-y-1.5">
+                  <CodeReveal label={isAccount ? "Username" : "Code"} value={code} />
+                  {extra && <CodeReveal label="Password" value={extra} />}
+                </div>
+              )}
+              {d.status === "pending" && (
+                <p className="text-xs text-muted-foreground">
+                  We're processing this — you'll receive an email as soon as it's ready.
+                </p>
               )}
             </div>
           );
