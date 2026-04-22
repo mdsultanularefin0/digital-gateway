@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Save, X, Mail, Globe, Package, ShoppingBag, CreditCard, UserPlus, Truck, ListOrdered } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, X, Mail, Globe, Package, ShoppingBag, CreditCard, UserPlus, Truck, ListOrdered, Eye } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { EmailSendPlanEditor } from "@/components/admin/EmailSendPlanEditor";
+import { EmailTemplatePreview } from "@/components/admin/EmailTemplatePreview";
 
 interface EmailTemplate {
   id: string;
@@ -88,6 +89,7 @@ export default function AdminEmailTemplates() {
   const [form, setForm] = useState(emptyTemplate);
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [view, setView] = useState<"templates" | "plans">("templates");
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ["admin-email-templates"],
@@ -333,6 +335,9 @@ export default function AdminEmailTemplates() {
               <Button variant="outline" onClick={() => { setEditing(null); setForm(emptyTemplate); }}>
                 Cancel
               </Button>
+              <Button variant="outline" onClick={() => setPreviewOpen(true)} className="gap-2">
+                <Eye className="h-4 w-4" /> Preview
+              </Button>
               <Button onClick={handleSave} disabled={saveMutation.isPending} className="gap-2">
                 <Save className="h-4 w-4" />
                 {saveMutation.isPending ? "Saving..." : "Save Template"}
@@ -340,6 +345,14 @@ export default function AdminEmailTemplates() {
             </div>
           </div>
         </div>
+
+        <EmailTemplatePreview
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          subject={form.subject}
+          bodyHtml={form.body_html}
+          category={form.category}
+        />
       </AdminLayout>
     );
   }
