@@ -49,12 +49,14 @@ const CATEGORY_VARIABLES: Record<string, { key: string; desc: string }[]> = {
     { key: "product_name", desc: "Product names" },
     { key: "order_total", desc: "Order total amount" },
     { key: "payment_method", desc: "Payment method used" },
+    { key: "product_content", desc: "Delivery block (codes, downloads, credentials)" },
   ],
   payment_verified: [
     { key: "customer_name", desc: "Customer's full name" },
     { key: "order_number", desc: "Order number" },
     { key: "order_total", desc: "Order total amount" },
     { key: "transaction_id", desc: "Payment transaction ID" },
+    { key: "product_content", desc: "Delivery block (codes, downloads, credentials)" },
   ],
   account_created: [
     { key: "customer_name", desc: "Customer's full name" },
