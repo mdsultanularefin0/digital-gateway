@@ -1,5 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { withLogging } from "../_shared/logger.ts";
+import { getMailConfig, resolveFrom } from "../_shared/mail-config.ts";
+import { smtpSend } from "../_shared/smtp.ts";
+import { logEmail, recentlySent } from "../_shared/email-logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,55 +20,6 @@ function generatePassword(length = 12): string {
   crypto.getRandomValues(arr);
   for (let i = 0; i < length; i++) pw += chars[arr[i] % chars.length];
   return pw;
-}
-
-async function sendEmail(
-  conn: Deno.Conn,
-  mailCfg: Record<string, string>,
-  siteName: string,
-  toEmail: string,
-  subject: string,
-  htmlBody: string,
-  fromOverride?: string
-) {
-  const read = async () => {
-    const buf = new Uint8Array(4096);
-    const n = await conn.read(buf);
-    return new TextDecoder().decode(buf.subarray(0, n || 0));
-  };
-  const write = async (cmd: string) => {
-    await conn.write(new TextEncoder().encode(cmd + "\r\n"));
-    return await read();
-  };
-
-  await read();
-  await write("EHLO localhost");
-  if (mailCfg.smtp_encryption === "tls") {
-    await write("STARTTLS");
-    await write("EHLO localhost");
-  }
-
-  const credentials = btoa(`\0${mailCfg.smtp_username}\0${mailCfg.smtp_password}`);
-  await write(`AUTH PLAIN ${credentials}`);
-
-  const fromAddr = fromOverride || mailCfg.from_orders || mailCfg.smtp_from || mailCfg.smtp_username;
-  await write(`MAIL FROM:<${fromAddr}>`);
-  await write(`RCPT TO:<${toEmail}>`);
-  await write("DATA");
-
-  const emailData = [
-    `From: ${siteName} <${fromAddr}>`,
-    `To: ${toEmail}`,
-    `Subject: ${subject}`,
-    `MIME-Version: 1.0`,
-    `Content-Type: text/html; charset=utf-8`,
-    ``,
-    htmlBody,
-    `.`,
-  ].join("\r\n");
-
-  await write(emailData);
-  await write("QUIT");
 }
 
 function wrapInEmailLayout(siteName: string, bodyContent: string): string {
@@ -100,10 +54,8 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Mail config
-    const { data: mailRows } = await supabase.from("mail_config").select("key, value");
-    const mailCfg: Record<string, string> = {};
-    (mailRows || []).forEach((r: any) => { mailCfg[r.key] = r.value; });
+    // Mail config (shared loader)
+    const mailCfg = await getMailConfig(supabase);
     if (!mailCfg.smtp_host || !mailCfg.smtp_username || !mailCfg.smtp_password) {
       return new Response(JSON.stringify({ success: false, reason: "SMTP missing" }), { headers: corsHeaders });
     }
@@ -114,7 +66,7 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
     const siteName = settings.site_name || "GiftCardVibe";
     const currencySymbol = settings.currency_symbol || "৳";
 
-    // === TEST SEND PATH (no order needed if order_id absent — uses most recent order's data) ===
+    // === TEST SEND PATH ===
     let workingOrderId = order_id;
     if (testSend && !workingOrderId) {
       const { data: recentOrder } = await supabase
@@ -141,9 +93,8 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
       if (referer) { try { origin = new URL(referer).origin; } catch (_e) {} }
     }
 
-    // === PLAN RESOLVER (only on initial sends, not when called by outbox or with explicit template) ===
+    // === PLAN RESOLVER ===
     if (!explicitTemplateId && !fromOutbox && !testSend) {
-      // Look up plan: per-product first, fall back to global
       let planRows: any[] = [];
       if (productIds.length > 0) {
         const { data } = await supabase
@@ -165,25 +116,21 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
       }
 
       if (planRows.length > 0) {
-        // Pick the steps relevant to this trigger event (matching category) for immediate send
-        // and enqueue all delayed steps regardless of category
         const enqueued: string[] = [];
         for (const step of planRows) {
           if (step.delay_minutes > 0) {
-            await supabase.from("email_outbox").insert({
+            // Idempotent enqueue: unique partial index on (order_id, template_id) where status in (pending, sent)
+            await supabase.from("email_outbox").upsert({
               order_id: workingOrderId,
               template_id: step.template_id,
               send_at: new Date(Date.now() + step.delay_minutes * 60 * 1000).toISOString(),
               status: "pending",
-            });
+            }, { onConflict: "order_id,template_id", ignoreDuplicates: true });
             enqueued.push(step.template_id);
           }
         }
-        // Find first immediate step matching this category, if any
         const immediate = planRows.find((s) => s.delay_minutes === 0);
         if (immediate) {
-          // Recursively re-invoke ourselves with explicit template_id to actually send
-          // (keeps the rest of this function as the single rendering pipeline)
           const innerResp = await fetch(`${supabaseUrl}/functions/v1/send-order-confirmation`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${serviceKey}` },
@@ -193,7 +140,6 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
         }
         return new Response(JSON.stringify({ success: true, plan: true, enqueued }), { headers: corsHeaders });
       }
-      // else: fall through to legacy behavior
     }
 
     // === Templates ===
@@ -215,21 +161,18 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
       }
     }
 
-    // Deliveries + files + tokens (for secure download URLs)
+    // Deliveries + files + tokens
     const [{ data: deliveries }, { data: files }, { data: tokens }] = await Promise.all([
       supabase.from("order_deliveries").select("*").eq("order_id", workingOrderId),
       supabase.from("product_files").select("*").in("product_id", productIds.length > 0 ? productIds : ["00000000-0000-0000-0000-000000000000"]),
       supabase.from("download_tokens").select("*").eq("order_id", workingOrderId),
     ]);
 
-    // Map product_file_id -> token for tokenized secure links
     const tokenByFileId: Record<string, string> = {};
     for (const t of (tokens || [])) {
       if (t.product_file_id && t.token) tokenByFileId[t.product_file_id] = t.token;
     }
 
-    // File links — downloadable files use tokenized secure-download URL,
-    // external "link" type files use the raw URL directly
     let fileLinksHtml = "";
     let fileLinksPlain = "";
     for (const f of (files || [])) {
@@ -248,7 +191,6 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
       fileLinksHtml += `<li style="margin-bottom:6px;"><strong>${label}</strong> — <a href="${url}" style="color:#2563eb;text-decoration:underline;">${isExt ? "Open Link" : "Download"}</a></li>`;
     }
 
-    // Deliveries (codes / accounts / external link payloads)
     let deliveriesHtml = "";
     for (const d of (deliveries || [])) {
       const pname = d.payload?.product_name || "Item";
@@ -299,6 +241,9 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
         || null;
     }
 
+    // Resolve category for from-address routing & purpose
+    const purposeCategory = chosenTemplate?.category || emailType || "post_purchase";
+
     let emailSubject: string;
     let emailHtml: string;
     if (chosenTemplate) {
@@ -324,7 +269,6 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
       emailHtml = wrapInEmailLayout(siteName, bodyHtml);
     }
 
-    // Test send: prepend banner and override recipient
     if (testSend) {
       emailSubject = `[TEST] ${emailSubject}`;
       emailHtml = emailHtml.replace(
@@ -334,15 +278,36 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
     }
 
     const recipient = (testSend && overrideRecipient) ? overrideRecipient : order.customer_email;
-    const useSSL = mailCfg.smtp_encryption === "ssl";
-    const port = parseInt(mailCfg.smtp_port);
-    const conn = useSSL
-      ? await Deno.connectTls({ hostname: mailCfg.smtp_host, port })
-      : await Deno.connect({ hostname: mailCfg.smtp_host, port });
-    await sendEmail(conn, mailCfg, siteName, recipient, emailSubject, emailHtml);
-    conn.close();
+    const fromAddr = resolveFrom(mailCfg, purposeCategory);
 
-    return new Response(JSON.stringify({ success: true, recipient, test: testSend }), { headers: corsHeaders });
+    // Guard against duplicate sends within 60s window (rapid re-triggers)
+    if (!testSend && await recentlySent(supabase, recipient, emailSubject, 60)) {
+      return new Response(JSON.stringify({ success: true, skipped: "duplicate_within_60s" }), { headers: corsHeaders });
+    }
+
+    const triggeredBy = fromOutbox ? "outbox" : (testSend ? "test" : `order:${workingOrderId}`);
+
+    try {
+      await smtpSend(mailCfg, {
+        to: recipient,
+        subject: emailSubject,
+        html: emailHtml,
+        from: fromAddr,
+        fromName: siteName,
+      });
+      await logEmail(supabase, {
+        recipient, sender: fromAddr, subject: emailSubject,
+        purpose: purposeCategory, status: "sent", triggered_by: triggeredBy,
+      });
+      return new Response(JSON.stringify({ success: true, recipient, test: testSend }), { headers: corsHeaders });
+    } catch (sendErr: any) {
+      await logEmail(supabase, {
+        recipient, sender: fromAddr, subject: emailSubject,
+        purpose: purposeCategory, status: "failed",
+        error: sendErr.message || String(sendErr), triggered_by: triggeredBy,
+      });
+      throw sendErr;
+    }
   } catch (err) {
     console.error(err);
     return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: corsHeaders });
