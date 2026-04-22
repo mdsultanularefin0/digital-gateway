@@ -335,6 +335,9 @@ export default function AdminEmailTemplates() {
               <Button variant="outline" onClick={() => { setEditing(null); setForm(emptyTemplate); }}>
                 Cancel
               </Button>
+              <Button variant="outline" onClick={() => setPreviewOpen(true)} className="gap-2">
+                <Eye className="h-4 w-4" /> Preview
+              </Button>
               <Button onClick={handleSave} disabled={saveMutation.isPending} className="gap-2">
                 <Save className="h-4 w-4" />
                 {saveMutation.isPending ? "Saving..." : "Save Template"}
@@ -342,6 +345,14 @@ export default function AdminEmailTemplates() {
             </div>
           </div>
         </div>
+
+        <EmailTemplatePreview
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          subject={form.subject}
+          bodyHtml={form.body_html}
+          category={form.category}
+        />
       </AdminLayout>
     );
   }
