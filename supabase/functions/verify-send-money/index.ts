@@ -34,6 +34,16 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
       return json({ error: "Invalid provider" }, 400);
     }
 
+    // Basic shape validation to deter brute-force / garbage submissions
+    const cleanTrx = String(trxId).trim();
+    const cleanSender = String(senderNumber).trim();
+    if (cleanTrx.length < 6 || cleanTrx.length > 40 || !/^[A-Za-z0-9]+$/.test(cleanTrx)) {
+      return json({ error: "Invalid transaction ID format" }, 400);
+    }
+    if (cleanSender.length < 6 || cleanSender.length > 20) {
+      return json({ error: "Invalid sender number" }, 400);
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -57,27 +67,44 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
       return json({ error: "Payment method mismatch" }, 400);
     }
 
+    // FIX #1 (replay): reject if this trxId+provider was already used on ANY non-rejected transaction
+    const { data: existingTxn } = await supabase
+      .from("transactions")
+      .select("id, order_id, status")
+      .eq("trx_id", cleanTrx)
+      .eq("provider", provider)
+      .neq("status", "rejected")
+      .maybeSingle();
+
+    if (existingTxn && existingTxn.order_id !== orderId) {
+      return json({ error: "This Transaction ID has already been used for another order." }, 409);
+    }
+    if (existingTxn && existingTxn.order_id === orderId) {
+      return json({ error: "This Transaction ID has already been submitted for this order." }, 409);
+    }
+
     // Map provider name for verification table (bkash_send -> bkash, nagad_send -> nagad)
     const verificationProvider = provider === "bkash_send" ? "bkash" : "nagad";
 
-    // Check send_money_verifications table for a matching record
+    // FIX #2 (claim guard): only match unclaimed verification rows
     const { data: verification } = await supabase
       .from("send_money_verifications")
       .select("*")
-      .eq("trx_id", trxId)
-      .eq("sender_number", senderNumber)
+      .eq("trx_id", cleanTrx)
+      .eq("sender_number", cleanSender)
       .eq("provider", verificationProvider)
       .eq("verified", true)
+      .is("matched_order_id", null)
       .maybeSingle();
 
     const sendMoneyData = {
       provider,
-      sender_number: senderNumber,
-      trx_id: trxId,
+      sender_number: cleanSender,
+      trx_id: cleanTrx,
       submitted_at: new Date().toISOString(),
     };
 
-    // Check if verification matches (amount must be >= order total and <= 102% of order total)
+    // Amount must be >= order total and <= 102% of order total
     const isAmountValid = verification
       ? Number(verification.amount) >= Number(order.total) &&
         Number(verification.amount) <= Number(order.total) * 1.02
@@ -86,25 +113,51 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
     const isVerified = !!verification && isAmountValid;
 
     if (isVerified) {
-      // Auto-complete the order
-      await supabase
+      // FIX #3 (atomic claim): only mark paid if still unpaid — prevents double-fulfillment race
+      const { data: claimedOrder, error: claimErr } = await supabase
         .from("orders")
         .update({
           payment_status: "paid",
           status: "completed",
-          notes: `${provider}_trxID:${trxId} | sender:${senderNumber} | verified:auto`,
+          notes: `${provider}_trxID:${cleanTrx} | sender:${cleanSender} | verified:auto`,
           bkash_response: { ...sendMoneyData, verified: true, verified_at: new Date().toISOString() },
         })
-        .eq("id", orderId);
+        .eq("id", orderId)
+        .eq("payment_status", "unpaid")
+        .select("id")
+        .maybeSingle();
 
-      // Insert completed transaction
-      await supabase.from("transactions").insert({
+      if (claimErr || !claimedOrder) {
+        // Lost the race or update blocked — bail safely without inserting a duplicate transaction
+        return json({ error: "Order could not be marked paid (already processed)." }, 409);
+      }
+
+      // Claim verification row atomically
+      const { data: claimedVerification, error: vClaimErr } = await supabase
+        .from("send_money_verifications")
+        .update({ matched_order_id: orderId })
+        .eq("id", verification.id)
+        .is("matched_order_id", null)
+        .select("id")
+        .maybeSingle();
+
+      if (vClaimErr || !claimedVerification) {
+        // Another order grabbed it first — revert order
+        await supabase
+          .from("orders")
+          .update({ payment_status: "unpaid", status: "pending" })
+          .eq("id", orderId);
+        return json({ error: "Verification already claimed by another order." }, 409);
+      }
+
+      // Insert completed transaction (unique index on trx_id+provider acts as final guard)
+      const { error: insertTxnErr } = await supabase.from("transactions").insert({
         order_id: orderId,
         order_number: order.order_number,
         payment_method: provider,
         provider: provider === "bkash_send" ? "bKash" : "Nagad",
-        sender_number: senderNumber,
-        trx_id: trxId,
+        sender_number: cleanSender,
+        trx_id: cleanTrx,
         amount: order.total,
         currency: "BDT",
         status: "completed",
@@ -115,11 +168,10 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
         raw_response: { ...sendMoneyData, verified: true, source: "auto_match" },
       });
 
-      // Update verification record with matched order
-      await supabase
-        .from("send_money_verifications")
-        .update({ matched_order_id: orderId })
-        .eq("id", verification.id);
+      if (insertTxnErr) {
+        console.error("Transaction insert blocked:", insertTxnErr);
+        return json({ error: "Duplicate transaction blocked." }, 409);
+      }
 
       // Generate download tokens for digital products
       await supabase.rpc("generate_download_tokens", { _order_id: orderId });
@@ -128,8 +180,8 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
       fetch(`${supabaseUrl}/functions/v1/send-order-confirmation`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseKey}` },
-        body: JSON.stringify({ 
-          order_id: orderId, 
+        body: JSON.stringify({
+          order_id: orderId,
           type: "payment_verified",
           origin: req.headers.get("origin") || new URL(req.url).origin
         }),
@@ -142,22 +194,22 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
       });
     }
 
-    // Not verified — store as pending
+    // Not verified — store as pending. Insert may be blocked by unique index if trxId already pending elsewhere.
     await supabase
       .from("orders")
       .update({
-        notes: `${provider}_trxID:${trxId} | sender:${senderNumber}`,
+        notes: `${provider}_trxID:${cleanTrx} | sender:${cleanSender}`,
         bkash_response: sendMoneyData,
       })
       .eq("id", orderId);
 
-    await supabase.from("transactions").insert({
+    const { error: pendingInsertErr } = await supabase.from("transactions").insert({
       order_id: orderId,
       order_number: order.order_number,
       payment_method: provider,
       provider: provider === "bkash_send" ? "bKash" : "Nagad",
-      sender_number: senderNumber,
-      trx_id: trxId,
+      sender_number: cleanSender,
+      trx_id: cleanTrx,
       amount: order.total,
       currency: "BDT",
       status: "pending",
@@ -166,6 +218,11 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
       customer_phone: order.customer_phone,
       raw_response: sendMoneyData,
     });
+
+    if (pendingInsertErr) {
+      console.error("Pending transaction insert blocked:", pendingInsertErr);
+      return json({ error: "This Transaction ID has already been submitted." }, 409);
+    }
 
     return json({
       success: true,
