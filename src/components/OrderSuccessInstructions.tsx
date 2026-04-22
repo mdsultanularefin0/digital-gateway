@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Mail, User, Clock, MessageCircle, Package, CheckCircle2, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { DownloadLinks } from "@/components/DownloadLinks";
 
 type Lang = "en" | "bn";
 
@@ -74,7 +75,7 @@ const content = {
   },
 };
 
-export function OrderSuccessInstructions({ defaultLang = "en" }: { defaultLang?: Lang }) {
+export function OrderSuccessInstructions({ defaultLang = "en", orderId }: { defaultLang?: Lang; orderId?: string }) {
   const [lang, setLang] = useState<Lang>(defaultLang);
   const { data: settings } = useSiteSettings();
   const t = content[lang];
@@ -83,6 +84,8 @@ export function OrderSuccessInstructions({ defaultLang = "en" }: { defaultLang?:
   const email = settings?.support_email || settings?.contact_email;
 
   return (
+    <>
+    {orderId && <DownloadLinks orderId={orderId} />}
     <div className="mt-6 rounded-xl border border-border bg-card/50 backdrop-blur-sm p-5 text-left">
       <div className="flex items-center justify-between mb-4 gap-2">
         <div className="flex items-center gap-2">
@@ -146,5 +149,6 @@ export function OrderSuccessInstructions({ defaultLang = "en" }: { defaultLang?:
         )}
       </div>
     </div>
+    </>
   );
 }

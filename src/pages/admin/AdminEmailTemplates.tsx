@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Save, X, Mail, Globe, Package, ShoppingBag, CreditCard, UserPlus, Truck } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, X, Mail, Globe, Package, ShoppingBag, CreditCard, UserPlus, Truck, ListOrdered } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { EmailSendPlanEditor } from "@/components/admin/EmailSendPlanEditor";
 
 interface EmailTemplate {
   id: string;
@@ -84,6 +85,7 @@ export default function AdminEmailTemplates() {
   const [editing, setEditing] = useState<EmailTemplate | null>(null);
   const [form, setForm] = useState(emptyTemplate);
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [view, setView] = useState<"templates" | "plans">("templates");
 
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ["admin-email-templates"],
@@ -351,11 +353,37 @@ export default function AdminEmailTemplates() {
               Create email templates for order confirmations, payment notifications, account setup, and more
             </p>
           </div>
-          <Button onClick={() => openEditor()} className="gap-2">
-            <Plus className="h-4 w-4" /> New Template
-          </Button>
+          {view === "templates" && (
+            <Button onClick={() => openEditor()} className="gap-2">
+              <Plus className="h-4 w-4" /> New Template
+            </Button>
+          )}
         </div>
 
+        {/* View tabs: templates vs plans */}
+        <div className="flex flex-wrap gap-2 border-b border-border pb-2">
+          <button
+            onClick={() => setView("templates")}
+            className={`inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full border transition-colors ${
+              view === "templates" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Mail className="h-3.5 w-3.5" /> Templates
+          </button>
+          <button
+            onClick={() => setView("plans")}
+            className={`inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full border transition-colors ${
+              view === "plans" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <ListOrdered className="h-3.5 w-3.5" /> Send plans
+          </button>
+        </div>
+
+        {view === "plans" ? (
+          <EmailSendPlanEditor />
+        ) : (
+        <>
         {/* Category filter tabs */}
         <div className="flex flex-wrap gap-2">
           <button
@@ -454,6 +482,8 @@ export default function AdminEmailTemplates() {
               );
             })}
           </div>
+        )}
+        </>
         )}
       </div>
     </AdminLayout>

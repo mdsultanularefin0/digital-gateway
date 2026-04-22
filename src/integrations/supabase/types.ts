@@ -434,6 +434,108 @@ export type Database = {
         }
         Relationships: []
       }
+      email_outbox: {
+        Row: {
+          attempts: number
+          created_at: string
+          id: string
+          last_error: string
+          order_id: string
+          send_at: string
+          sent_at: string | null
+          status: string
+          template_id: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_error?: string
+          order_id: string
+          send_at?: string
+          sent_at?: string | null
+          status?: string
+          template_id: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_error?: string
+          order_id?: string
+          send_at?: string
+          sent_at?: string | null
+          status?: string
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_outbox_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_outbox_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "product_email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_send_plan: {
+        Row: {
+          category: string
+          created_at: string
+          delay_minutes: number
+          enabled: boolean
+          id: string
+          product_id: string | null
+          step_order: number
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          delay_minutes?: number
+          enabled?: boolean
+          id?: string
+          product_id?: string | null
+          step_order?: number
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          delay_minutes?: number
+          enabled?: boolean
+          id?: string
+          product_id?: string | null
+          step_order?: number
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_send_plan_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_send_plan_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "product_email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       landing_pages: {
         Row: {
           created_at: string
@@ -814,6 +916,7 @@ export type Database = {
           is_global: boolean
           name: string
           product_id: string | null
+          sort_order: number
           subject: string
           updated_at: string
         }
@@ -826,6 +929,7 @@ export type Database = {
           is_global?: boolean
           name?: string
           product_id?: string | null
+          sort_order?: number
           subject?: string
           updated_at?: string
         }
@@ -838,6 +942,7 @@ export type Database = {
           is_global?: boolean
           name?: string
           product_id?: string | null
+          sort_order?: number
           subject?: string
           updated_at?: string
         }
@@ -1025,7 +1130,6 @@ export type Database = {
         Row: {
           billing_cycle: string | null
           category: string
-          compare_at_price: number | null
           created_at: string
           delivery_type: string
           description: string
@@ -1051,7 +1155,6 @@ export type Database = {
         Insert: {
           billing_cycle?: string | null
           category?: string
-          compare_at_price?: number | null
           created_at?: string
           delivery_type?: string
           description?: string
@@ -1077,7 +1180,6 @@ export type Database = {
         Update: {
           billing_cycle?: string | null
           category?: string
-          compare_at_price?: number | null
           created_at?: string
           delivery_type?: string
           description?: string

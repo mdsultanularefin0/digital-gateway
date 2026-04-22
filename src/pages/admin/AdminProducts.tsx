@@ -58,7 +58,7 @@ const emptyProduct: ProductInsert = {
   in_stock: true,
   slug: "",
   delivery_type: "download",
-};
+} as any;
 
 export default function AdminProducts() {
   const queryClient = useQueryClient();
