@@ -248,10 +248,9 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
     let emailHtml: string;
     if (chosenTemplate) {
       emailSubject = replaceVars(chosenTemplate.subject, templateVars);
-      let bodyHtml = replaceVars(chosenTemplate.body_html, templateVars);
-      if (productContentHtml && !chosenTemplate.body_html.includes("{{product_content}}")) {
-        bodyHtml += productContentHtml;
-      }
+      // Delivery block is now OPT-IN: only injected when template body explicitly contains {{product_content}}.
+      // This prevents the same delivery details from appearing in every email of a multi-step plan.
+      const bodyHtml = replaceVars(chosenTemplate.body_html, templateVars);
       emailHtml = wrapInEmailLayout(siteName, bodyHtml);
     } else {
       const table = `<table style="width:100%;border-collapse:collapse;font-size:14px;">
