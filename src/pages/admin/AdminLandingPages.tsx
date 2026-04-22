@@ -478,6 +478,7 @@ function LandingAiToolbar({ editing, setEditing, activeLang, tmpl, products }: a
     try {
       const { data, error } = await supabase.functions.invoke("ai-generate", {
         body: {
+          type: "landing_full",
           language,
           userContext,
           modelOverride: modelOverride || undefined,
