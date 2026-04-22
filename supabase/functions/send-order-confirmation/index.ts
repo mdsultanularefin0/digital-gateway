@@ -215,20 +215,37 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
       }
     }
 
-    // Deliveries + files
-    const [{ data: deliveries }, { data: files }] = await Promise.all([
+    // Deliveries + files + tokens (for secure download URLs)
+    const [{ data: deliveries }, { data: files }, { data: tokens }] = await Promise.all([
       supabase.from("order_deliveries").select("*").eq("order_id", workingOrderId),
       supabase.from("product_files").select("*").in("product_id", productIds.length > 0 ? productIds : ["00000000-0000-0000-0000-000000000000"]),
+      supabase.from("download_tokens").select("*").eq("order_id", workingOrderId),
     ]);
 
-    // File links (download type)
+    // Map product_file_id -> token for tokenized secure links
+    const tokenByFileId: Record<string, string> = {};
+    for (const t of (tokens || [])) {
+      if (t.product_file_id && t.token) tokenByFileId[t.product_file_id] = t.token;
+    }
+
+    // File links — downloadable files use tokenized secure-download URL,
+    // external "link" type files use the raw URL directly
     let fileLinksHtml = "";
     let fileLinksPlain = "";
     for (const f of (files || [])) {
-      const isExt = f.file_type === "link" || f.file_url.startsWith("http");
-      const url = isExt ? f.file_url : `${supabaseUrl}/functions/v1/secure-download?file=${f.id}`;
-      fileLinksPlain += `${f.filename}: ${url}\n`;
-      fileLinksHtml += `<li><strong>${f.filename}</strong>: <a href="${url}">${isExt ? "Open Link" : "Download"}</a></li>`;
+      const isExt = f.file_type === "link" || (typeof f.file_url === "string" && f.file_url.startsWith("http") && f.file_type !== "ebook" && f.file_type !== "video" && f.file_type !== "pdf" && f.file_type !== "zip");
+      let url: string;
+      if (isExt) {
+        url = f.file_url;
+      } else {
+        const tok = tokenByFileId[f.id];
+        url = tok
+          ? `${supabaseUrl}/functions/v1/secure-download?token=${tok}`
+          : `${supabaseUrl}/functions/v1/secure-download?file=${f.id}`;
+      }
+      const label = f.filename || (isExt ? "Open link" : "Download file");
+      fileLinksPlain += `${label}: ${url}\n`;
+      fileLinksHtml += `<li style="margin-bottom:6px;"><strong>${label}</strong> — <a href="${url}" style="color:#2563eb;text-decoration:underline;">${isExt ? "Open Link" : "Download"}</a></li>`;
     }
 
     // Deliveries (codes / accounts / external link payloads)
