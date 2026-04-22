@@ -383,11 +383,7 @@ export default function AdminEmailTemplates() {
         {view === "plans" ? (
           <EmailSendPlanEditor />
         ) : (
-        <></>
-        )}
-        {view === "templates" && (
-        <></>
-        )}
+        <>
         {/* Category filter tabs */}
         <div className="flex flex-wrap gap-2">
           <button
@@ -486,6 +482,8 @@ export default function AdminEmailTemplates() {
               );
             })}
           </div>
+        )}
+        </>
         )}
       </div>
     </AdminLayout>
