@@ -50,13 +50,6 @@ const emptyProduct: ProductInsert = {
   price: 0,
   compare_at_price: null,
   price_label: "৳0",
-} as any;
-const _emptyExtra = {
-  // keep linter quiet about unused if needed
-};
-const _empty2: ProductInsert = {
-  name: "",
-  price: 0,
   billing_cycle: "monthly",
   features: [],
   external_url: "#",
@@ -65,7 +58,7 @@ const _empty2: ProductInsert = {
   in_stock: true,
   slug: "",
   delivery_type: "download",
-};
+} as any;
 
 export default function AdminProducts() {
   const queryClient = useQueryClient();
