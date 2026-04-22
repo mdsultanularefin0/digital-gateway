@@ -89,6 +89,7 @@ export default function AdminEmailTemplates() {
   const [form, setForm] = useState(emptyTemplate);
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [view, setView] = useState<"templates" | "plans">("templates");
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ["admin-email-templates"],
