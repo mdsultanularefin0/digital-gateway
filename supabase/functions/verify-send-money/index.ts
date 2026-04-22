@@ -67,12 +67,16 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
       return json({ error: "Payment method mismatch" }, 400);
     }
 
-    // FIX #1 (replay): reject if this trxId+provider was already used on ANY non-rejected transaction
+    // Normalize provider labels because transactions and verification rows store different values.
+    const verificationProvider = provider === "bkash_send" ? "bkash" : "nagad";
+    const transactionProvider = provider === "bkash_send" ? "bKash" : "Nagad";
+
+    // FIX #1 (replay): reject if this trxId+provider was already used on ANY non-rejected transaction.
     const { data: existingTxn } = await supabase
       .from("transactions")
       .select("id, order_id, status")
       .eq("trx_id", cleanTrx)
-      .eq("provider", provider)
+      .eq("provider", transactionProvider)
       .neq("status", "rejected")
       .maybeSingle();
 
@@ -83,19 +87,24 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
       return json({ error: "This Transaction ID has already been submitted for this order." }, 409);
     }
 
-    // Map provider name for verification table (bkash_send -> bkash, nagad_send -> nagad)
-    const verificationProvider = provider === "bkash_send" ? "bkash" : "nagad";
-
-    // FIX #2 (claim guard): only match unclaimed verification rows
-    const { data: verification } = await supabase
+    // FIX #2 (matched-row guard): surface a hard conflict when this sender+TrxID has already been matched elsewhere.
+    const { data: verificationRow } = await supabase
       .from("send_money_verifications")
-      .select("*")
+      .select("id, amount, verified, matched_order_id")
       .eq("trx_id", cleanTrx)
       .eq("sender_number", cleanSender)
       .eq("provider", verificationProvider)
-      .eq("verified", true)
-      .is("matched_order_id", null)
       .maybeSingle();
+
+    if (verificationRow?.matched_order_id && verificationRow.matched_order_id !== orderId) {
+      return json({ error: "This transaction has already been matched to another order. Please enter an unmatched Transaction ID." }, 409);
+    }
+
+    if (verificationRow?.matched_order_id === orderId) {
+      return json({ error: "This Transaction ID is already matched to this order." }, 409);
+    }
+
+    const verification = verificationRow?.verified ? verificationRow : null;
 
     const sendMoneyData = {
       provider,
@@ -155,7 +164,7 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
         order_id: orderId,
         order_number: order.order_number,
         payment_method: provider,
-        provider: provider === "bkash_send" ? "bKash" : "Nagad",
+        provider: transactionProvider,
         sender_number: cleanSender,
         trx_id: cleanTrx,
         amount: order.total,
@@ -207,7 +216,7 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
       order_id: orderId,
       order_number: order.order_number,
       payment_method: provider,
-      provider: provider === "bkash_send" ? "bKash" : "Nagad",
+        provider: transactionProvider,
       sender_number: cleanSender,
       trx_id: cleanTrx,
       amount: order.total,
