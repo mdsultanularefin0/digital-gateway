@@ -21,6 +21,11 @@ interface CAPIEvent {
     em?: string[];
     ph?: string[];
     fn?: string[];
+    ln?: string[];
+    external_id?: string[];
+    fbp?: string;
+    fbc?: string;
+    fb_login_id?: string;
   };
   custom_data?: Record<string, unknown>;
 }
@@ -97,10 +102,15 @@ Deno.serve(withLogging("capi-event", async (req) => {
     if (isValidPublicIp(rawIp)) {
       finalUserData.client_ip_address = rawIp;
     }
-    // Merge any hashed identifiers (em, ph, fn) from client
+    // Merge hashed identifiers and unhashed signals from client
     if (user_data?.em) finalUserData.em = user_data.em;
     if (user_data?.ph) finalUserData.ph = user_data.ph;
     if (user_data?.fn) finalUserData.fn = user_data.fn;
+    if (user_data?.ln) finalUserData.ln = user_data.ln;
+    if (user_data?.external_id) finalUserData.external_id = user_data.external_id;
+    if (user_data?.fbp) finalUserData.fbp = user_data.fbp;
+    if (user_data?.fbc) finalUserData.fbc = user_data.fbc;
+    if (user_data?.fb_login_id) finalUserData.fb_login_id = user_data.fb_login_id;
 
     // Build event
     const event: CAPIEvent = {
