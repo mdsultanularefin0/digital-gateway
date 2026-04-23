@@ -49,12 +49,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         if (newSession?.user) {
-          // Use setTimeout to avoid potential deadlock with Supabase client
+          if (newSession.user.email) setUserIdentifiers({ email: newSession.user.email });
           setTimeout(async () => {
             await checkAdmin(newSession.user.id);
             setLoading(false);
           }, 0);
         } else {
+          clearUserIdentifiers();
           setIsAdmin(false);
           setLoading(false);
         }
@@ -68,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
         if (initialSession?.user) {
+          if (initialSession.user.email) setUserIdentifiers({ email: initialSession.user.email });
           await checkAdmin(initialSession.user.id);
         }
         setLoading(false);

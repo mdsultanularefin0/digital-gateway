@@ -3,7 +3,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { trackInitiateCheckout, trackPurchase } from "@/lib/meta-pixel";
+import { trackInitiateCheckout, trackPurchase, setUserIdentifiers } from "@/lib/meta-pixel";
 
 export interface CheckoutForm {
   name: string;
@@ -56,8 +56,11 @@ export function useCheckout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const update = (key: keyof CheckoutForm, value: string) =>
+  const update = (key: keyof CheckoutForm, value: string) => {
     setForm((p) => ({ ...p, [key]: value }));
+    if (key === "email" && value) setUserIdentifiers({ email: value });
+    if (key === "phone" && value) setUserIdentifiers({ phone: value });
+  };
 
   const applyCoupon = async () => {
     if (!form.couponCode.trim()) return;
