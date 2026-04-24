@@ -106,8 +106,10 @@ export default function AdminOrders() {
       fireWebhook(id, "order.payment_changed");
       if (payment_status === "paid") {
         await supabase.rpc("generate_download_tokens", { _order_id: id } as any);
+        // Single call — the plan resolver inside the edge function decides
+        // which templates (order_confirmation, payment_verified, post_purchase, etc.)
+        // to fire based on the email_send_plan table. Calling twice caused duplicates.
         triggerEmail(id, "payment_verified");
-        triggerEmail(id, "post_purchase");
       }
     },
     onSuccess: () => {

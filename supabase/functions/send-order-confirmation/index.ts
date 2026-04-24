@@ -49,6 +49,9 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
     const fromOutbox: boolean = !!body.from_outbox;
     const testSend: boolean = !!body.test_send;
     const overrideRecipient: string | undefined = body.override_recipient;
+    // Password forwarded from the outer plan-resolver call so inner
+    // recursive calls can substitute {{password}} correctly.
+    const forwardedPassword: string = body.auto_created_password || "";
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -207,6 +210,7 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
                 type: tpl?.category || step.category || emailType,
                 template_id: step.template_id,
                 from_outbox: true,
+                auto_created_password: autoCreatedPassword,
               }),
             });
             await innerResp.text();
@@ -288,7 +292,7 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
       product_content: productContentHtml,
       product_links: fileLinksPlain,
       order_link: origin ? `${origin}/orders/${order.id}` : "",
-      password: autoCreatedPassword || "",
+      password: autoCreatedPassword || forwardedPassword || "",
       login_url: origin ? `${origin}/login` : "",
     };
 
