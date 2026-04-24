@@ -31,7 +31,9 @@ export function WebhookTab({ settings, update }: WebhookTabProps) {
       
       toast({ 
         title: data.success ? "Webhook test sent successfully" : "Webhook test failed",
-        description: data.webhook_status ? `External server responded with ${data.webhook_status}` : data.reason
+        description: data.webhook_response 
+          ? `Server said: ${data.webhook_response}`
+          : (data.webhook_status ? `External server responded with ${data.webhook_status}` : data.reason)
       });
     } catch (err: any) {
       toast({ title: "Webhook test failed", description: err.message, variant: "destructive" });

@@ -73,9 +73,12 @@ Deno.serve(withLogging("order-webhook", async (req) => {
         body: JSON.stringify(testPayload),
       });
 
+      const responseText = await res.text();
+
       return json({
-        success: true,
+        success: res.ok,
         webhook_status: res.status,
+        webhook_response: responseText.substring(0, 500),
         event: "test",
       });
     }
