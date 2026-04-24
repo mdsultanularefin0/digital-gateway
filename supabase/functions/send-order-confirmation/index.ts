@@ -93,6 +93,23 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
       if (referer) { try { origin = new URL(referer).origin; } catch (_e) {} }
     }
 
+    // Detect whether this order belongs to a brand-new account.
+    // We only want to fire `account_created` templates when we actually
+    // created a fresh auth user for this customer in this run.
+    let isNewAccount = false;
+    if (!testSend && !fromOutbox && !explicitTemplateId && order.customer_email) {
+      const { data: existingUsers } = await supabase.auth.admin.listUsers();
+      const existing = existingUsers?.users?.find(
+        (u: any) => u.email?.toLowerCase() === order.customer_email.toLowerCase()
+      );
+      // Treat as "new account" only if user was created within the last 5 minutes
+      // (i.e. created as part of this checkout flow, not a returning customer).
+      if (existing?.created_at) {
+        const ageMs = Date.now() - new Date(existing.created_at).getTime();
+        isNewAccount = ageMs < 5 * 60 * 1000;
+      }
+    }
+
     // === PLAN RESOLVER ===
     if (!explicitTemplateId && !fromOutbox && !testSend) {
       let planRows: any[] = [];
