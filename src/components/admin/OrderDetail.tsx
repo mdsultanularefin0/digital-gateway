@@ -206,6 +206,33 @@ export default function OrderDetail({ order: o, currencySymbol, onBack, onDelete
 
         <FulfillmentPanel orderId={o.id} paymentStatus={o.payment_status} />
 
+        <div className="rounded-xl border border-border p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Mail className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Send Email Manually</h3>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Use this if the automatic email failed or you need to resend a confirmation to <span className="font-medium">{o.customer_email}</span>.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <select
+              value={emailType}
+              onChange={(e) => setEmailType(e.target.value)}
+              className="h-9 flex-1 rounded-xl border border-border bg-background px-3 text-sm"
+              disabled={sendingEmail}
+            >
+              {EMAIL_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+            <Button size="sm" onClick={handleSendEmail} disabled={sendingEmail || !o.customer_email}>
+              {sendingEmail ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Mail className="h-4 w-4 mr-1" />}
+              Send Now
+            </Button>
+          </div>
+        </div>
+
+
         {o.notes && (
           <div className="rounded-xl border border-border p-4">
             <h3 className="text-sm font-semibold mb-2 uppercase tracking-wider text-muted-foreground">Notes</h3>
