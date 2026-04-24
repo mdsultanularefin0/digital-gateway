@@ -183,7 +183,7 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
             sentImmediate.push(step.template_id);
           }
         }
-        return new Response(JSON.stringify({ success: true, plan: true, enqueued, sent: sentImmediate }), { headers: corsHeaders });
+        return new Response(JSON.stringify({ success: true, plan: true, enqueued, sent: sentImmediate, skipped }), { headers: corsHeaders });
       }
     }
 
