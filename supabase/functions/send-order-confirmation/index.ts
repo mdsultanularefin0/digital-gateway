@@ -133,9 +133,25 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
       }
 
       if (planRows.length > 0) {
+        // Pre-fetch categories so we can skip account_created for returning users.
+        const tplIds = planRows.map((r: any) => r.template_id);
+        const { data: tplMeta } = await supabase
+          .from("product_email_templates")
+          .select("id, category")
+          .in("id", tplIds);
+        const catById: Record<string, string> = {};
+        (tplMeta || []).forEach((t: any) => { catById[t.id] = t.category; });
+
         const enqueued: string[] = [];
         const sentImmediate: string[] = [];
+        const skipped: string[] = [];
         for (const step of planRows) {
+          const stepCategory = catById[step.template_id] || step.category;
+          // Skip account_created emails when no new account was created in this checkout.
+          if (stepCategory === "account_created" && !isNewAccount) {
+            skipped.push(step.template_id);
+            continue;
+          }
           if (step.delay_minutes > 0) {
             // Idempotent enqueue: unique partial index on (order_id, template_id) where status in (pending, sent)
             await supabase.from("email_outbox").upsert({
