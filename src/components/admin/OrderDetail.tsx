@@ -28,8 +28,29 @@ export default function OrderDetail({ order: o, currencySymbol, onBack, onDelete
   const [refundAmt, setRefundAmt] = useState<string>(String(o.total));
   const [refundReason, setRefundReason] = useState("");
   const [refunding, setRefunding] = useState(false);
+  const [emailType, setEmailType] = useState<string>("order_confirmation");
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   const isBkash = o.payment_method === "bkash" && o.payment_status === "paid";
+
+  const handleSendEmail = async () => {
+    setSendingEmail(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-order-confirmation", {
+        body: { order_id: o.id, type: emailType },
+      });
+      if (error) throw error;
+      if ((data as any)?.success === false) {
+        toast({ title: "Email not sent", description: (data as any)?.reason || "Unknown reason", variant: "destructive" });
+      } else {
+        toast({ title: "Email sent", description: `${EMAIL_TYPES.find(t => t.value === emailType)?.label} → ${o.customer_email}` });
+      }
+    } catch (e: any) {
+      toast({ title: "Send failed", description: e.message || String(e), variant: "destructive" });
+    } finally {
+      setSendingEmail(false);
+    }
+  };
 
   const handleRefund = async () => {
     setRefunding(true);
