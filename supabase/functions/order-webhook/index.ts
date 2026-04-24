@@ -54,14 +54,84 @@ Deno.serve(withLogging("order-webhook", async (req) => {
 
     // SPECIAL CASE: Test Event
     if (event === "test") {
-      const testPayload: Record<string, unknown> = {
+      // Fetch latest order for a realistic test
+      const { data: latestOrder, error: latestErr } = await supabase
+        .from("orders")
+        .select("id")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const workingOrderId = latestOrder?.id;
+      
+      if (!workingOrderId) {
+        // Fallback to dummy if no orders exist
+        const testPayload: Record<string, unknown> = {
+          event: "test",
+          order_id: "test-123",
+          order_number: "ORD-TEST-001",
+          status: "pending",
+          payment_status: "unpaid",
+          timestamp: new Date().toISOString(),
+        };
+
+        const res = await fetch(webhookUrl, {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            ...(settings["webhook_secret"] ? { "X-Webhook-Secret": settings["webhook_secret"] } : {}),
+          },
+          body: JSON.stringify(testPayload),
+        });
+
+        const responseText = await res.text();
+        return json({
+          success: res.ok,
+          webhook_status: res.status,
+          webhook_response: responseText.substring(0, 500),
+          event: "test",
+        });
+      }
+
+      // Re-use production logic with the latest order ID
+      const { data: order, error: orderErr } = await supabase
+        .from("orders")
+        .select("*, order_items(*)")
+        .eq("id", workingOrderId)
+        .single();
+
+      if (orderErr || !order) {
+        return json({ error: "Latest order found but failed to fetch details" }, 500);
+      }
+
+      const payload = {
         event: "test",
-        order_id: "test-123",
-        order_number: "ORD-TEST-001",
-        status: "pending",
-        payment_status: "unpaid",
+        order_id: order.id,
+        order_number: order.order_number,
+        status: order.status,
+        payment_status: order.payment_status,
+        payment_method: order.payment_method,
+        customer_name: order.customer_name,
+        customer_email: order.customer_email,
+        customer_phone: order.customer_phone,
+        shipping_address: order.shipping_address,
+        shipping_city: order.shipping_city,
+        shipping_state: order.shipping_state,
+        shipping_zip: order.shipping_zip,
+        shipping_country: order.shipping_country,
+        subtotal: order.subtotal,
+        discount: order.discount,
+        shipping_cost: order.shipping_cost,
+        total: order.total,
+        notes: order.notes,
+        items: (order.order_items || []).map((item: any) => ({
+          product_name: item.product_name,
+          tier_label: item.tier_label,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total: item.total,
+        })),
         timestamp: new Date().toISOString(),
-        ...(settings["webhook_secret"] ? { secret: settings["webhook_secret"] } : {}),
       };
 
       const res = await fetch(webhookUrl, {
@@ -70,11 +140,10 @@ Deno.serve(withLogging("order-webhook", async (req) => {
           "Content-Type": "application/json",
           ...(settings["webhook_secret"] ? { "X-Webhook-Secret": settings["webhook_secret"] } : {}),
         },
-        body: JSON.stringify(testPayload),
+        body: JSON.stringify(payload),
       });
 
       const responseText = await res.text();
-
       return json({
         success: res.ok,
         webhook_status: res.status,
@@ -140,11 +209,6 @@ Deno.serve(withLogging("order-webhook", async (req) => {
       })),
       timestamp: new Date().toISOString(),
     };
-
-    // Include secret if configured
-    if (settings["webhook_secret"]) {
-      payload.secret = settings["webhook_secret"];
-    }
 
     // Send to external webhook URL
     const res = await fetch(webhookUrl, {
