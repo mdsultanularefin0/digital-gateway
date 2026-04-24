@@ -262,28 +262,42 @@ export function trackPageView() {
   void sendCAPIEvent("PageView", eid);
 }
 
-export function trackViewContent(params: {
-  content_name: string;
-  content_ids: string[];
-  content_type: string;
-  value?: number;
-  currency?: string;
-}) {
+export function trackViewContent(
+  params: {
+    content_name: string;
+    content_ids: string[];
+    content_type: string;
+    value?: number;
+    currency?: string;
+  },
+  customer?: {
+    email?: string;
+    phone?: string;
+    name?: string;
+  }
+) {
   const eid = generateEventId();
   if (isFbqReady()) window.fbq("track", "ViewContent", params, { eventID: eid });
-  void sendCAPIEvent("ViewContent", eid, params);
+  void sendCAPIEvent("ViewContent", eid, params, customer);
 }
 
-export function trackAddToCart(params: {
-  content_name: string;
-  content_ids: string[];
-  content_type: string;
-  value: number;
-  currency: string;
-}) {
+export function trackAddToCart(
+  params: {
+    content_name: string;
+    content_ids: string[];
+    content_type: string;
+    value: number;
+    currency: string;
+  },
+  customer?: {
+    email?: string;
+    phone?: string;
+    name?: string;
+  }
+) {
   const eid = generateEventId();
   if (isFbqReady()) window.fbq("track", "AddToCart", params, { eventID: eid });
-  void sendCAPIEvent("AddToCart", eid, params);
+  void sendCAPIEvent("AddToCart", eid, params, customer);
 }
 
 export function trackInitiateCheckout(

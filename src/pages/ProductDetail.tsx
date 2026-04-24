@@ -18,6 +18,7 @@ import { ProductImageGallery } from "@/components/ProductImageGallery";
 import { ReviewForm } from "@/components/ReviewForm";
 import { trackViewContent, trackAddToCart } from "@/lib/meta-pixel";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useProductTranslator } from "@/hooks/use-product-translation";
 import DOMPurify from "dompurify";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -49,6 +50,7 @@ export default function ProductDetailPage() {
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "৳";
   const { addItem } = useCart();
+  const { user } = useAuth();
   
   const navigate = useNavigate();
 
@@ -99,6 +101,10 @@ export default function ProductDetailPage() {
         content_type: "product",
         value: activeTier ? activeTier.price : product.price,
         currency: settings?.currency || "USD",
+      }, {
+        email: user?.email,
+        phone: user?.phone || user?.user_metadata?.phone,
+        name: user?.user_metadata?.display_name || user?.user_metadata?.full_name,
       });
     }
   }, [product?.id]);
@@ -120,6 +126,10 @@ export default function ProductDetailPage() {
       content_type: "product",
       value: price,
       currency: settings?.currency || "USD",
+    }, {
+      email: user?.email,
+      phone: user?.phone || user?.user_metadata?.phone,
+      name: user?.user_metadata?.display_name || user?.user_metadata?.full_name,
     });
     toast({ title: lang === "bn" ? `${product.name} কার্টে যোগ করা হয়েছে` : `${product.name} added to cart` });
   };
