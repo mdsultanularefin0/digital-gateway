@@ -93,22 +93,38 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
       if (referer) { try { origin = new URL(referer).origin; } catch (_e) {} }
     }
 
-    // Detect whether this order belongs to a brand-new account.
-    // We only want to fire `account_created` templates when we actually
-    // created a fresh auth user for this customer in this run.
+    // Auto-create account up-front so the plan resolver knows whether this
+    // is a new account (drives account_created routing). We do this BEFORE
+    // the plan runs so isNewAccount is accurate for the very first order.
+    let autoCreatedPassword = "";
     let isNewAccount = false;
     if (!testSend && !fromOutbox && !explicitTemplateId && order.customer_email) {
       const { data: existingUsers } = await supabase.auth.admin.listUsers();
       const existing = existingUsers?.users?.find(
         (u: any) => u.email?.toLowerCase() === order.customer_email.toLowerCase()
       );
-      // Treat as "new account" only if user was created within the last 5 minutes
-      // (i.e. created as part of this checkout flow, not a returning customer).
-      if (existing?.created_at) {
+      if (!existing) {
+        autoCreatedPassword = generatePassword();
+        const { data: created, error: createErr } = await supabase.auth.admin.createUser({
+          email: order.customer_email,
+          password: autoCreatedPassword,
+          email_confirm: true,
+          user_metadata: { display_name: order.customer_name },
+        });
+        if (!createErr && created?.user) {
+          isNewAccount = true;
+        }
+      } else if (existing.created_at) {
+        // Fallback safety net: still treat very-recently-created users as new.
         const ageMs = Date.now() - new Date(existing.created_at).getTime();
         isNewAccount = ageMs < 5 * 60 * 1000;
       }
     }
+
+    // Order is "paid" only when payment_status === 'paid'. We use this to
+    // gate payment_verified / post_purchase steps so they don't fire on
+    // unpaid orders (e.g. bKash/COD orders awaiting verification).
+    const isPaid = order.payment_status === "paid";
 
     // === PLAN RESOLVER ===
     if (!explicitTemplateId && !fromOutbox && !testSend) {
@@ -152,6 +168,13 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
             skipped.push(step.template_id);
             continue;
           }
+          // Skip payment-dependent emails until the order is actually paid.
+          // The mfs/bkash verification flow re-invokes this function once
+          // payment_status flips to 'paid', at which point these will fire.
+          if ((stepCategory === "payment_verified" || stepCategory === "post_purchase") && !isPaid) {
+            skipped.push(step.template_id);
+            continue;
+          }
           if (step.delay_minutes > 0) {
             // Idempotent enqueue: unique partial index on (order_id, template_id) where status in (pending, sent)
             await supabase.from("email_outbox").upsert({
@@ -190,21 +213,9 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
     // === Templates ===
     const { data: allTemplates } = await supabase.from("product_email_templates").select("*").eq("active", true);
 
-    // Auto-create account
-    let autoCreatedPassword = "";
-    if (!testSend) {
-      const { data: existing } = await supabase.auth.admin.listUsers();
-      const user = existing?.users?.find((u: any) => u.email?.toLowerCase() === order.customer_email.toLowerCase());
-      if (!user && order.customer_email) {
-        autoCreatedPassword = generatePassword();
-        await supabase.auth.admin.createUser({
-          email: order.customer_email,
-          password: autoCreatedPassword,
-          email_confirm: true,
-          user_metadata: { display_name: order.customer_name },
-        });
-      }
-    }
+    // Account auto-creation already happened up-front (see top of handler).
+    // `autoCreatedPassword` is in scope from there for {{password}} substitution.
+
 
     // Deliveries + files + tokens
     const [{ data: deliveries }, { data: files }, { data: tokens }] = await Promise.all([
