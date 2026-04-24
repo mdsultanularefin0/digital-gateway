@@ -75,32 +75,75 @@ async function sha256Hex(input: string): Promise<string> {
     .join("");
 }
 
-/** In-memory user identifiers set after login / checkout */
-let advancedMatch: { email?: string; phone?: string } = {};
+/** Hashed user identifiers set after login / checkout */
+let advancedMatch: { 
+  em?: string; 
+  ph?: string; 
+  fn?: string; 
+  ln?: string;
+  external_id?: string;
+} = {};
 
 /**
- * Set advanced-matching identifiers (email/phone) — call after login or
- * once known on checkout. Values are normalized + hashed before sending.
+ * Set advanced-matching identifiers — call after login or once known on checkout.
+ * Values are normalized + hashed before storing.
  */
-export function setUserIdentifiers(params: { email?: string; phone?: string }) {
-  if (params.email) advancedMatch.email = params.email.trim().toLowerCase();
-  if (params.phone) advancedMatch.phone = params.phone.replace(/[^\d]/g, "");
+export async function setUserIdentifiers(params: { 
+  email?: string; 
+  phone?: string; 
+  firstName?: string; 
+  lastName?: string;
+  externalId?: string;
+}) {
+  if (params.email) advancedMatch.em = await sha256Hex(params.email.trim().toLowerCase());
+  if (params.phone) advancedMatch.ph = await sha256Hex(params.phone.replace(/[^\d]/g, ""));
+  if (params.firstName) advancedMatch.fn = await sha256Hex(params.firstName.trim().toLowerCase());
+  if (params.lastName) advancedMatch.ln = await sha256Hex(params.lastName.trim().toLowerCase());
+  if (params.externalId) advancedMatch.external_id = await sha256Hex(params.externalId);
 }
 
 export function clearUserIdentifiers() {
   advancedMatch = {};
 }
 
-async function buildUserData(): Promise<Record<string, unknown>> {
+async function buildUserData(extra?: {
+  email?: string;
+  phone?: string;
+  name?: string;
+  externalId?: string;
+}): Promise<Record<string, unknown>> {
   const data: Record<string, unknown> = {};
+  
+  // Base signals
   const fbp = getFbp();
   const fbc = getFbc();
-  const externalId = getExternalId();
   if (fbp) data.fbp = fbp;
   if (fbc) data.fbc = fbc;
-  if (externalId) data.external_id = [await sha256Hex(externalId)];
-  if (advancedMatch.email) data.em = [await sha256Hex(advancedMatch.email)];
-  if (advancedMatch.phone) data.ph = [await sha256Hex(advancedMatch.phone)];
+
+  // Merge global advancedMatch with any per-event extras
+  const em = extra?.email ? await sha256Hex(extra.email.trim().toLowerCase()) : advancedMatch.em;
+  const ph = extra?.phone ? await sha256Hex(extra.phone.replace(/[^\d]/g, "")) : advancedMatch.ph;
+  const extId = extra?.externalId ? await sha256Hex(extra.externalId) : advancedMatch.external_id;
+  
+  let fn = advancedMatch.fn;
+  let ln = advancedMatch.ln;
+  
+  if (extra?.name) {
+    const parts = extra.name.trim().split(/\s+/);
+    if (parts.length > 0) fn = await sha256Hex(parts[0].toLowerCase());
+    if (parts.length > 1) ln = await sha256Hex(parts[parts.length - 1].toLowerCase());
+  }
+
+  if (em) data.em = [em];
+  if (ph) data.ph = [ph];
+  if (fn) data.fn = [fn];
+  if (ln) data.ln = [ln];
+  if (extId) data.external_id = [extId];
+  else {
+    const localExtId = getExternalId();
+    if (localExtId) data.external_id = [await sha256Hex(localExtId)];
+  }
+
   return data;
 }
 
@@ -155,13 +198,18 @@ async function sendCAPIEvent(
   eventName: string,
   eventId: string,
   customData?: Record<string, unknown>,
-  extraUserData?: Record<string, unknown>
+  extraUserData?: {
+    email?: string;
+    phone?: string;
+    name?: string;
+    externalId?: string;
+  }
 ) {
   capiQueue = capiQueue.then(async () => {
     try {
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      const baseUserData = await buildUserData();
+      const userData = await buildUserData(extraUserData);
       await fetch(
         `https://${projectId}.supabase.co/functions/v1/capi-event`,
         {
@@ -177,8 +225,7 @@ async function sendCAPIEvent(
             event_source_url: window.location.href,
             user_data: {
               client_user_agent: navigator.userAgent,
-              ...baseUserData,
-              ...extraUserData,
+              ...userData,
             },
             custom_data: customData || undefined,
           }),
@@ -233,14 +280,38 @@ export function trackInitiateCheckout(params: {
   void sendCAPIEvent("InitiateCheckout", eid, params);
 }
 
-export function trackPurchase(params: {
-  content_ids: string[];
-  content_type: string;
-  num_items: number;
-  value: number;
-  currency: string;
-}) {
-  const eid = generateEventId();
-  if (isFbqReady()) window.fbq("track", "Purchase", params, { eventID: eid });
-  void sendCAPIEvent("Purchase", eid, params);
+export function trackPurchase(
+  params: {
+    content_ids: string[];
+    content_type: string;
+    num_items: number;
+    value: number;
+    currency: string;
+  },
+  customer?: {
+    email: string;
+    phone: string;
+    name: string;
+    externalId?: string;
+  }
+) {
+  // Use order_number as eventID for perfect deduplication, fallback to random
+  const eid = customer?.externalId || generateEventId();
+
+  // Browser Pixel: Pass unhashed data if available, fbq handles hashing
+  const matchParams: Record<string, any> = {};
+  if (customer) {
+    matchParams.em = customer.email.trim().toLowerCase();
+    matchParams.ph = customer.phone.replace(/[^\d]/g, "");
+    const parts = customer.name.trim().split(/\s+/);
+    if (parts.length > 0) matchParams.fn = parts[0].toLowerCase();
+    if (parts.length > 1) matchParams.ln = parts[parts.length - 1].toLowerCase();
+    if (customer.externalId) matchParams.external_id = customer.externalId;
+  }
+
+  if (isFbqReady()) {
+    window.fbq("track", "Purchase", params, { eventID: eid });
+  }
+  
+  void sendCAPIEvent("Purchase", eid, params, customer);
 }

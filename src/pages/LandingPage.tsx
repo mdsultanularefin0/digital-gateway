@@ -597,7 +597,18 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
     }
   }, [enabledMethods.join(",")]);
 
-  const update = (key: keyof CheckoutForm, value: string) => setForm((p) => ({ ...p, [key]: value }));
+  const update = (key: keyof CheckoutForm, value: string) => {
+    setForm((p) => ({ ...p, [key]: value }));
+    if (key === "email" && value) setUserIdentifiers({ email: value });
+    if (key === "phone" && value) setUserIdentifiers({ phone: value });
+    if (key === "name" && value) {
+      const parts = value.trim().split(/\s+/);
+      setUserIdentifiers({ 
+        firstName: parts[0], 
+        lastName: parts.length > 1 ? parts[parts.length - 1] : undefined 
+      });
+    }
+  };
 
   const applyCoupon = async () => {
     if (!form.couponCode.trim()) return;
@@ -758,6 +769,11 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
             num_items: 1,
             value: finalTotal,
             currency,
+          }, {
+            email: form.email,
+            phone: form.phone,
+            name: form.name,
+            externalId: order.order_number,
           });
         }
         setPlacedOrderId(order.id);
@@ -775,6 +791,11 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
           num_items: 1,
           value: finalTotal,
           currency,
+        }, {
+          email: form.email,
+          phone: form.phone,
+          name: form.name,
+          externalId: order.order_number,
         });
       }
       setPlacedOrderId(order.id);

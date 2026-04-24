@@ -60,6 +60,13 @@ export function useCheckout() {
     setForm((p) => ({ ...p, [key]: value }));
     if (key === "email" && value) setUserIdentifiers({ email: value });
     if (key === "phone" && value) setUserIdentifiers({ phone: value });
+    if (key === "name" && value) {
+      const parts = value.trim().split(/\s+/);
+      setUserIdentifiers({ 
+        firstName: parts[0], 
+        lastName: parts.length > 1 ? parts[parts.length - 1] : undefined 
+      });
+    }
   };
 
   const applyCoupon = async () => {
@@ -255,6 +262,11 @@ export function useCheckout() {
             content_type: "product",
             num_items: items.reduce((s, i) => s + i.quantity, 0),
             value: total, currency,
+          }, {
+            email: form.email,
+            phone: form.phone,
+            name: form.name,
+            externalId: order.order_number,
           });
         }
         clearCart();
@@ -271,6 +283,11 @@ export function useCheckout() {
         content_type: "product",
         num_items: items.reduce((s, i) => s + i.quantity, 0),
         value: total, currency,
+      }, {
+        email: form.email,
+        phone: form.phone,
+        name: form.name,
+        externalId: order.order_number,
       });
       clearCart();
       setPlacedOrderId(order.id);

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { callEdge } from "@/lib/edge";
+import { supabase } from "@/integrations/supabase/client";
+import { trackPurchase } from "@/lib/meta-pixel";
 
 export default function BkashCallback() {
   const [searchParams] = useSearchParams();
@@ -40,6 +42,29 @@ export default function BkashCallback() {
         if (data.success) {
           setTrxID(data.trxID);
           setStatus("success");
+          
+          // Fetch order details for conversion tracking
+          const { data: order } = await supabase
+            .from("orders")
+            .select("*, order_items(*)")
+            .eq("id", orderId)
+            .single();
+            
+          if (order) {
+            trackPurchase({
+              content_ids: (order.order_items || []).map((i: any) => i.product_id),
+              content_type: "product",
+              num_items: (order.order_items || []).reduce((s: number, i: any) => s + i.quantity, 0),
+              value: order.total,
+              currency: "BDT", // bKash is always BDT
+            }, {
+              email: order.customer_email,
+              phone: order.customer_phone,
+              name: order.customer_name,
+              externalId: order.order_number,
+            });
+          }
+
           // Clear stored bKash data and cart
           localStorage.removeItem("bkash_order_id");
           localStorage.removeItem("bkash_order_number");
