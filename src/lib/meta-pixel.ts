@@ -256,10 +256,14 @@ async function sendCAPIEvent(
 
 // ── Client + Server event helpers ────────────────────────────────────
 
-export function trackPageView() {
+export function trackPageView(customer?: {
+  email?: string;
+  phone?: string;
+  name?: string;
+}) {
   const eid = generateEventId();
   if (isFbqReady()) window.fbq("track", "PageView", {}, { eventID: eid });
-  void sendCAPIEvent("PageView", eid);
+  void sendCAPIEvent("PageView", eid, {}, customer);
 }
 
 export function trackViewContent(
