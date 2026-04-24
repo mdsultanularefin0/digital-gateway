@@ -1,9 +1,18 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Trash2, Undo2, Loader2 } from "lucide-react";
+import { Trash2, Undo2, Loader2, Mail } from "lucide-react";
 import { format } from "date-fns";
 import FulfillmentPanel from "./FulfillmentPanel";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+const EMAIL_TYPES = [
+  { value: "order_confirmation", label: "Order Confirmation" },
+  { value: "payment_verified", label: "Payment Verified" },
+  { value: "post_purchase", label: "Post-Purchase Delivery" },
+  { value: "shipping_update", label: "Shipping Update" },
+  { value: "account_created", label: "Account Created" },
+];
 
 interface OrderDetailProps {
   order: any;
@@ -19,8 +28,29 @@ export default function OrderDetail({ order: o, currencySymbol, onBack, onDelete
   const [refundAmt, setRefundAmt] = useState<string>(String(o.total));
   const [refundReason, setRefundReason] = useState("");
   const [refunding, setRefunding] = useState(false);
+  const [emailType, setEmailType] = useState<string>("order_confirmation");
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   const isBkash = o.payment_method === "bkash" && o.payment_status === "paid";
+
+  const handleSendEmail = async () => {
+    setSendingEmail(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-order-confirmation", {
+        body: { order_id: o.id, type: emailType },
+      });
+      if (error) throw error;
+      if ((data as any)?.success === false) {
+        toast({ title: "Email not sent", description: (data as any)?.reason || "Unknown reason", variant: "destructive" });
+      } else {
+        toast({ title: "Email sent", description: `${EMAIL_TYPES.find(t => t.value === emailType)?.label} → ${o.customer_email}` });
+      }
+    } catch (e: any) {
+      toast({ title: "Send failed", description: e.message || String(e), variant: "destructive" });
+    } finally {
+      setSendingEmail(false);
+    }
+  };
 
   const handleRefund = async () => {
     setRefunding(true);
@@ -175,6 +205,33 @@ export default function OrderDetail({ order: o, currencySymbol, onBack, onDelete
         </div>
 
         <FulfillmentPanel orderId={o.id} paymentStatus={o.payment_status} />
+
+        <div className="rounded-xl border border-border p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Mail className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Send Email Manually</h3>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Use this if the automatic email failed or you need to resend a confirmation to <span className="font-medium">{o.customer_email}</span>.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <select
+              value={emailType}
+              onChange={(e) => setEmailType(e.target.value)}
+              className="h-9 flex-1 rounded-xl border border-border bg-background px-3 text-sm"
+              disabled={sendingEmail}
+            >
+              {EMAIL_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+            <Button size="sm" onClick={handleSendEmail} disabled={sendingEmail || !o.customer_email}>
+              {sendingEmail ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Mail className="h-4 w-4 mr-1" />}
+              Send Now
+            </Button>
+          </div>
+        </div>
+
 
         {o.notes && (
           <div className="rounded-xl border border-border p-4">
