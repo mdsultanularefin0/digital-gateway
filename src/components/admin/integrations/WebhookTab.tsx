@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Webhook, Send, Eye, EyeOff } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface WebhookTabProps {
   settings: Record<string, string>;
@@ -22,20 +23,16 @@ export function WebhookTab({ settings, update }: WebhookTabProps) {
       return;
     }
     try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event: "test",
-          order_id: "test-123",
-          order_number: "ORD-TEST-001",
-          status: "pending",
-          payment_status: "unpaid",
-          timestamp: new Date().toISOString(),
-          ...(settings["webhook_secret"] ? { secret: settings["webhook_secret"] } : {}),
-        }),
+      const { data, error } = await supabase.functions.invoke("order-webhook", {
+        body: { event: "test" },
       });
-      toast({ title: res.ok ? "Webhook test sent successfully" : `Webhook responded with ${res.status}` });
+      
+      if (error) throw error;
+      
+      toast({ 
+        title: data.success ? "Webhook test sent successfully" : "Webhook test failed",
+        description: data.webhook_status ? `External server responded with ${data.webhook_status}` : data.reason
+      });
     } catch (err: any) {
       toast({ title: "Webhook test failed", description: err.message, variant: "destructive" });
     }

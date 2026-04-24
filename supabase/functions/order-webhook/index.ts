@@ -38,10 +38,6 @@ Deno.serve(withLogging("order-webhook", async (req) => {
 
     const { order_id, event } = await req.json();
 
-    if (!order_id) {
-      return json({ error: "order_id is required" }, 400);
-    }
-
     // Check if webhook is configured
     const { data: settingsRows } = await supabase
       .from("site_settings")
@@ -54,6 +50,35 @@ Deno.serve(withLogging("order-webhook", async (req) => {
     const webhookUrl = settings["webhook_url"];
     if (!webhookUrl) {
       return json({ skipped: true, reason: "No webhook URL configured" });
+    }
+
+    // SPECIAL CASE: Test Event
+    if (event === "test") {
+      const testPayload: Record<string, unknown> = {
+        event: "test",
+        order_id: "test-123",
+        order_number: "ORD-TEST-001",
+        status: "pending",
+        payment_status: "unpaid",
+        timestamp: new Date().toISOString(),
+        ...(settings["webhook_secret"] ? { secret: settings["webhook_secret"] } : {}),
+      };
+
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(testPayload),
+      });
+
+      return json({
+        success: true,
+        webhook_status: res.status,
+        event: "test",
+      });
+    }
+
+    if (!order_id) {
+      return json({ error: "order_id is required" }, 400);
     }
 
     // Check if this event type is enabled
