@@ -168,6 +168,13 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
             skipped.push(step.template_id);
             continue;
           }
+          // Skip payment-dependent emails until the order is actually paid.
+          // The mfs/bkash verification flow re-invokes this function once
+          // payment_status flips to 'paid', at which point these will fire.
+          if ((stepCategory === "payment_verified" || stepCategory === "post_purchase") && !isPaid) {
+            skipped.push(step.template_id);
+            continue;
+          }
           if (step.delay_minutes > 0) {
             // Idempotent enqueue: unique partial index on (order_id, template_id) where status in (pending, sent)
             await supabase.from("email_outbox").upsert({
