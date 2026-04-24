@@ -9,6 +9,7 @@ export interface EmailLogEntry {
   status: "sent" | "failed";
   error?: string;
   triggered_by?: string;
+  order_id?: string;
 }
 
 export async function logEmail(svc: any, entry: EmailLogEntry): Promise<void> {
@@ -21,6 +22,7 @@ export async function logEmail(svc: any, entry: EmailLogEntry): Promise<void> {
       status: entry.status,
       error: entry.error || "",
       triggered_by: entry.triggered_by || "system",
+      order_id: entry.order_id,
     });
   } catch (_) { /* swallow */ }
 }
@@ -34,7 +36,7 @@ export async function recentlySent(
   svc: any,
   recipient: string,
   subject: string,
-  windowSeconds = 60,
+  windowSeconds = 3600,
 ): Promise<boolean> {
   try {
     const since = new Date(Date.now() - windowSeconds * 1000).toISOString();

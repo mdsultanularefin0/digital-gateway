@@ -161,11 +161,27 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
         const catById: Record<string, string> = {};
         (tplMeta || []).forEach((t: any) => { catById[t.id] = t.category; });
 
+        // Pre-fetch sent logs for this order within the last hour to prevent duplicates at the plan level.
+        const { data: sentLogs } = await supabase
+          .from("email_logs")
+          .select("purpose")
+          .eq("order_id", workingOrderId)
+          .eq("status", "sent")
+          .gte("created_at", new Date(Date.now() - 3600 * 1000).toISOString());
+        const sentPurposes = new Set((sentLogs || []).map((l: any) => l.purpose));
+
         const enqueued: string[] = [];
         const sentImmediate: string[] = [];
         const skipped: string[] = [];
         for (const step of planRows) {
           const stepCategory = catById[step.template_id] || step.category;
+          
+          // Plan-level deduplication: skip if this purpose was already sent for this order.
+          if (sentPurposes.has(stepCategory)) {
+            skipped.push(`${step.template_id} (already_sent)`);
+            continue;
+          }
+
           // Skip account_created emails when no new account was created in this checkout.
           if (stepCategory === "account_created" && !isNewAccount) {
             skipped.push(step.template_id);
@@ -346,9 +362,9 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
     const recipient = (testSend && overrideRecipient) ? overrideRecipient : order.customer_email;
     const fromAddr = resolveFrom(mailCfg, purposeCategory);
 
-    // Guard against duplicate sends within 60s window (rapid re-triggers)
-    if (!testSend && await recentlySent(supabase, recipient, emailSubject, 60)) {
-      return new Response(JSON.stringify({ success: true, skipped: "duplicate_within_60s" }), { headers: corsHeaders });
+    // Guard against duplicate sends within 1h window (default in email-logger)
+    if (!testSend && await recentlySent(supabase, recipient, emailSubject)) {
+      return new Response(JSON.stringify({ success: true, skipped: "duplicate_within_1h" }), { headers: corsHeaders });
     }
 
     const triggeredBy = fromOutbox ? "outbox" : (testSend ? "test" : `order:${workingOrderId}`);
@@ -364,6 +380,7 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
       await logEmail(supabase, {
         recipient, sender: fromAddr, subject: emailSubject,
         purpose: purposeCategory, status: "sent", triggered_by: triggeredBy,
+        order_id: workingOrderId,
       });
       return new Response(JSON.stringify({ success: true, recipient, test: testSend }), { headers: corsHeaders });
     } catch (sendErr: any) {
@@ -371,6 +388,7 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
         recipient, sender: fromAddr, subject: emailSubject,
         purpose: purposeCategory, status: "failed",
         error: sendErr.message || String(sendErr), triggered_by: triggeredBy,
+        order_id: workingOrderId,
       });
       throw sendErr;
     }
