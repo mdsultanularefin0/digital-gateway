@@ -213,21 +213,9 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
     // === Templates ===
     const { data: allTemplates } = await supabase.from("product_email_templates").select("*").eq("active", true);
 
-    // Auto-create account
-    let autoCreatedPassword = "";
-    if (!testSend) {
-      const { data: existing } = await supabase.auth.admin.listUsers();
-      const user = existing?.users?.find((u: any) => u.email?.toLowerCase() === order.customer_email.toLowerCase());
-      if (!user && order.customer_email) {
-        autoCreatedPassword = generatePassword();
-        await supabase.auth.admin.createUser({
-          email: order.customer_email,
-          password: autoCreatedPassword,
-          email_confirm: true,
-          user_metadata: { display_name: order.customer_name },
-        });
-      }
-    }
+    // Account auto-creation already happened up-front (see top of handler).
+    // `autoCreatedPassword` is in scope from there for {{password}} substitution.
+
 
     // Deliveries + files + tokens
     const [{ data: deliveries }, { data: files }, { data: tokens }] = await Promise.all([
