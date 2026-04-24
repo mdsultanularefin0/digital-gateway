@@ -168,10 +168,17 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
             skipped.push(step.template_id);
             continue;
           }
-          // Skip payment-dependent emails until the order is actually paid.
+          // Skip payment-dependent emails until the order is actually paid AND completed.
+          // order_confirmation, payment_verified, post_purchase all require a paid+completed order.
           // The mfs/bkash verification flow re-invokes this function once
           // payment_status flips to 'paid', at which point these will fire.
-          if ((stepCategory === "payment_verified" || stepCategory === "post_purchase") && !isPaid) {
+          const isCompleted = order.status === "completed";
+          if (
+            (stepCategory === "order_confirmation" ||
+              stepCategory === "payment_verified" ||
+              stepCategory === "post_purchase") &&
+            !(isPaid && isCompleted)
+          ) {
             skipped.push(step.template_id);
             continue;
           }
