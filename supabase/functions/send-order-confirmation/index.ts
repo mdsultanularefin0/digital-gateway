@@ -117,6 +117,7 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
 
       if (planRows.length > 0) {
         const enqueued: string[] = [];
+        const sentImmediate: string[] = [];
         for (const step of planRows) {
           if (step.delay_minutes > 0) {
             // Idempotent enqueue: unique partial index on (order_id, template_id) where status in (pending, sent)
@@ -127,18 +128,29 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
               status: "pending",
             }, { onConflict: "order_id,template_id", ignoreDuplicates: true });
             enqueued.push(step.template_id);
+          } else {
+            // Fire EVERY delay=0 step immediately (not just the first one).
+            // Look up the template's category so the inner call resolves the right body/from-address.
+            const { data: tpl } = await supabase
+              .from("product_email_templates")
+              .select("category")
+              .eq("id", step.template_id)
+              .maybeSingle();
+            const innerResp = await fetch(`${supabaseUrl}/functions/v1/send-order-confirmation`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${serviceKey}` },
+              body: JSON.stringify({
+                order_id: workingOrderId,
+                type: tpl?.category || step.category || emailType,
+                template_id: step.template_id,
+                from_outbox: true,
+              }),
+            });
+            await innerResp.text();
+            sentImmediate.push(step.template_id);
           }
         }
-        const immediate = planRows.find((s) => s.delay_minutes === 0);
-        if (immediate) {
-          const innerResp = await fetch(`${supabaseUrl}/functions/v1/send-order-confirmation`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${serviceKey}` },
-            body: JSON.stringify({ order_id: workingOrderId, type: emailType, template_id: immediate.template_id, from_outbox: true }),
-          });
-          await innerResp.text();
-        }
-        return new Response(JSON.stringify({ success: true, plan: true, enqueued }), { headers: corsHeaders });
+        return new Response(JSON.stringify({ success: true, plan: true, enqueued, sent: sentImmediate }), { headers: corsHeaders });
       }
     }
 
