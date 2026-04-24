@@ -49,9 +49,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         if (newSession?.user) {
-          if (newSession.user.email) setUserIdentifiers({ email: newSession.user.email });
+          const user = newSession.user;
+          const fullName = user.user_metadata?.display_name || user.user_metadata?.full_name || "";
+          const phone = user.phone || user.user_metadata?.phone || "";
+          const parts = fullName.trim().split(/\s+/);
+
+          setUserIdentifiers({ 
+            email: user.email,
+            phone: phone,
+            firstName: parts[0],
+            lastName: parts.length > 1 ? parts[parts.length - 1] : undefined
+          });
+
           setTimeout(async () => {
-            await checkAdmin(newSession.user.id);
+            await checkAdmin(user.id);
             setLoading(false);
           }, 0);
         } else {
@@ -69,8 +80,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
         if (initialSession?.user) {
-          if (initialSession.user.email) setUserIdentifiers({ email: initialSession.user.email });
-          await checkAdmin(initialSession.user.id);
+          const user = initialSession.user;
+          const fullName = user.user_metadata?.display_name || user.user_metadata?.full_name || "";
+          const phone = user.phone || user.user_metadata?.phone || "";
+          const parts = fullName.trim().split(/\s+/);
+          
+          setUserIdentifiers({ 
+            email: user.email,
+            phone: phone,
+            firstName: parts[0],
+            lastName: parts.length > 1 ? parts[parts.length - 1] : undefined
+          });
+          await checkAdmin(user.id);
         }
         setLoading(false);
       }

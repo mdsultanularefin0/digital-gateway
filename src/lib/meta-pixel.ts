@@ -286,15 +286,22 @@ export function trackAddToCart(params: {
   void sendCAPIEvent("AddToCart", eid, params);
 }
 
-export function trackInitiateCheckout(params: {
-  content_ids: string[];
-  num_items: number;
-  value: number;
-  currency: string;
-}) {
+export function trackInitiateCheckout(
+  params: {
+    content_ids: string[];
+    num_items: number;
+    value: number;
+    currency: string;
+  },
+  customer?: {
+    email?: string;
+    phone?: string;
+    name?: string;
+  }
+) {
   const eid = generateEventId();
   if (isFbqReady()) window.fbq("track", "InitiateCheckout", params, { eventID: eid });
-  void sendCAPIEvent("InitiateCheckout", eid, params);
+  void sendCAPIEvent("InitiateCheckout", eid, params, customer);
 }
 
 export function trackPurchase(

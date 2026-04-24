@@ -3,6 +3,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { trackInitiateCheckout, trackPurchase, setUserIdentifiers } from "@/lib/meta-pixel";
 
 export interface CheckoutForm {
@@ -29,9 +30,10 @@ export const emptyCheckoutForm: CheckoutForm = {
 export function useCheckout() {
   const { items, subtotal, clearCart } = useCart();
   const { data: settings } = useSiteSettings();
+  const { user } = useAuth();
   const sym = settings?.currency_symbol || "৳";
   const currency = settings?.currency || "USD";
-
+ 
   const [form, setForm] = useState<CheckoutForm>(emptyCheckoutForm);
   const [discount, setDiscount] = useState(0);
   const [couponApplied, setCouponApplied] = useState<string | null>(null);
@@ -39,10 +41,10 @@ export function useCheckout() {
   const [submitting, setSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState<string | null>(null);
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
-
+ 
   const shippingCost = 0;
   const total = subtotal - discount + shippingCost;
-
+ 
   // Track InitiateCheckout once per mount when cart has items.
   useEffect(() => {
     if (items.length > 0) {
@@ -51,6 +53,10 @@ export function useCheckout() {
         num_items: items.reduce((s, i) => s + i.quantity, 0),
         value: subtotal,
         currency,
+      }, {
+        email: user?.email,
+        phone: user?.phone || user?.user_metadata?.phone,
+        name: user?.user_metadata?.display_name || user?.user_metadata?.full_name,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
