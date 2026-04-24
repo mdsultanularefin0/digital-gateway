@@ -93,6 +93,23 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
       if (referer) { try { origin = new URL(referer).origin; } catch (_e) {} }
     }
 
+    // Detect whether this order belongs to a brand-new account.
+    // We only want to fire `account_created` templates when we actually
+    // created a fresh auth user for this customer in this run.
+    let isNewAccount = false;
+    if (!testSend && !fromOutbox && !explicitTemplateId && order.customer_email) {
+      const { data: existingUsers } = await supabase.auth.admin.listUsers();
+      const existing = existingUsers?.users?.find(
+        (u: any) => u.email?.toLowerCase() === order.customer_email.toLowerCase()
+      );
+      // Treat as "new account" only if user was created within the last 5 minutes
+      // (i.e. created as part of this checkout flow, not a returning customer).
+      if (existing?.created_at) {
+        const ageMs = Date.now() - new Date(existing.created_at).getTime();
+        isNewAccount = ageMs < 5 * 60 * 1000;
+      }
+    }
+
     // === PLAN RESOLVER ===
     if (!explicitTemplateId && !fromOutbox && !testSend) {
       let planRows: any[] = [];
@@ -116,9 +133,25 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
       }
 
       if (planRows.length > 0) {
+        // Pre-fetch categories so we can skip account_created for returning users.
+        const tplIds = planRows.map((r: any) => r.template_id);
+        const { data: tplMeta } = await supabase
+          .from("product_email_templates")
+          .select("id, category")
+          .in("id", tplIds);
+        const catById: Record<string, string> = {};
+        (tplMeta || []).forEach((t: any) => { catById[t.id] = t.category; });
+
         const enqueued: string[] = [];
         const sentImmediate: string[] = [];
+        const skipped: string[] = [];
         for (const step of planRows) {
+          const stepCategory = catById[step.template_id] || step.category;
+          // Skip account_created emails when no new account was created in this checkout.
+          if (stepCategory === "account_created" && !isNewAccount) {
+            skipped.push(step.template_id);
+            continue;
+          }
           if (step.delay_minutes > 0) {
             // Idempotent enqueue: unique partial index on (order_id, template_id) where status in (pending, sent)
             await supabase.from("email_outbox").upsert({
@@ -150,7 +183,7 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
             sentImmediate.push(step.template_id);
           }
         }
-        return new Response(JSON.stringify({ success: true, plan: true, enqueued, sent: sentImmediate }), { headers: corsHeaders });
+        return new Response(JSON.stringify({ success: true, plan: true, enqueued, sent: sentImmediate, skipped }), { headers: corsHeaders });
       }
     }
 
