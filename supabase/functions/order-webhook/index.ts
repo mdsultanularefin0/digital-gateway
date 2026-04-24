@@ -66,7 +66,10 @@ Deno.serve(withLogging("order-webhook", async (req) => {
 
       const res = await fetch(webhookUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          ...(settings["webhook_secret"] ? { "X-Webhook-Secret": settings["webhook_secret"] } : {}),
+        },
         body: JSON.stringify(testPayload),
       });
 
@@ -143,7 +146,10 @@ Deno.serve(withLogging("order-webhook", async (req) => {
     // Send to external webhook URL
     const res = await fetch(webhookUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        ...(settings["webhook_secret"] ? { "X-Webhook-Secret": settings["webhook_secret"] } : {}),
+      },
       body: JSON.stringify(payload),
     });
 
