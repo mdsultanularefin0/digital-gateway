@@ -1,9 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Trash2, Undo2, Loader2 } from "lucide-react";
+import { Trash2, Undo2, Loader2, Mail } from "lucide-react";
 import { format } from "date-fns";
 import FulfillmentPanel from "./FulfillmentPanel";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+const EMAIL_TYPES = [
+  { value: "order_confirmation", label: "Order Confirmation" },
+  { value: "payment_verified", label: "Payment Verified" },
+  { value: "post_purchase", label: "Post-Purchase Delivery" },
+  { value: "shipping_update", label: "Shipping Update" },
+  { value: "account_created", label: "Account Created" },
+];
 
 interface OrderDetailProps {
   order: any;
