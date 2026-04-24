@@ -25,28 +25,45 @@ function getCookie(name: string): string | null {
 
 /** Read _fbp cookie (Browser ID) */
 function getFbp(): string | null {
-  return getCookie("_fbp");
+  const cookie = getCookie("_fbp");
+  if (cookie) return cookie;
+  // If no cookie, Pixel script might not have set it yet or it's blocked.
+  return null;
 }
 
 /**
  * Read _fbc cookie (Click ID). If absent but URL has fbclid, synthesize it
- * per Meta's spec: fb.1.<timestamp>.<fbclid> and persist as cookie.
+ * per Meta's spec: fb.1.<timestamp>.<fbclid>
  */
 function getFbc(): string | null {
   const existing = getCookie("_fbc");
   if (existing) return existing;
+  
   if (typeof window === "undefined") return null;
+  
   try {
-    const params = new URLSearchParams(window.location.search);
-    const fbclid = params.get("fbclid");
-    if (!fbclid) return null;
-    const fbc = `fb.1.${Date.now()}.${fbclid}`;
-    // persist for 90 days
-    document.cookie = `_fbc=${encodeURIComponent(fbc)}; max-age=${60 * 60 * 24 * 90}; path=/; SameSite=Lax`;
-    return fbc;
-  } catch {
-    return null;
+    const url = new URL(window.location.href);
+    const fbclid = url.searchParams.get("fbclid");
+    
+    if (fbclid) {
+      // fb.<subdomain_index>.<creation_time>.<fbclid>
+      // Using '1' for subdomain index (usually correct for top-level)
+      const fbc = `fb.1.${Date.now()}.${fbclid}`;
+      
+      // Try to persist it so it's available on subsequent pages/events
+      try {
+        const domain = window.location.hostname.replace(/^www\./, "");
+        document.cookie = `_fbc=${fbc}; max-age=${60 * 60 * 24 * 90}; path=/; domain=.${domain}; SameSite=Lax`;
+      } catch {
+        // Fallback for local dev or restricted environments
+        document.cookie = `_fbc=${fbc}; max-age=${60 * 60 * 24 * 90}; path=/; SameSite=Lax`;
+      }
+      return fbc;
+    }
+  } catch (e) {
+    console.warn("Error parsing fbc:", e);
   }
+  return null;
 }
 
 /** Stable per-browser external_id stored in localStorage */
