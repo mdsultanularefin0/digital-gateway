@@ -82,6 +82,7 @@ export default function AccountPage() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [senderNumber, setSenderNumber] = useState("");
   const [trxId, setTrxId] = useState("");
+  const [startedPaymentOrderIds, setStartedPaymentOrderIds] = useState<Set<string>>(new Set());
 
   const enabledPaymentMethods = (() => {
     try {
@@ -211,12 +212,29 @@ export default function AccountPage() {
   };
 
   const openPaymentChoices = (order: any) => {
+    if (startedPaymentOrderIds.has(order.id)) return;
     setPaymentChoiceOrderId((current) => (current === order.id ? null : order.id));
     setSelectedPaymentMethod(order.payment_method && enabledPaymentMethods.includes(order.payment_method)
       ? order.payment_method
       : paymentMethods[0]?.value || "");
     setSenderNumber("");
     setTrxId("");
+  };
+
+  const checkOrderStillUnpaid = async (order: any) => {
+    const { data, error } = await supabase
+      .from("orders")
+      .select("payment_status")
+      .eq("id", order.id)
+      .maybeSingle();
+    if (error) throw error;
+    if (data?.payment_status === "paid") {
+      toast({ title: "Order already paid", description: "This order was paid while you were choosing a payment method." });
+      setPaymentChoiceOrderId(null);
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+      return false;
+    }
+    return true;
   };
 
   const handlePayNow = async (order: any, paymentMethod: string) => {
@@ -227,6 +245,8 @@ export default function AccountPage() {
     }
     setPayingOrderId(order.id);
     try {
+      const isStillUnpaid = await checkOrderStillUnpaid(order);
+      if (!isStillUnpaid) return;
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const { data: sessionData } = await supabase.auth.getSession();
@@ -257,6 +277,7 @@ export default function AccountPage() {
           title: data.verified ? "Payment verified" : "Payment submitted",
           description: data.verified ? "Your order is now complete." : "Your payment is pending verification.",
         });
+        setStartedPaymentOrderIds((prev) => new Set(prev).add(order.id));
         setPaymentChoiceOrderId(null);
         queryClient.invalidateQueries({ queryKey: ["my-orders"] });
         return;
@@ -274,6 +295,7 @@ export default function AccountPage() {
       });
       const data = await res.json();
       if (!res.ok || !data.bkashURL) throw new Error(data.error || "Failed to start payment");
+      setStartedPaymentOrderIds((prev) => new Set(prev).add(order.id));
       localStorage.setItem("bkash_order_id", order.id);
       localStorage.setItem("bkash_order_number", order.order_number);
       window.location.href = data.bkashURL;
