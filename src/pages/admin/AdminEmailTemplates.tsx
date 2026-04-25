@@ -103,6 +103,7 @@ export default function AdminEmailTemplates() {
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [view, setView] = useState<"templates" | "plans">("templates");
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [paymentReminderDelay, setPaymentReminderDelay] = useState(30);
 
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ["admin-email-templates"],
@@ -125,6 +126,19 @@ export default function AdminEmailTemplates() {
         .order("name");
       if (error) throw error;
       return data as Product[];
+    },
+  });
+
+  const { data: sendPlanRows = [] } = useQuery({
+    queryKey: ["admin-email-send-plan-global"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("email_send_plan")
+        .select("id, category, template_id, delay_minutes, enabled")
+        .is("product_id", null)
+        .order("step_order");
+      if (error) throw error;
+      return data || [];
     },
   });
 
@@ -178,6 +192,60 @@ export default function AdminEmailTemplates() {
     },
   });
 
+  const createPaymentReminderMutation = useMutation({
+    mutationFn: async () => {
+      const existing = templates.find((t) => t.category === "payment_reminder");
+      let templateId = existing?.id;
+      if (existing) {
+        const { error } = await supabase
+          .from("product_email_templates")
+          .update({ active: true, is_global: true, product_id: null })
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from("product_email_templates")
+          .insert({
+            product_id: null,
+            name: "Payment Reminder",
+            subject: "Complete your payment for {{order_number}}",
+            category: "payment_reminder",
+            is_global: true,
+            active: true,
+            body_html: `<p>Hi {{customer_name}},</p><p>Your order <strong>{{order_number}}</strong> for <strong>{{order_total}}</strong> is waiting for payment.</p><p>Product: {{product_name}}</p><p>Payment method: {{payment_method}}</p><p><a href="{{payment_link}}" style="display:inline-block;background:#0ea5e9;color:#ffffff;padding:12px 18px;border-radius:8px;text-decoration:none;font-weight:600;">Complete Payment</a></p><p>You can also sign in here: <a href="{{magic_link}}">{{magic_link}}</a></p>`,
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        templateId = data.id;
+      }
+      if (!templateId) throw new Error("Payment Reminder template could not be created");
+      const alreadyPlanned = sendPlanRows.some((row: any) => row.template_id === templateId || row.category === "payment_reminder");
+      if (!alreadyPlanned) {
+        const { count } = await supabase
+          .from("email_send_plan")
+          .select("id", { count: "exact", head: true })
+          .is("product_id", null);
+        const { error } = await supabase.from("email_send_plan").insert({
+          product_id: null,
+          category: "payment_reminder",
+          template_id: templateId,
+          step_order: count || 0,
+          delay_minutes: Math.max(1, paymentReminderDelay || 30),
+          enabled: true,
+        });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-email-templates"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-email-send-plan-global"] });
+      queryClient.invalidateQueries({ queryKey: ["email-send-plan"] });
+      toast({ title: "Payment Reminder activated", description: "It will send only while the order is unpaid." });
+    },
+    onError: (err: any) => toast({ title: "Setup failed", description: err.message, variant: "destructive" }),
+  });
+
   const openEditor = (template?: EmailTemplate) => {
     if (template) {
       setEditing(template);
@@ -214,6 +282,10 @@ export default function AdminEmailTemplates() {
   const filteredTemplates = activeCategory === "all"
     ? templates
     : templates.filter((t) => (t.category || "post_purchase") === activeCategory);
+  const requiredCategories = ["account_created", "payment_reminder", "payment_verified", "order_confirmation"];
+  const missingCategories = requiredCategories.filter((category) => !templates.some((t) => t.category === category));
+  const paymentReminderTemplate = templates.find((t) => t.category === "payment_reminder");
+  const paymentReminderPlan = sendPlanRows.find((row: any) => row.category === "payment_reminder" || row.template_id === paymentReminderTemplate?.id);
 
   if (isLoading) {
     return (
@@ -412,6 +484,48 @@ export default function AdminEmailTemplates() {
           <EmailSendPlanEditor />
         ) : (
         <>
+        <div className="rounded-xl border border-border p-4 space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h3 className="text-sm font-semibold">Lifecycle template setup</h3>
+              <p className="text-xs text-muted-foreground">Payment Reminder condition: sends only while payment status is unpaid; paid orders are skipped automatically.</p>
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs">
+              {requiredCategories.map((category) => {
+                const info = getCategoryInfo(category);
+                const exists = !missingCategories.includes(category);
+                return (
+                  <span key={category} className={`rounded-full border px-2 py-1 ${exists ? "border-primary/30 bg-primary/10 text-primary" : "border-destructive/30 bg-destructive/10 text-destructive"}`}>
+                    {info.label}: {exists ? "Ready" : "Missing"}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Payment Reminder delay</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={1}
+                  value={paymentReminderDelay}
+                  onChange={(e) => setPaymentReminderDelay(parseInt(e.target.value || "30"))}
+                  className="h-9 max-w-28 text-sm"
+                />
+                <span className="text-xs text-muted-foreground">minutes after order placement</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Current status: {paymentReminderTemplate ? "template active" : "template missing"}; {paymentReminderPlan ? `scheduled after ${paymentReminderPlan.delay_minutes} minutes` : "not scheduled"}.
+              </p>
+            </div>
+            <Button onClick={() => createPaymentReminderMutation.mutate()} disabled={createPaymentReminderMutation.isPending} className="gap-2">
+              <Clock className="h-4 w-4" /> {paymentReminderTemplate && paymentReminderPlan ? "Reactivate Reminder" : "Create & Activate Reminder"}
+            </Button>
+          </div>
+        </div>
+
         {/* Category filter tabs */}
         <div className="flex flex-wrap gap-2">
           <button
