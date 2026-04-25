@@ -103,6 +103,7 @@ export default function AdminEmailTemplates() {
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [view, setView] = useState<"templates" | "plans">("templates");
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [paymentReminderDelay, setPaymentReminderDelay] = useState(30);
 
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ["admin-email-templates"],
@@ -125,6 +126,19 @@ export default function AdminEmailTemplates() {
         .order("name");
       if (error) throw error;
       return data as Product[];
+    },
+  });
+
+  const { data: sendPlanRows = [] } = useQuery({
+    queryKey: ["admin-email-send-plan-global"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("email_send_plan")
+        .select("id, category, template_id, delay_minutes, enabled")
+        .is("product_id", null)
+        .order("step_order");
+      if (error) throw error;
+      return data || [];
     },
   });
 
