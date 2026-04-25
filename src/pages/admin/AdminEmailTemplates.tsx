@@ -282,6 +282,10 @@ export default function AdminEmailTemplates() {
   const filteredTemplates = activeCategory === "all"
     ? templates
     : templates.filter((t) => (t.category || "post_purchase") === activeCategory);
+  const requiredCategories = ["account_created", "payment_reminder", "payment_verified", "order_confirmation"];
+  const missingCategories = requiredCategories.filter((category) => !templates.some((t) => t.category === category));
+  const paymentReminderTemplate = templates.find((t) => t.category === "payment_reminder");
+  const paymentReminderPlan = sendPlanRows.find((row: any) => row.category === "payment_reminder" || row.template_id === paymentReminderTemplate?.id);
 
   if (isLoading) {
     return (
