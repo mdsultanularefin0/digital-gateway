@@ -34,8 +34,17 @@ function getCookie(name: string): string | null {
 function getFbp(): string | null {
   const cookie = getCookie("_fbp");
   if (cookie) return cookie;
-  // If no cookie, Pixel script might not have set it yet or it's blocked.
-  return null;
+
+  if (typeof window === "undefined") return null;
+
+  const fbp = `fb.1.${Date.now()}.${Math.floor(Math.random() * 10 ** 10)}`;
+  try {
+    const domain = window.location.hostname.replace(/^www\./, "");
+    document.cookie = `_fbp=${fbp}; max-age=${60 * 60 * 24 * 90}; path=/; domain=.${domain}; SameSite=Lax`;
+  } catch {
+    document.cookie = `_fbp=${fbp}; max-age=${60 * 60 * 24 * 90}; path=/; SameSite=Lax`;
+  }
+  return fbp;
 }
 
 /**
@@ -92,9 +101,11 @@ function getExternalId(): string | null {
 
 function buildBrowserMatchParams(customer?: CustomerData): Record<string, string> {
   const matchParams: Record<string, string> = {};
+  const localExtId = getExternalId();
+  if (localExtId) matchParams.external_id = localExtId;
   if (!customer) return matchParams;
-  if (customer.email) matchParams.em = customer.email.trim().toLowerCase();
-  if (customer.phone) matchParams.ph = customer.phone.replace(/[^\d]/g, "");
+  if (customer.email && customer.email.includes("@")) matchParams.em = customer.email.trim().toLowerCase();
+  if (customer.phone && customer.phone.replace(/[^\d]/g, "").length >= 7) matchParams.ph = customer.phone.replace(/[^\d]/g, "");
   if (customer.name) {
     const parts = customer.name.trim().split(/\s+/);
     if (parts.length > 0) matchParams.fn = parts[0].toLowerCase();
@@ -168,7 +179,8 @@ async function buildUserData(extra?: {
 
   // Merge global advancedMatch with any per-event extras
   const em = extra?.email ? await sha256Hex(extra.email.trim().toLowerCase()) : advancedMatch.em;
-  const ph = extra?.phone ? await sha256Hex(extra.phone.replace(/[^\d]/g, "")) : advancedMatch.ph;
+  const phone = extra?.phone?.replace(/[^\d]/g, "") || "";
+  const ph = phone.length >= 7 ? await sha256Hex(phone) : advancedMatch.ph;
   const extId = extra?.externalId ? await sha256Hex(extra.externalId) : advancedMatch.external_id;
   
   let fn = advancedMatch.fn;
@@ -228,6 +240,7 @@ export function initMetaPixel(id: string, customer?: CustomerData) {
 
   // Ensure _fbc gets seeded from any fbclid in the landing URL
   getFbc();
+  getFbp();
 
   const matchParams = buildBrowserMatchParams(customer);
   window.fbq("init", id, Object.keys(matchParams).length > 0 ? matchParams : undefined);
@@ -394,6 +407,7 @@ export function trackInitiateCheckout(
   }
 ) {
   const eid = generateEventId("InitiateCheckout");
+  syncBrowserIdentifiers(customer);
   if (isFbqReady()) window.fbq("track", "InitiateCheckout", params, { eventID: eid });
   void sendCAPIEvent("InitiateCheckout", eid, params, customer);
 }

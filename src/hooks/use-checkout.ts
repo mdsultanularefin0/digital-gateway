@@ -46,12 +46,23 @@ export function useCheckout() {
   const shippingCost = 0;
   const total = subtotal - discount + shippingCost;
  
-  // Track InitiateCheckout once, preferring customer identifiers when available.
+  // Track InitiateCheckout once, after collecting useful match identifiers when possible.
   useEffect(() => {
     if (items.length === 0 || initiateCheckoutTracked.current) return;
 
     const sendInitiateCheckout = () => {
       if (initiateCheckoutTracked.current) return;
+      const fullName = form.name || user?.user_metadata?.display_name || user?.user_metadata?.full_name || "";
+      const parts = fullName.trim().split(/\s+/).filter(Boolean);
+
+      setUserIdentifiers({
+        email: form.email || user?.email,
+        phone: form.phone || user?.phone || user?.user_metadata?.phone,
+        firstName: parts[0],
+        lastName: parts.length > 1 ? parts[parts.length - 1] : undefined,
+        externalId: user?.id,
+      });
+
       initiateCheckoutTracked.current = true;
       trackInitiateCheckout({
         content_ids: items.map((i) => i.productId),
@@ -61,7 +72,7 @@ export function useCheckout() {
       }, {
         email: form.email || user?.email,
         phone: form.phone || user?.phone || user?.user_metadata?.phone,
-        name: form.name || user?.user_metadata?.display_name || user?.user_metadata?.full_name,
+        name: fullName,
         externalId: user?.id,
       });
     };
@@ -70,13 +81,16 @@ export function useCheckout() {
       !!user?.email ||
       form.email.includes("@") ||
       form.phone.replace(/\D/g, "").length >= 7;
+    const hasFullName =
+      !!(user?.user_metadata?.display_name || user?.user_metadata?.full_name) ||
+      form.name.trim().split(/\s+/).filter(Boolean).length >= 2;
 
-    if (hasUsableContact) {
+    if (hasUsableContact && hasFullName) {
       sendInitiateCheckout();
       return;
     }
 
-    const fallback = window.setTimeout(sendInitiateCheckout, 4000);
+    const fallback = window.setTimeout(sendInitiateCheckout, 9000);
     return () => window.clearTimeout(fallback);
   }, [items, subtotal, currency, form.email, form.phone, form.name, user]);
 
