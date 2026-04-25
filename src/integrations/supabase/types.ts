@@ -1672,6 +1672,23 @@ export type Database = {
     }
     Functions: {
       auto_fulfill_order: { Args: { _order_id: string }; Returns: undefined }
+      create_checkout_order: {
+        Args: {
+          _coupon_code: string
+          _customer_email: string
+          _customer_name: string
+          _customer_phone: string
+          _discount: number
+          _items: Json
+          _notes: string
+          _payment_method: string
+          _shipping_address: string
+          _shipping_cost: number
+          _subtotal: number
+          _total: number
+        }
+        Returns: Json
+      }
       generate_download_tokens: {
         Args: { _order_id: string }
         Returns: undefined

@@ -135,62 +135,27 @@ export function useCheckout() {
     try {
       const customerEmail = form.email.trim().toLowerCase();
 
-      // Validate product IDs before creating the order so guest checkout does not
-      // need to delete an order it cannot manage under RLS.
-      const productIds = Array.from(new Set(items.map((i) => i.productId)));
-      const { data: validProducts, error: prodErr } = await supabase
-        .from("products")
-        .select("id")
-        .in("id", productIds);
-      if (prodErr) throw prodErr;
-      const validIds = new Set((validProducts || []).map((p) => p.id));
-      const missing = items.filter((i) => !validIds.has(i.productId));
-      if (missing.length > 0) {
-        clearCart();
-        throw new Error(
-          `Some items in your cart are no longer available (${missing.map((m) => m.productName).join(", ")}). Your cart has been cleared — please add products again.`
-        );
-      }
-
-      const { data: customerId, error: custErr } = await supabase.rpc("upsert_checkout_customer", {
-        _email: customerEmail, _name: form.name, _phone: form.phone, _address: form.address,
+      const { data: createdOrder, error: createErr } = await (supabase as any).rpc("create_checkout_order", {
+        _customer_name: form.name,
+        _customer_email: customerEmail,
+        _customer_phone: form.phone,
+        _shipping_address: form.address,
+        _subtotal: subtotal,
+        _discount: discount,
+        _shipping_cost: shippingCost,
+        _total: total,
+        _payment_method: form.paymentMethod,
+        _coupon_code: couponApplied,
+        _notes: form.notes,
+        _items: items.map((item) => ({
+          product_id: item.productId,
+          tier_id: item.tierId,
+          tier_label: item.tierLabel,
+          quantity: item.quantity,
+        })),
       });
-      if (custErr) throw custErr;
-
-      const orderId = crypto.randomUUID();
-      const orderNumber = `ORD-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${orderId.slice(0, 8)}`;
-
-      const { error: orderErr } = await supabase
-        .from("orders")
-        .insert({
-          id: orderId,
-          order_number: orderNumber,
-          customer_id: customerId,
-          customer_name: form.name,
-          customer_email: customerEmail,
-          customer_phone: form.phone,
-          shipping_address: form.address,
-          subtotal, discount, shipping_cost: shippingCost, total,
-          payment_method: form.paymentMethod,
-          coupon_code: couponApplied,
-          notes: form.notes,
-          status: "pending",
-          payment_status: "unpaid",
-        });
-      if (orderErr) throw orderErr;
-      const order = { id: orderId, order_number: orderNumber };
-
-      const orderItems = items.map((item) => ({
-        order_id: order.id,
-        product_id: item.productId,
-        product_name: item.productName,
-        tier_label: item.tierLabel,
-        quantity: item.quantity,
-        unit_price: item.price,
-        total: item.price * item.quantity,
-      }));
-      const { error: itemsErr } = await supabase.from("order_items").insert(orderItems);
-      if (itemsErr) throw itemsErr;
+      if (createErr) throw createErr;
+      const order = createdOrder as { id: string; order_number: string };
 
       // Referral attribution if cookie set
       const refCode = (typeof document !== "undefined" && document.cookie.match(/ref_code=([^;]+)/)?.[1]) || "";
