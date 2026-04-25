@@ -413,11 +413,55 @@ export default function AccountPage() {
                           <Eye className="h-4 w-4" /> {isSelected ? "Hide details" : "View order"}
                         </Button>
                         {canPay && (
-                          <Button size="sm" variant="gradient" onClick={() => handlePayNow(o)} disabled={payingOrderId === o.id}>
-                            <CreditCard className="h-4 w-4" /> {payingOrderId === o.id ? "Starting..." : "Pay Now"}
+                          <Button size="sm" variant="gradient" onClick={() => openPaymentChoices(o)} disabled={payingOrderId === o.id}>
+                            <CreditCard className="h-4 w-4" /> {paymentChoiceOrderId === o.id ? "Hide payment" : "Pay Now"}
                           </Button>
                         )}
                       </div>
+                      {canPay && paymentChoiceOrderId === o.id && (
+                        <div className="mt-4 rounded-lg border border-border bg-background/60 p-3 sm:p-4 text-sm space-y-3">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Choose Payment Method</p>
+                          <div className="space-y-2">
+                            {paymentMethods.length === 0 && <p className="text-sm text-muted-foreground">No payment methods available.</p>}
+                            {paymentMethods.map((m) => (
+                              <label key={m.value} className={`flex items-center gap-2.5 sm:gap-3 rounded-xl border p-2.5 sm:p-3 cursor-pointer transition-colors ${selectedPaymentMethod === m.value ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"}`}>
+                                <input type="radio" name={`payment-${o.id}`} value={m.value} checked={selectedPaymentMethod === m.value} onChange={(e) => setSelectedPaymentMethod(e.target.value)} className="h-4 w-4 accent-primary shrink-0" />
+                                <img src={m.logo} alt={m.label} className="h-6 w-6 sm:h-7 sm:w-7 object-contain rounded shrink-0" loading="lazy" width={28} height={28} />
+                                <span className="text-xs sm:text-sm font-medium truncate">{m.label}</span>
+                              </label>
+                            ))}
+                          </div>
+
+                          {(selectedPaymentMethod === "bkash_send" || selectedPaymentMethod === "nagad_send") && (
+                            <SendMoneyPanel
+                              provider={selectedPaymentMethod}
+                              amount={Number(o.total)}
+                              currencySymbol={currencySymbol}
+                              senderNumber={senderNumber}
+                              trxId={trxId}
+                              onSenderChange={setSenderNumber}
+                              onTrxIdChange={setTrxId}
+                              settings={settings}
+                            />
+                          )}
+
+                          {selectedPaymentMethod && !["bkash", "bkash_send", "nagad_send"].includes(selectedPaymentMethod) && (
+                            <p className="rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+                              This payment method can be selected at checkout, but online retry is only available for bKash PGW, bKash Send Money, and Nagad Send Money.
+                            </p>
+                          )}
+
+                          <Button
+                            size="sm"
+                            variant="gradient"
+                            onClick={() => handlePayNow(o, selectedPaymentMethod)}
+                            disabled={payingOrderId === o.id || !selectedPaymentMethod || !["bkash", "bkash_send", "nagad_send"].includes(selectedPaymentMethod)}
+                          >
+                            {payingOrderId === o.id && <Loader2 className="h-4 w-4 animate-spin" />}
+                            {payingOrderId === o.id ? "Processing..." : "Continue Payment"}
+                          </Button>
+                        </div>
+                      )}
                       {isSelected && (
                         <div className="mt-4 rounded-lg border border-border bg-background/60 p-4 text-sm">
                           <div className="grid gap-3 sm:grid-cols-2">
