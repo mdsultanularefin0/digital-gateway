@@ -83,6 +83,7 @@ export default function AccountPage() {
   const [senderNumber, setSenderNumber] = useState("");
   const [trxId, setTrxId] = useState("");
   const [startedPaymentOrderIds, setStartedPaymentOrderIds] = useState<Set<string>>(new Set());
+  const [confirmPaymentOrderId, setConfirmPaymentOrderId] = useState<string | null>(null);
 
   const enabledPaymentMethods = (() => {
     try {
@@ -219,6 +220,7 @@ export default function AccountPage() {
       : paymentMethods[0]?.value || "");
     setSenderNumber("");
     setTrxId("");
+    setConfirmPaymentOrderId(null);
   };
 
   const checkOrderStillUnpaid = async (order: any) => {
