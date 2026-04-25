@@ -89,6 +89,11 @@ const statusConfig: Record<string, { icon: typeof CheckCircle2; color: string; l
   Failed: { icon: XCircle, color: "text-destructive", label: "Failed" },
 };
 
+const collectionConfig: Record<"collected" | "pending", { color: string; trigger: string }> = {
+  collected: { color: "text-success", trigger: "border-success/30 bg-success/10 text-success" },
+  pending: { color: "text-warning", trigger: "border-warning/30 bg-warning/10 text-warning" },
+};
+
 export default function AdminBkashTransactions() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -405,12 +410,16 @@ export default function AdminBkashTransactions() {
                             }
                             disabled={collectionMutation.isPending}
                           >
-                            <SelectTrigger className="h-8 w-[120px] text-xs">
+                            <SelectTrigger className={`h-8 w-[120px] text-xs font-medium ${collectionConfig[t.collectionStatus].trigger}`}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="pending">Pending</SelectItem>
-                              <SelectItem value="collected">Collected</SelectItem>
+                              <SelectItem value="pending">
+                                <span className={collectionConfig.pending.color}>Pending</span>
+                              </SelectItem>
+                              <SelectItem value="collected">
+                                <span className={collectionConfig.collected.color}>Collected</span>
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </td>
