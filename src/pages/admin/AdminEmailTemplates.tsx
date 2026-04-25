@@ -484,6 +484,48 @@ export default function AdminEmailTemplates() {
           <EmailSendPlanEditor />
         ) : (
         <>
+        <div className="rounded-xl border border-border p-4 space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h3 className="text-sm font-semibold">Lifecycle template setup</h3>
+              <p className="text-xs text-muted-foreground">Payment Reminder condition: sends only while payment status is unpaid; paid orders are skipped automatically.</p>
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs">
+              {requiredCategories.map((category) => {
+                const info = getCategoryInfo(category);
+                const exists = !missingCategories.includes(category);
+                return (
+                  <span key={category} className={`rounded-full border px-2 py-1 ${exists ? "border-primary/30 bg-primary/10 text-primary" : "border-destructive/30 bg-destructive/10 text-destructive"}`}>
+                    {info.label}: {exists ? "Ready" : "Missing"}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Payment Reminder delay</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={1}
+                  value={paymentReminderDelay}
+                  onChange={(e) => setPaymentReminderDelay(parseInt(e.target.value || "30"))}
+                  className="h-9 max-w-28 text-sm"
+                />
+                <span className="text-xs text-muted-foreground">minutes after order placement</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Current status: {paymentReminderTemplate ? "template active" : "template missing"}; {paymentReminderPlan ? `scheduled after ${paymentReminderPlan.delay_minutes} minutes` : "not scheduled"}.
+              </p>
+            </div>
+            <Button onClick={() => createPaymentReminderMutation.mutate()} disabled={createPaymentReminderMutation.isPending} className="gap-2">
+              <Clock className="h-4 w-4" /> {paymentReminderTemplate && paymentReminderPlan ? "Reactivate Reminder" : "Create & Activate Reminder"}
+            </Button>
+          </div>
+        </div>
+
         {/* Category filter tabs */}
         <div className="flex flex-wrap gap-2">
           <button
