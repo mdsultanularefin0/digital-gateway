@@ -298,7 +298,7 @@ function queuePendingPurchase(payload: {
 }) {
   try {
     const key = "pending-meta-purchases";
-    const existing = JSON.parse(localStorage.getItem(key) || "[]") as typeof payload[];
+    const existing = JSON.parse(localStorage.getItem(key) || "[]") as Array<typeof payload>;
     const next = [payload, ...existing.filter((item) => item.eventId !== payload.eventId)].slice(0, 10);
     localStorage.setItem(key, JSON.stringify(next));
   } catch {
