@@ -21,6 +21,7 @@ const CATEGORY_TO_FROM: Record<string, string> = {
   // orders / commerce
   order_confirmation: "from_orders",
   payment_verified: "from_orders",
+  payment_reminder: "from_orders",
   post_purchase: "from_orders",
   shipping: "from_orders",
   refund: "from_orders",

@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 const EMAIL_TYPES = [
   { value: "order_confirmation", label: "Order Confirmation" },
   { value: "payment_verified", label: "Payment Verified" },
+  { value: "payment_reminder", label: "Payment Reminder" },
   { value: "post_purchase", label: "Post-Purchase Delivery" },
   { value: "shipping_update", label: "Shipping Update" },
   { value: "account_created", label: "Account Created" },
