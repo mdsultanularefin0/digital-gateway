@@ -11,10 +11,34 @@ import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Navigate, useParams, useSearchParams } from "react-router-dom";
 import {
-  Package, MapPin, User, Settings, Save, LogOut, Download, Lock, Mail, CreditCard, Eye,
+  Package, MapPin, User, Settings, Save, LogOut, Download, Lock, Mail, CreditCard, Eye, Loader2,
 } from "lucide-react";
 import { DownloadLinks } from "@/components/DownloadLinks";
 import { CustomerDeliveries } from "@/components/CustomerDeliveries";
+import { SendMoneyPanel } from "@/components/SendMoneyPanel";
+import paymentBkash from "@/assets/payment-bkash.png";
+import paymentNagad from "@/assets/payment-nagad.png";
+import paymentCod from "@/assets/payment-cod.png";
+import paymentBank from "@/assets/payment-bank.png";
+import paymentStripe from "@/assets/payment-stripe.png";
+
+const DEFAULT_LOGOS: Record<string, string> = {
+  cod: paymentCod,
+  bkash: paymentBkash,
+  bkash_send: paymentBkash,
+  nagad_send: paymentNagad,
+  bank: paymentBank,
+  stripe: paymentStripe,
+};
+
+const ALL_PAYMENT_METHODS = [
+  { value: "cod", label: "Cash on Delivery" },
+  { value: "bkash", label: "bKash (PGW)" },
+  { value: "bkash_send", label: "bKash Send Money" },
+  { value: "nagad_send", label: "Nagad Send Money" },
+  { value: "bank", label: "Bank Transfer" },
+  { value: "stripe", label: "Credit/Debit Card" },
+];
 
 async function resendDownloadEmail(orderId: string) {
   const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
@@ -54,6 +78,24 @@ export default function AccountPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedOrderId = routeOrderId || searchParams.get("order");
   const [payingOrderId, setPayingOrderId] = useState<string | null>(null);
+  const [paymentChoiceOrderId, setPaymentChoiceOrderId] = useState<string | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
+  const [senderNumber, setSenderNumber] = useState("");
+  const [trxId, setTrxId] = useState("");
+
+  const enabledPaymentMethods = (() => {
+    try {
+      const raw = settings?.payment_methods as string | undefined;
+      if (raw) return JSON.parse(raw) as string[];
+    } catch {}
+    return ["cod"];
+  })();
+
+  const paymentMethods = ALL_PAYMENT_METHODS.filter((m) => enabledPaymentMethods.includes(m.value)).map((m) => ({
+    ...m,
+    label: (settings as any)?.[`payment_label_${m.value}`] || m.label,
+    logo: (settings as any)?.[`payment_logo_${m.value}`] || DEFAULT_LOGOS[m.value],
+  }));
 
   const { data: orders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ["my-orders", user?.email],
