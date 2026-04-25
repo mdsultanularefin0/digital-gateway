@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { Navigate, useSearchParams } from "react-router-dom";
+import { Navigate, useParams, useSearchParams } from "react-router-dom";
 import {
   Package, MapPin, User, Settings, Save, LogOut, Download, Lock, Mail, CreditCard, Eye,
 } from "lucide-react";
@@ -50,8 +50,9 @@ export default function AccountPage() {
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "৳";
   const [tab, setTab] = useState<Tab>("orders");
+  const { orderId: routeOrderId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const selectedOrderId = searchParams.get("order");
+  const selectedOrderId = routeOrderId || searchParams.get("order");
   const [payingOrderId, setPayingOrderId] = useState<string | null>(null);
 
   const { data: orders = [], isLoading: ordersLoading } = useQuery({
