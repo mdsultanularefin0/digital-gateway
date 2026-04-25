@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,26 +41,44 @@ export function useCheckout() {
   const [submitting, setSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState<string | null>(null);
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
+  const initiateCheckoutTracked = useRef(false);
  
   const shippingCost = 0;
   const total = subtotal - discount + shippingCost;
  
-  // Track InitiateCheckout once per mount when cart has items.
+  // Track InitiateCheckout once, preferring customer identifiers when available.
   useEffect(() => {
-    if (items.length > 0) {
+    if (items.length === 0 || initiateCheckoutTracked.current) return;
+
+    const sendInitiateCheckout = () => {
+      if (initiateCheckoutTracked.current) return;
+      initiateCheckoutTracked.current = true;
       trackInitiateCheckout({
         content_ids: items.map((i) => i.productId),
         num_items: items.reduce((s, i) => s + i.quantity, 0),
         value: subtotal,
         currency,
       }, {
-        email: user?.email,
-        phone: user?.phone || user?.user_metadata?.phone,
-        name: user?.user_metadata?.display_name || user?.user_metadata?.full_name,
+        email: form.email || user?.email,
+        phone: form.phone || user?.phone || user?.user_metadata?.phone,
+        name: form.name || user?.user_metadata?.display_name || user?.user_metadata?.full_name,
+        externalId: user?.id,
       });
+    };
+
+    const hasUsableContact =
+      !!user?.email ||
+      form.email.includes("@") ||
+      form.phone.replace(/\D/g, "").length >= 7;
+
+    if (hasUsableContact) {
+      sendInitiateCheckout();
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+    const fallback = window.setTimeout(sendInitiateCheckout, 4000);
+    return () => window.clearTimeout(fallback);
+  }, [items, subtotal, currency, form.email, form.phone, form.name, user]);
 
   const update = (key: keyof CheckoutForm, value: string) => {
     setForm((p) => ({ ...p, [key]: value }));

@@ -260,6 +260,7 @@ export function trackPageView(customer?: {
   email?: string;
   phone?: string;
   name?: string;
+  externalId?: string;
 }) {
   const eid = generateEventId();
   if (isFbqReady()) window.fbq("track", "PageView", {}, { eventID: eid });
@@ -278,6 +279,7 @@ export function trackViewContent(
     email?: string;
     phone?: string;
     name?: string;
+    externalId?: string;
   }
 ) {
   const eid = generateEventId();
@@ -297,6 +299,7 @@ export function trackAddToCart(
     email?: string;
     phone?: string;
     name?: string;
+    externalId?: string;
   }
 ) {
   const eid = generateEventId();
@@ -315,6 +318,7 @@ export function trackInitiateCheckout(
     email?: string;
     phone?: string;
     name?: string;
+    externalId?: string;
   }
 ) {
   const eid = generateEventId();
