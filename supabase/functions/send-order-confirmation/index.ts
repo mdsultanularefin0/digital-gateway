@@ -49,6 +49,7 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
     const fromOutbox: boolean = !!body.from_outbox;
     const testSend: boolean = !!body.test_send;
     const overrideRecipient: string | undefined = body.override_recipient;
+    const manualSend: boolean = !!body.manual_send;
     // Password forwarded from the outer plan-resolver call so inner
     // recursive calls can substitute {{password}} correctly.
     const forwardedPassword: string = body.auto_created_password || "";
@@ -86,6 +87,10 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
 
     const { data: order } = await supabase.from("orders").select("*").eq("id", workingOrderId).single();
     if (!order) return new Response(JSON.stringify({ error: "Order not found" }), { status: 404, headers: corsHeaders });
+
+    if (!testSend && emailType === "payment_reminder" && order.payment_status === "paid") {
+      return new Response(JSON.stringify({ success: false, reason: "Payment reminder is only available for unpaid orders" }), { headers: corsHeaders });
+    }
 
     const { data: realItems } = await supabase.from("order_items").select("*").eq("order_id", workingOrderId);
     const productIds = (realItems || []).map((i: any) => i.product_id).filter(Boolean);
@@ -397,7 +402,7 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
       return new Response(JSON.stringify({ success: true, skipped: "duplicate_within_1h" }), { headers: corsHeaders });
     }
 
-    const triggeredBy = fromOutbox ? "outbox" : (testSend ? "test" : `order:${workingOrderId}`);
+    const triggeredBy = fromOutbox ? "outbox" : (testSend ? "test" : (manualSend ? "manual" : `order:${workingOrderId}`));
 
     try {
       await smtpSend(mailCfg, {
