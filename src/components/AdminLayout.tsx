@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, Users, BarChart3, Tag,
   MessageSquare, Settings, LogOut, Menu, X, Zap, ChevronLeft, Plug,
   ImageIcon, Mail, Clock, Newspaper, CreditCard, FileText,
-  PanelTop, ChevronDown, FileEdit, ShieldCheck, HardDrive, Boxes, Share2,
+  PanelTop, ChevronDown, FileEdit, ShieldCheck, HardDrive, Boxes, Share2, Activity,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -72,6 +72,7 @@ const navStructure: NavEntry[] = [
     icon: Newspaper,
     items: [
       { label: "Newsletter", to: "/admin/newsletter", icon: Newspaper },
+      { label: "Event Tracking", to: "/admin/event-tracking", icon: Activity },
       { label: "Social Poster", to: "/admin/social-poster", icon: Newspaper },
       { label: "Post Generator", to: "/admin/post-generator", icon: ImageIcon },
       { label: "Referrals", to: "/admin/referrals", icon: Share2 },
