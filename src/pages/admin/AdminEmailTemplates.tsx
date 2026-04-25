@@ -212,7 +212,7 @@ export default function AdminEmailTemplates() {
             category: "payment_reminder",
             is_global: true,
             active: true,
-            body_html: `<p>Hi {{customer_name}},</p><p>Your order <strong>{{order_number}}</strong> for <strong>{{order_total}}</strong> is waiting for payment.</p><p>Product: {{product_name}}</p><p>Payment method: {{payment_method}}</p><p><a href="{{payment_link}}" style="display:inline-block;background:#0ea5e9;color:#ffffff;padding:12px 18px;border-radius:8px;text-decoration:none;font-weight:600;">Complete Payment</a></p><p>You can also sign in here: <a href="{{magic_link}}">{{magic_link}}</a></p>`,
+            body_html: `<h2 style="margin:0 0 12px;font-size:20px;">Payment reminder</h2><p>Hi {{customer_name}},</p><p>Your order <strong>{{order_number}}</strong> is still waiting for payment.</p><ul><li><strong>Order total:</strong> {{order_total}}</li><li><strong>Products:</strong> {{product_name}}</li><li><strong>Payment method:</strong> {{payment_method}}</li></ul><p>Please complete your payment to continue processing your order.</p><p><a href="{{payment_link}}" style="display:inline-block;background:#0ea5e9;color:#ffffff;padding:12px 18px;border-radius:8px;text-decoration:none;font-weight:600;">View order & complete payment</a></p><p>If you already have an account, you can sign in here: <a href="{{magic_link}}">Secure login link</a></p><p style="font-size:13px;color:#64748b;">Login page: {{login_url}}</p>`,
           })
           .select("id")
           .single();

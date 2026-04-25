@@ -53,6 +53,26 @@ export default function OrderDetail({ order: o, currencySymbol, onBack, onDelete
     }
   };
 
+  const handleSendPaymentReminder = async () => {
+    setEmailType("payment_reminder");
+    setSendingEmail(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-order-confirmation", {
+        body: { order_id: o.id, type: "payment_reminder", origin: window.location.origin, manual_send: true },
+      });
+      if (error) throw error;
+      if ((data as any)?.success === false) {
+        toast({ title: "Reminder not sent", description: (data as any)?.reason || "Unknown reason", variant: "destructive" });
+      } else {
+        toast({ title: "Payment reminder sent", description: `Reminder → ${o.customer_email}` });
+      }
+    } catch (e: any) {
+      toast({ title: "Reminder failed", description: e.message || String(e), variant: "destructive" });
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   const handleRefund = async () => {
     setRefunding(true);
     try {
@@ -216,6 +236,12 @@ export default function OrderDetail({ order: o, currencySymbol, onBack, onDelete
             Use this if the automatic email failed or you need to resend a confirmation to <span className="font-medium">{o.customer_email}</span>.
           </p>
           <div className="flex flex-col sm:flex-row gap-2">
+            {o.payment_status !== "paid" && (
+              <Button size="sm" variant="outline" onClick={handleSendPaymentReminder} disabled={sendingEmail || !o.customer_email} className="gap-1.5">
+                {sendingEmail && emailType === "payment_reminder" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                Send Payment Reminder
+              </Button>
+            )}
             <select
               value={emailType}
               onChange={(e) => setEmailType(e.target.value)}
