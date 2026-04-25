@@ -453,7 +453,7 @@ export default function AccountPage() {
                             {paymentMethods.length === 0 && <p className="text-sm text-muted-foreground">No payment methods available.</p>}
                             {paymentMethods.map((m) => (
                               <label key={m.value} className={`flex items-center gap-2.5 sm:gap-3 rounded-xl border p-2.5 sm:p-3 cursor-pointer transition-colors ${selectedPaymentMethod === m.value ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"}`}>
-                                <input type="radio" name={`payment-${o.id}`} value={m.value} checked={selectedPaymentMethod === m.value} onChange={(e) => setSelectedPaymentMethod(e.target.value)} className="h-4 w-4 accent-primary shrink-0" />
+                                <input type="radio" name={`payment-${o.id}`} value={m.value} checked={selectedPaymentMethod === m.value} onChange={(e) => { setSelectedPaymentMethod(e.target.value); setConfirmPaymentOrderId(null); }} className="h-4 w-4 accent-primary shrink-0" />
                                 <img src={m.logo} alt={m.label} className="h-6 w-6 sm:h-7 sm:w-7 object-contain rounded shrink-0" loading="lazy" width={28} height={28} />
                                 <span className="text-xs sm:text-sm font-medium truncate">{m.label}</span>
                               </label>
@@ -479,14 +479,29 @@ export default function AccountPage() {
                             </p>
                           )}
 
+                          {confirmPaymentOrderId === o.id && (
+                            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs sm:text-sm">
+                              <p className="font-semibold">Confirm payment method</p>
+                              <p className="text-muted-foreground mt-1">
+                                You selected {paymentMethods.find((m) => m.value === selectedPaymentMethod)?.label || selectedPaymentMethod} for order {o.order_number}.
+                              </p>
+                            </div>
+                          )}
+
                           <Button
                             size="sm"
                             variant="gradient"
-                            onClick={() => handlePayNow(o, selectedPaymentMethod)}
+                            onClick={() => {
+                              if (confirmPaymentOrderId !== o.id) {
+                                setConfirmPaymentOrderId(o.id);
+                                return;
+                              }
+                              handlePayNow(o, selectedPaymentMethod);
+                            }}
                             disabled={paymentStarted || payingOrderId === o.id || !selectedPaymentMethod || !["bkash", "bkash_send", "nagad_send"].includes(selectedPaymentMethod)}
                           >
                             {payingOrderId === o.id && <Loader2 className="h-4 w-4 animate-spin" />}
-                            {payingOrderId === o.id ? "Processing..." : "Continue Payment"}
+                            {payingOrderId === o.id ? "Processing..." : confirmPaymentOrderId === o.id ? "Confirm & Continue" : "Continue Payment"}
                           </Button>
                         </div>
                       )}
