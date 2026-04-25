@@ -135,7 +135,7 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
     const isPaid = order.payment_status === "paid";
 
     // === PLAN RESOLVER ===
-    if (!explicitTemplateId && !fromOutbox && !testSend) {
+    if (!explicitTemplateId && !fromOutbox && !testSend && !manualSend) {
       let planRows: any[] = [];
       if (productIds.length > 0) {
         const { data } = await supabase
