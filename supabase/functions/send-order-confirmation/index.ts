@@ -187,6 +187,12 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
             skipped.push(step.template_id);
             continue;
           }
+          // payment_reminder should ONLY fire on unpaid orders.
+          // If the order is already paid, skip it.
+          if (stepCategory === "payment_reminder" && isPaid) {
+            skipped.push(`${step.template_id} (already_paid)`);
+            continue;
+          }
           // Skip payment-dependent emails until the order is actually paid AND completed.
           // order_confirmation, payment_verified, post_purchase all require a paid+completed order.
           // The mfs/bkash verification flow re-invokes this function once
@@ -297,6 +303,28 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
         <ul style="margin:0;padding:0 0 0 20px;font-size:14px;color:#166534;line-height:1.7;">${fileLinksHtml}${deliveriesHtml}</ul>
       </div>` : "";
 
+    // Generate magic link for passwordless login (used in payment_reminder templates)
+    let magicLinkUrl = "";
+    if (order.customer_email) {
+      try {
+        const redirectTo = origin
+          ? `${origin}/account`
+          : "";
+        const { data: linkData } = await supabase.auth.admin.generateLink({
+          type: "magiclink",
+          email: order.customer_email,
+          options: redirectTo ? { redirectTo } : undefined,
+        });
+        if (linkData?.properties?.action_link) {
+          magicLinkUrl = linkData.properties.action_link;
+        }
+      } catch (e) {
+        console.warn("Magic link generation failed:", e);
+      }
+    }
+
+    const paymentLink = origin ? `${origin}/orders/${order.id}` : "";
+
     const templateVars: Record<string, string> = {
       customer_name: order.customer_name,
       customer_email: order.customer_email,
@@ -310,6 +338,8 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
       order_link: origin ? `${origin}/orders/${order.id}` : "",
       password: autoCreatedPassword || forwardedPassword || "",
       login_url: origin ? `${origin}/login` : "",
+      magic_link: magicLinkUrl,
+      payment_link: paymentLink,
     };
 
     // Pick template

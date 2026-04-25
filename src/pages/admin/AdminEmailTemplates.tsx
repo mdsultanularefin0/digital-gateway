@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Save, X, Mail, Globe, Package, ShoppingBag, CreditCard, UserPlus, Truck, ListOrdered, Eye } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, X, Mail, Globe, Package, ShoppingBag, CreditCard, UserPlus, Truck, ListOrdered, Eye, Clock } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { EmailSendPlanEditor } from "@/components/admin/EmailSendPlanEditor";
 import { EmailTemplatePreview } from "@/components/admin/EmailTemplatePreview";
@@ -35,6 +35,7 @@ const CATEGORIES = [
   { value: "order_confirmation", label: "Order Confirmation", icon: ShoppingBag, description: "Sent immediately when an order is placed" },
   { value: "payment_verified", label: "Payment Verified", icon: CreditCard, description: "Sent when payment is confirmed/verified" },
   { value: "account_created", label: "Account Created", icon: UserPlus, description: "Sent when a customer account is auto-created with login credentials" },
+  { value: "payment_reminder", label: "Payment Reminder", icon: Clock, description: "Sent to remind customers to complete pending payments — includes login link" },
   { value: "shipping_update", label: "Shipping Update", icon: Truck, description: "Sent when order ships or delivery status changes" },
 ];
 
@@ -63,6 +64,18 @@ const CATEGORY_VARIABLES: Record<string, { key: string; desc: string }[]> = {
     { key: "customer_name", desc: "Customer's full name" },
     { key: "customer_email", desc: "Login email address" },
     { key: "password", desc: "Auto-generated password" },
+    { key: "login_url", desc: "Login page URL" },
+  ],
+  payment_reminder: [
+    { key: "customer_name", desc: "Customer's full name" },
+    { key: "customer_email", desc: "Login email address" },
+    { key: "order_number", desc: "Order number" },
+    { key: "order_total", desc: "Order total amount" },
+    { key: "product_name", desc: "Product names" },
+    { key: "payment_method", desc: "Payment method used" },
+    { key: "password", desc: "Auto-generated password (if new account)" },
+    { key: "magic_link", desc: "One-click login link (auto-generated, expires in 24h)" },
+    { key: "payment_link", desc: "Direct link to view & pay the order" },
     { key: "login_url", desc: "Login page URL" },
   ],
   shipping_update: [
