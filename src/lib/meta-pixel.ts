@@ -10,6 +10,13 @@ declare global {
 let pixelId: string | null = null;
 let scriptLoaded = false;
 
+type CustomerData = {
+  email?: string;
+  phone?: string;
+  name?: string;
+  externalId?: string;
+};
+
 /** Generate a unique event_id for deduplication between Pixel and CAPI */
 export function generateEventId(eventName = "event"): string {
   return `${eventName.toLowerCase()}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
@@ -80,6 +87,28 @@ function getExternalId(): string | null {
     return id;
   } catch {
     return null;
+  }
+}
+
+function buildBrowserMatchParams(customer?: CustomerData): Record<string, string> {
+  const matchParams: Record<string, string> = {};
+  if (!customer) return matchParams;
+  if (customer.email) matchParams.em = customer.email.trim().toLowerCase();
+  if (customer.phone) matchParams.ph = customer.phone.replace(/[^\d]/g, "");
+  if (customer.name) {
+    const parts = customer.name.trim().split(/\s+/);
+    if (parts.length > 0) matchParams.fn = parts[0].toLowerCase();
+    if (parts.length > 1) matchParams.ln = parts[parts.length - 1].toLowerCase();
+  }
+  if (customer.externalId) matchParams.external_id = customer.externalId;
+  return matchParams;
+}
+
+function syncBrowserIdentifiers(customer?: CustomerData) {
+  if (!pixelId || !isFbqReady()) return;
+  const matchParams = buildBrowserMatchParams(customer);
+  if (Object.keys(matchParams).length > 0) {
+    window.fbq("init", pixelId, matchParams);
   }
 }
 
@@ -164,14 +193,12 @@ async function buildUserData(extra?: {
   return data;
 }
 
-export function initMetaPixel(id: string, customer?: {
-  email?: string;
-  phone?: string;
-  name?: string;
-  externalId?: string;
-}) {
+export function initMetaPixel(id: string, customer?: CustomerData) {
   if (!id) return;
-  if (pixelId === id && scriptLoaded) return;
+  if (pixelId === id && scriptLoaded) {
+    syncBrowserIdentifiers(customer);
+    return;
+  }
   pixelId = id;
 
   if (!scriptLoaded) {
@@ -202,7 +229,8 @@ export function initMetaPixel(id: string, customer?: {
   // Ensure _fbc gets seeded from any fbclid in the landing URL
   getFbc();
 
-  window.fbq("init", id);
+  const matchParams = buildBrowserMatchParams(customer);
+  window.fbq("init", id, Object.keys(matchParams).length > 0 ? matchParams : undefined);
   trackPageView(customer);
 }
 
