@@ -291,6 +291,41 @@ async function sendCAPIEvent(
   });
 }
 
+function queuePendingPurchase(payload: {
+  eventId: string;
+  params: Record<string, unknown>;
+  customer?: CustomerData;
+}) {
+  try {
+    const key = "pending-meta-purchases";
+    const existing = JSON.parse(localStorage.getItem(key) || "[]") as typeof payload[];
+    const next = [payload, ...existing.filter((item) => item.eventId !== payload.eventId)].slice(0, 10);
+    localStorage.setItem(key, JSON.stringify(next));
+  } catch {
+    // Best-effort fallback only
+  }
+}
+
+export function flushPendingMetaPurchases() {
+  if (typeof localStorage === "undefined") return;
+  try {
+    const key = "pending-meta-purchases";
+    const pending = JSON.parse(localStorage.getItem(key) || "[]") as Array<{
+      eventId: string;
+      params: Record<string, unknown>;
+      customer?: CustomerData;
+    }>;
+    if (pending.length === 0) return;
+    localStorage.removeItem(key);
+    pending.forEach((item) => {
+      if (isFbqReady()) window.fbq("track", "Purchase", item.params, { eventID: item.eventId });
+      void sendCAPIEvent("Purchase", item.eventId, item.params, item.customer);
+    });
+  } catch {
+    // Ignore malformed storage
+  }
+}
+
 // ── Client + Server event helpers ────────────────────────────────────
 
 export function trackPageView(customer?: {
@@ -380,21 +415,20 @@ export function trackPurchase(
 ) {
   // Use order_number as eventID for perfect deduplication, fallback to random
   const eid = customer?.externalId || generateEventId();
-
-  // Browser Pixel: Pass unhashed data if available, fbq handles hashing
-  const matchParams: Record<string, any> = {};
-  if (customer) {
-    matchParams.em = customer.email.trim().toLowerCase();
-    matchParams.ph = customer.phone.replace(/[^\d]/g, "");
-    const parts = customer.name.trim().split(/\s+/);
-    if (parts.length > 0) matchParams.fn = parts[0].toLowerCase();
-    if (parts.length > 1) matchParams.ln = parts[parts.length - 1].toLowerCase();
-    if (customer.externalId) matchParams.external_id = customer.externalId;
-  }
+  queuePendingPurchase({ eventId: eid, params, customer });
+  syncBrowserIdentifiers(customer);
 
   if (isFbqReady()) {
     window.fbq("track", "Purchase", params, { eventID: eid });
   }
   
-  void sendCAPIEvent("Purchase", eid, params, customer);
+  void sendCAPIEvent("Purchase", eid, params, customer).then(() => {
+    try {
+      const key = "pending-meta-purchases";
+      const pending = JSON.parse(localStorage.getItem(key) || "[]") as Array<{ eventId: string }>;
+      localStorage.setItem(key, JSON.stringify(pending.filter((item) => item.eventId !== eid)));
+    } catch {
+      // Ignore storage cleanup errors
+    }
+  });
 }
