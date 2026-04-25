@@ -82,6 +82,7 @@ export default function AccountPage() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [senderNumber, setSenderNumber] = useState("");
   const [trxId, setTrxId] = useState("");
+  const [startedPaymentOrderIds, setStartedPaymentOrderIds] = useState<Set<string>>(new Set());
 
   const enabledPaymentMethods = (() => {
     try {
@@ -211,12 +212,29 @@ export default function AccountPage() {
   };
 
   const openPaymentChoices = (order: any) => {
+    if (startedPaymentOrderIds.has(order.id)) return;
     setPaymentChoiceOrderId((current) => (current === order.id ? null : order.id));
     setSelectedPaymentMethod(order.payment_method && enabledPaymentMethods.includes(order.payment_method)
       ? order.payment_method
       : paymentMethods[0]?.value || "");
     setSenderNumber("");
     setTrxId("");
+  };
+
+  const checkOrderStillUnpaid = async (order: any) => {
+    const { data, error } = await supabase
+      .from("orders")
+      .select("payment_status")
+      .eq("id", order.id)
+      .maybeSingle();
+    if (error) throw error;
+    if (data?.payment_status === "paid") {
+      toast({ title: "Order already paid", description: "This order was paid while you were choosing a payment method." });
+      setPaymentChoiceOrderId(null);
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+      return false;
+    }
+    return true;
   };
 
   const handlePayNow = async (order: any, paymentMethod: string) => {
@@ -227,6 +245,8 @@ export default function AccountPage() {
     }
     setPayingOrderId(order.id);
     try {
+      const isStillUnpaid = await checkOrderStillUnpaid(order);
+      if (!isStillUnpaid) return;
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const { data: sessionData } = await supabase.auth.getSession();
@@ -257,6 +277,7 @@ export default function AccountPage() {
           title: data.verified ? "Payment verified" : "Payment submitted",
           description: data.verified ? "Your order is now complete." : "Your payment is pending verification.",
         });
+        setStartedPaymentOrderIds((prev) => new Set(prev).add(order.id));
         setPaymentChoiceOrderId(null);
         queryClient.invalidateQueries({ queryKey: ["my-orders"] });
         return;
@@ -274,6 +295,7 @@ export default function AccountPage() {
       });
       const data = await res.json();
       if (!res.ok || !data.bkashURL) throw new Error(data.error || "Failed to start payment");
+      setStartedPaymentOrderIds((prev) => new Set(prev).add(order.id));
       localStorage.setItem("bkash_order_id", order.id);
       localStorage.setItem("bkash_order_number", order.order_number);
       window.location.href = data.bkashURL;
@@ -361,6 +383,7 @@ export default function AccountPage() {
                   {orders.map((o: any) => {
                     const isSelected = selectedOrderId === o.id;
                     const canPay = o.payment_status !== "paid" && !["cancelled", "refunded"].includes(o.status);
+                    const paymentStarted = startedPaymentOrderIds.has(o.id);
                     return (
                     <div key={o.id} className={`rounded-lg border p-3 sm:p-4 transition-colors ${isSelected ? "border-primary/50 bg-secondary/30" : "border-border hover:border-primary/20"}`}>
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
@@ -413,11 +436,14 @@ export default function AccountPage() {
                           <Eye className="h-4 w-4" /> {isSelected ? "Hide details" : "View order"}
                         </Button>
                         {canPay && (
-                          <Button size="sm" variant="gradient" onClick={() => openPaymentChoices(o)} disabled={payingOrderId === o.id}>
-                            <CreditCard className="h-4 w-4" /> {paymentChoiceOrderId === o.id ? "Hide payment" : "Pay Now"}
+                          <Button size="sm" variant="gradient" onClick={() => openPaymentChoices(o)} disabled={payingOrderId === o.id || paymentStarted}>
+                            <CreditCard className="h-4 w-4" /> {paymentStarted ? "Payment Started" : paymentChoiceOrderId === o.id ? "Hide payment" : "Pay Now"}
                           </Button>
                         )}
                       </div>
+                      {paymentStarted && (
+                        <p className="mt-2 text-xs text-muted-foreground text-right">Payment flow has started for this order.</p>
+                      )}
                       {canPay && paymentChoiceOrderId === o.id && (
                         <div className="mt-4 rounded-lg border border-border bg-background/60 p-3 sm:p-4 text-sm space-y-3">
                           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Choose Payment Method</p>
@@ -455,7 +481,7 @@ export default function AccountPage() {
                             size="sm"
                             variant="gradient"
                             onClick={() => handlePayNow(o, selectedPaymentMethod)}
-                            disabled={payingOrderId === o.id || !selectedPaymentMethod || !["bkash", "bkash_send", "nagad_send"].includes(selectedPaymentMethod)}
+                            disabled={paymentStarted || payingOrderId === o.id || !selectedPaymentMethod || !["bkash", "bkash_send", "nagad_send"].includes(selectedPaymentMethod)}
                           >
                             {payingOrderId === o.id && <Loader2 className="h-4 w-4 animate-spin" />}
                             {payingOrderId === o.id ? "Processing..." : "Continue Payment"}
