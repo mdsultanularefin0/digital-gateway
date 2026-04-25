@@ -166,13 +166,12 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
         const catById: Record<string, string> = {};
         (tplMeta || []).forEach((t: any) => { catById[t.id] = t.category; });
 
-        // Pre-fetch sent logs for this order within the last hour to prevent duplicates at the plan level.
+        // Pre-fetch sent logs for this order to prevent automatic duplicates after a manual send.
         const { data: sentLogs } = await supabase
           .from("email_logs")
           .select("purpose")
           .eq("order_id", workingOrderId)
-          .eq("status", "sent")
-          .gte("created_at", new Date(Date.now() - 3600 * 1000).toISOString());
+          .eq("status", "sent");
         const sentPurposes = new Set((sentLogs || []).map((l: any) => l.purpose));
 
         const enqueued: string[] = [];
@@ -361,6 +360,19 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
 
     // Resolve category for from-address routing & purpose
     const purposeCategory = chosenTemplate?.category || emailType || "post_purchase";
+
+    if (!testSend && !manualSend && workingOrderId) {
+      const { data: priorSend } = await supabase
+        .from("email_logs")
+        .select("id")
+        .eq("order_id", workingOrderId)
+        .eq("purpose", purposeCategory)
+        .eq("status", "sent")
+        .limit(1);
+      if (priorSend && priorSend.length > 0) {
+        return new Response(JSON.stringify({ success: true, skipped: "already_sent_for_order" }), { headers: corsHeaders });
+      }
+    }
 
     let emailSubject: string;
     let emailHtml: string;
