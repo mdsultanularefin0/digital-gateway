@@ -536,6 +536,66 @@ export type Database = {
           },
         ]
       }
+      event_tracking_logs: {
+        Row: {
+          created_at: string
+          customer_email: string
+          customer_phone: string
+          error: string
+          event_id: string
+          event_name: string
+          event_source_url: string
+          events_received: number | null
+          http_status: number | null
+          id: string
+          match_quality: number | null
+          order_number: string
+          payload: Json
+          response: Json
+          source: string
+          status: string
+          user_data_keys: string[]
+        }
+        Insert: {
+          created_at?: string
+          customer_email?: string
+          customer_phone?: string
+          error?: string
+          event_id?: string
+          event_name?: string
+          event_source_url?: string
+          events_received?: number | null
+          http_status?: number | null
+          id?: string
+          match_quality?: number | null
+          order_number?: string
+          payload?: Json
+          response?: Json
+          source?: string
+          status?: string
+          user_data_keys?: string[]
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string
+          customer_phone?: string
+          error?: string
+          event_id?: string
+          event_name?: string
+          event_source_url?: string
+          events_received?: number | null
+          http_status?: number | null
+          id?: string
+          match_quality?: number | null
+          order_number?: string
+          payload?: Json
+          response?: Json
+          source?: string
+          status?: string
+          user_data_keys?: string[]
+        }
+        Relationships: []
+      }
       landing_pages: {
         Row: {
           created_at: string
