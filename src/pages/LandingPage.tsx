@@ -15,7 +15,7 @@ import { DownloadLinks } from "@/components/DownloadLinks";
 import { OrderSuccessInstructions } from "@/components/OrderSuccessInstructions";
 import { SendMoneyPanel } from "@/components/SendMoneyPanel";
 import { fireEdge, callEdge } from "@/lib/edge";
-import { trackPurchase } from "@/lib/meta-pixel";
+import { setUserIdentifiers, trackPurchase } from "@/lib/meta-pixel";
 import paymentBkash from "@/assets/payment-bkash.png";
 import paymentNagad from "@/assets/payment-nagad.png";
 import paymentCod from "@/assets/payment-cod.png";
