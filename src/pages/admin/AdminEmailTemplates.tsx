@@ -192,6 +192,60 @@ export default function AdminEmailTemplates() {
     },
   });
 
+  const createPaymentReminderMutation = useMutation({
+    mutationFn: async () => {
+      const existing = templates.find((t) => t.category === "payment_reminder");
+      let templateId = existing?.id;
+      if (existing) {
+        const { error } = await supabase
+          .from("product_email_templates")
+          .update({ active: true, is_global: true, product_id: null })
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from("product_email_templates")
+          .insert({
+            product_id: null,
+            name: "Payment Reminder",
+            subject: "Complete your payment for {{order_number}}",
+            category: "payment_reminder",
+            is_global: true,
+            active: true,
+            body_html: `<p>Hi {{customer_name}},</p><p>Your order <strong>{{order_number}}</strong> for <strong>{{order_total}}</strong> is waiting for payment.</p><p>Product: {{product_name}}</p><p>Payment method: {{payment_method}}</p><p><a href="{{payment_link}}" style="display:inline-block;background:#0ea5e9;color:#ffffff;padding:12px 18px;border-radius:8px;text-decoration:none;font-weight:600;">Complete Payment</a></p><p>You can also sign in here: <a href="{{magic_link}}">{{magic_link}}</a></p>`,
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        templateId = data.id;
+      }
+      if (!templateId) throw new Error("Payment Reminder template could not be created");
+      const alreadyPlanned = sendPlanRows.some((row: any) => row.template_id === templateId || row.category === "payment_reminder");
+      if (!alreadyPlanned) {
+        const { count } = await supabase
+          .from("email_send_plan")
+          .select("id", { count: "exact", head: true })
+          .is("product_id", null);
+        const { error } = await supabase.from("email_send_plan").insert({
+          product_id: null,
+          category: "payment_reminder",
+          template_id: templateId,
+          step_order: count || 0,
+          delay_minutes: Math.max(1, paymentReminderDelay || 30),
+          enabled: true,
+        });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-email-templates"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-email-send-plan-global"] });
+      queryClient.invalidateQueries({ queryKey: ["email-send-plan"] });
+      toast({ title: "Payment Reminder activated", description: "It will send only while the order is unpaid." });
+    },
+    onError: (err: any) => toast({ title: "Setup failed", description: err.message, variant: "destructive" }),
+  });
+
   const openEditor = (template?: EmailTemplate) => {
     if (template) {
       setEditing(template);
