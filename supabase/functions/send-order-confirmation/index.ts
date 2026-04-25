@@ -409,8 +409,9 @@ Deno.serve(withLogging("send-order-confirmation", async (req) => {
     const recipient = (testSend && overrideRecipient) ? overrideRecipient : order.customer_email;
     const fromAddr = resolveFrom(mailCfg, purposeCategory);
 
-    // Guard against duplicate sends within 1h window (default in email-logger)
-    if (!testSend && await recentlySent(supabase, recipient, emailSubject)) {
+    // Guard automatic sends against duplicate sends within 1h window.
+    // Manual admin sends intentionally bypass this so admins can resend as needed.
+    if (!testSend && !manualSend && await recentlySent(supabase, recipient, emailSubject)) {
       return new Response(JSON.stringify({ success: true, skipped: "duplicate_within_1h" }), { headers: corsHeaders });
     }
 
