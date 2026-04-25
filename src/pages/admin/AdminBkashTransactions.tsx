@@ -71,7 +71,7 @@ function extractTransactions(orders: any[]): BkashTransaction[] {
         createTime,
         completedTime,
         merchantInvoice: create?.merchantInvoiceNumber || o.id,
-        collectionStatus: resp?.collection_status === "collected" ? "collected" : "pending",
+        collectionStatus: (resp?.collection_status === "collected" ? "collected" : "pending") as "collected" | "pending",
       };
     })
     .sort((a, b) => {
@@ -264,6 +264,7 @@ export default function AdminBkashTransactions() {
                     <th className="text-left font-medium px-4 py-3">Customer</th>
                     <th className="text-right font-medium px-4 py-3">Amount</th>
                     <th className="text-left font-medium px-4 py-3">Status</th>
+                    <th className="text-left font-medium px-4 py-3">Collection</th>
                     <th className="text-left font-medium px-4 py-3">Created</th>
                     <th className="text-left font-medium px-4 py-3">Completed</th>
                   </tr>
@@ -297,6 +298,23 @@ export default function AdminBkashTransactions() {
                             <StatusIcon className={`h-3.5 w-3.5 ${sc.color}`} />
                             <span className={`text-xs font-medium ${sc.color}`}>{sc.label}</span>
                           </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <Select
+                            value={t.collectionStatus}
+                            onValueChange={(value: "collected" | "pending") =>
+                              collectionMutation.mutate({ orderId: t.orderId, status: value })
+                            }
+                            disabled={collectionMutation.isPending}
+                          >
+                            <SelectTrigger className="h-8 w-[120px] text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pending</SelectItem>
+                              <SelectItem value="collected">Collected</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </td>
                         <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
                           {formatTime(t.createTime)}
