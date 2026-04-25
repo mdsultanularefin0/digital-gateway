@@ -10,6 +10,13 @@ declare global {
 let pixelId: string | null = null;
 let scriptLoaded = false;
 
+type CustomerData = {
+  email?: string;
+  phone?: string;
+  name?: string;
+  externalId?: string;
+};
+
 /** Generate a unique event_id for deduplication between Pixel and CAPI */
 export function generateEventId(eventName = "event"): string {
   return `${eventName.toLowerCase()}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
@@ -80,6 +87,28 @@ function getExternalId(): string | null {
     return id;
   } catch {
     return null;
+  }
+}
+
+function buildBrowserMatchParams(customer?: CustomerData): Record<string, string> {
+  const matchParams: Record<string, string> = {};
+  if (!customer) return matchParams;
+  if (customer.email) matchParams.em = customer.email.trim().toLowerCase();
+  if (customer.phone) matchParams.ph = customer.phone.replace(/[^\d]/g, "");
+  if (customer.name) {
+    const parts = customer.name.trim().split(/\s+/);
+    if (parts.length > 0) matchParams.fn = parts[0].toLowerCase();
+    if (parts.length > 1) matchParams.ln = parts[parts.length - 1].toLowerCase();
+  }
+  if (customer.externalId) matchParams.external_id = customer.externalId;
+  return matchParams;
+}
+
+function syncBrowserIdentifiers(customer?: CustomerData) {
+  if (!pixelId || !isFbqReady()) return;
+  const matchParams = buildBrowserMatchParams(customer);
+  if (Object.keys(matchParams).length > 0) {
+    window.fbq("init", pixelId, matchParams);
   }
 }
 
@@ -164,14 +193,12 @@ async function buildUserData(extra?: {
   return data;
 }
 
-export function initMetaPixel(id: string, customer?: {
-  email?: string;
-  phone?: string;
-  name?: string;
-  externalId?: string;
-}) {
+export function initMetaPixel(id: string, customer?: CustomerData) {
   if (!id) return;
-  if (pixelId === id && scriptLoaded) return;
+  if (pixelId === id && scriptLoaded) {
+    syncBrowserIdentifiers(customer);
+    return;
+  }
   pixelId = id;
 
   if (!scriptLoaded) {
@@ -202,7 +229,8 @@ export function initMetaPixel(id: string, customer?: {
   // Ensure _fbc gets seeded from any fbclid in the landing URL
   getFbc();
 
-  window.fbq("init", id);
+  const matchParams = buildBrowserMatchParams(customer);
+  window.fbq("init", id, Object.keys(matchParams).length > 0 ? matchParams : undefined);
   trackPageView(customer);
 }
 
@@ -261,6 +289,41 @@ async function sendCAPIEvent(
       // Silently fail — CAPI is best-effort
     }
   });
+}
+
+function queuePendingPurchase(payload: {
+  eventId: string;
+  params: Record<string, unknown>;
+  customer?: CustomerData;
+}) {
+  try {
+    const key = "pending-meta-purchases";
+    const existing = JSON.parse(localStorage.getItem(key) || "[]") as Array<typeof payload>;
+    const next = [payload, ...existing.filter((item) => item.eventId !== payload.eventId)].slice(0, 10);
+    localStorage.setItem(key, JSON.stringify(next));
+  } catch {
+    // Best-effort fallback only
+  }
+}
+
+export function flushPendingMetaPurchases() {
+  if (typeof localStorage === "undefined") return;
+  try {
+    const key = "pending-meta-purchases";
+    const pending = JSON.parse(localStorage.getItem(key) || "[]") as Array<{
+      eventId: string;
+      params: Record<string, unknown>;
+      customer?: CustomerData;
+    }>;
+    if (pending.length === 0) return;
+    localStorage.removeItem(key);
+    pending.forEach((item) => {
+      if (isFbqReady()) window.fbq("track", "Purchase", item.params, { eventID: item.eventId });
+      void sendCAPIEvent("Purchase", item.eventId, item.params, item.customer);
+    });
+  } catch {
+    // Ignore malformed storage
+  }
 }
 
 // ── Client + Server event helpers ────────────────────────────────────
@@ -352,21 +415,20 @@ export function trackPurchase(
 ) {
   // Use order_number as eventID for perfect deduplication, fallback to random
   const eid = customer?.externalId || generateEventId();
-
-  // Browser Pixel: Pass unhashed data if available, fbq handles hashing
-  const matchParams: Record<string, any> = {};
-  if (customer) {
-    matchParams.em = customer.email.trim().toLowerCase();
-    matchParams.ph = customer.phone.replace(/[^\d]/g, "");
-    const parts = customer.name.trim().split(/\s+/);
-    if (parts.length > 0) matchParams.fn = parts[0].toLowerCase();
-    if (parts.length > 1) matchParams.ln = parts[parts.length - 1].toLowerCase();
-    if (customer.externalId) matchParams.external_id = customer.externalId;
-  }
+  queuePendingPurchase({ eventId: eid, params, customer });
+  syncBrowserIdentifiers(customer);
 
   if (isFbqReady()) {
     window.fbq("track", "Purchase", params, { eventID: eid });
   }
   
-  void sendCAPIEvent("Purchase", eid, params, customer);
+  void sendCAPIEvent("Purchase", eid, params, customer).then(() => {
+    try {
+      const key = "pending-meta-purchases";
+      const pending = JSON.parse(localStorage.getItem(key) || "[]") as Array<{ eventId: string }>;
+      localStorage.setItem(key, JSON.stringify(pending.filter((item) => item.eventId !== eid)));
+    } catch {
+      // Ignore storage cleanup errors
+    }
+  });
 }

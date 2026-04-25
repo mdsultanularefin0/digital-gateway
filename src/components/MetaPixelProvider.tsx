@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
-import { initMetaPixel, trackPageView } from "@/lib/meta-pixel";
+import { flushPendingMetaPurchases, initMetaPixel, trackPageView } from "@/lib/meta-pixel";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
  
@@ -23,6 +23,7 @@ import { useAuth } from "@/contexts/AuthContext";
      if (settings?.facebook_pixel_id) {
        initMetaPixel(settings.facebook_pixel_id, customer);
        initializedRef.current = true;
+       flushPendingMetaPurchases();
      }
    }, [settings?.facebook_pixel_id, user?.id]);
  
