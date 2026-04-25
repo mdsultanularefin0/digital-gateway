@@ -63,6 +63,7 @@ const AdminEmailLogs = lazyRetry(() => import("./pages/admin/AdminEmailLogs"));
 const AdminInventory = lazyRetry(() => import("./pages/admin/AdminInventory"));
 const AdminEdgeFunctionLogs = lazyRetry(() => import("./pages/admin/AdminEdgeFunctionLogs"));
 const AdminReferrals = lazyRetry(() => import("./pages/admin/AdminReferrals"));
+const AdminEventTracking = lazyRetry(() => import("./pages/admin/AdminEventTracking"));
 const NotFound = lazyRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -139,6 +140,7 @@ const App = () => {
                       <Route path="/admin/inventory" element={<AdminGuard><AdminInventory /></AdminGuard>} />
                       <Route path="/admin/edge-function-logs" element={<AdminGuard><AdminEdgeFunctionLogs /></AdminGuard>} />
                       <Route path="/admin/referrals" element={<AdminGuard><AdminReferrals /></AdminGuard>} />
+                      <Route path="/admin/event-tracking" element={<AdminGuard><AdminEventTracking /></AdminGuard>} />
                       <Route path="/p/:slug" element={<LandingPage />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>

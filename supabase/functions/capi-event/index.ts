@@ -30,6 +30,17 @@ interface CAPIEvent {
   custom_data?: Record<string, unknown>;
 }
 
+async function writeEventLog(
+  sb: ReturnType<typeof createClient>,
+  values: Record<string, unknown>,
+) {
+  try {
+    await sb.from("event_tracking_logs").insert(values);
+  } catch (error) {
+    console.error("Failed to write event tracking log:", error);
+  }
+}
+
 Deno.serve(withLogging("capi-event", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -76,6 +87,16 @@ Deno.serve(withLogging("capi-event", async (req) => {
     const testCode = settingsMap.facebook_capi_test_code;
 
     if (!pixelId || !accessToken) {
+      await writeEventLog(sb, {
+        event_name,
+        event_id,
+        source: "capi",
+        status: "failed",
+        event_source_url: event_source_url || "",
+        user_data_keys: Object.keys(user_data || {}),
+        payload: { custom_data, user_data_keys: Object.keys(user_data || {}) },
+        error: "CAPI not configured (missing pixel ID or access token)",
+      });
       return new Response(
         JSON.stringify({ error: "CAPI not configured (missing pixel ID or access token)" }),
         { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -140,11 +161,42 @@ Deno.serve(withLogging("capi-event", async (req) => {
 
     if (!fbRes.ok) {
       console.error("Facebook CAPI error:", JSON.stringify(fbData));
+      await writeEventLog(sb, {
+        event_name,
+        event_id,
+        source: "capi",
+        status: "failed",
+        http_status: fbRes.status,
+        order_number: event_name === "Purchase" ? event_id : "",
+        event_source_url: event_source_url || "",
+        customer_email: Array.isArray(finalUserData.em) ? String(finalUserData.em[0] || "") : "",
+        customer_phone: Array.isArray(finalUserData.ph) ? String(finalUserData.ph[0] || "") : "",
+        user_data_keys: Object.keys(finalUserData),
+        payload: { event, test_event_code: testCode ? "enabled" : "" },
+        response: fbData,
+        error: JSON.stringify(fbData),
+      });
       return new Response(
         JSON.stringify({ error: "Facebook API error", details: fbData }),
         { status: fbRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    await writeEventLog(sb, {
+      event_name,
+      event_id,
+      source: "capi",
+      status: "sent",
+      http_status: fbRes.status,
+      events_received: fbData?.events_received || 0,
+      order_number: event_name === "Purchase" ? event_id : "",
+      event_source_url: event_source_url || "",
+      customer_email: Array.isArray(finalUserData.em) ? String(finalUserData.em[0] || "") : "",
+      customer_phone: Array.isArray(finalUserData.ph) ? String(finalUserData.ph[0] || "") : "",
+      user_data_keys: Object.keys(finalUserData),
+      payload: { event, test_event_code: testCode ? "enabled" : "" },
+      response: fbData,
+    });
 
     return new Response(
       JSON.stringify({ success: true, fb_response: fbData }),
