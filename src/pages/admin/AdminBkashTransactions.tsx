@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Download, Search, CreditCard, CheckCircle2, XCircle, Clock, RefreshCw } from "lucide-react";
 import { exportToCSV } from "@/lib/admin-utils";
 import { format } from "date-fns";
@@ -91,6 +92,8 @@ const statusConfig: Record<string, { icon: typeof CheckCircle2; color: string; l
 export default function AdminBkashTransactions() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [collectionFilter, setCollectionFilter] = useState("all");
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
   const queryClient = useQueryClient();
   const { data: settings } = useSiteSettings();
@@ -125,8 +128,13 @@ export default function AdminBkashTransactions() {
       t.customerName.toLowerCase().includes(search.toLowerCase()) ||
       t.customerPhone.includes(search);
     const matchesStatus = statusFilter === "all" || t.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesCollection = collectionFilter === "all" || t.collectionStatus === collectionFilter;
+    return matchesSearch && matchesStatus && matchesCollection;
   });
+
+  const visibleOrderIds = filtered.map((t) => t.orderId);
+  const selectedVisibleCount = selectedOrderIds.filter((id) => visibleOrderIds.includes(id)).length;
+  const allVisibleSelected = filtered.length > 0 && selectedVisibleCount === filtered.length;
 
   const collectionMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: string; status: "collected" | "pending" }) => {
@@ -145,6 +153,46 @@ export default function AdminBkashTransactions() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-bkash-orders"] }),
   });
+
+  const bulkCollectionMutation = useMutation({
+    mutationFn: async (status: "collected" | "pending") => {
+      const selectedOrders = (orders || []).filter((o) => selectedOrderIds.includes(o.id));
+
+      await Promise.all(
+        selectedOrders.map((order) => {
+          const nextResponse = {
+            ...((order.bkash_response as Record<string, unknown>) || {}),
+            collection_status: status,
+          };
+
+          return supabase
+            .from("orders")
+            .update({ bkash_response: nextResponse })
+            .eq("id", order.id)
+            .then(({ error }) => {
+              if (error) throw error;
+            });
+        })
+      );
+    },
+    onSuccess: () => {
+      setSelectedOrderIds([]);
+      queryClient.invalidateQueries({ queryKey: ["admin-bkash-orders"] });
+    },
+  });
+
+  const toggleOrderSelection = (orderId: string, checked: boolean) => {
+    setSelectedOrderIds((current) =>
+      checked ? Array.from(new Set([...current, orderId])) : current.filter((id) => id !== orderId)
+    );
+  };
+
+  const toggleVisibleSelection = (checked: boolean) => {
+    setSelectedOrderIds((current) => {
+      if (checked) return Array.from(new Set([...current, ...visibleOrderIds]));
+      return current.filter((id) => !visibleOrderIds.includes(id));
+    });
+  };
 
   // Summary stats
   const totalCount = transactions.length;
@@ -237,10 +285,46 @@ export default function AdminBkashTransactions() {
               <SelectItem value="Refunded">Refunded</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={collectionFilter} onValueChange={setCollectionFilter}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Collection" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Collection</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="collected">Collected</SelectItem>
+            </SelectContent>
+          </Select>
           <Button variant="outline" size="sm" onClick={handleExport} disabled={!filtered.length}>
             <Download className="h-4 w-4 mr-1" /> Export
           </Button>
         </div>
+
+        {selectedOrderIds.length > 0 && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border bg-card p-3">
+            <p className="text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">{selectedOrderIds.length}</span> selected
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => bulkCollectionMutation.mutate("pending")}
+                disabled={bulkCollectionMutation.isPending}
+              >
+                Mark Pending
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => bulkCollectionMutation.mutate("collected")}
+                disabled={bulkCollectionMutation.isPending}
+              >
+                Mark Collected
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Table */}
         {isLoading ? (
@@ -258,6 +342,13 @@ export default function AdminBkashTransactions() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
+                    <th className="text-left font-medium px-4 py-3 w-12">
+                      <Checkbox
+                        checked={allVisibleSelected}
+                        onCheckedChange={(checked) => toggleVisibleSelection(checked === true)}
+                        aria-label="Select all visible bKash transactions"
+                      />
+                    </th>
                     <th className="text-left font-medium px-4 py-3">Order #</th>
                     <th className="text-left font-medium px-4 py-3">Payment ID</th>
                     <th className="text-left font-medium px-4 py-3">TxID</th>
@@ -275,6 +366,13 @@ export default function AdminBkashTransactions() {
                     const StatusIcon = sc.icon;
                     return (
                       <tr key={`${t.paymentID}-${i}`} className="border-t border-border hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3">
+                          <Checkbox
+                            checked={selectedOrderIds.includes(t.orderId)}
+                            onCheckedChange={(checked) => toggleOrderSelection(t.orderId, checked === true)}
+                            aria-label={`Select bKash transaction ${t.orderNumber}`}
+                          />
+                        </td>
                         <td className="px-4 py-3">
                           <span className="font-mono text-xs">{t.orderNumber}</span>
                         </td>
