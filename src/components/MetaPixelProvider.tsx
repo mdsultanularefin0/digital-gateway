@@ -11,13 +11,20 @@ import { useAuth } from "@/contexts/AuthContext";
    const initializedRef = useRef(false);
    const lastPathRef = useRef(location.pathname);
  
+   const customer = {
+     email: user?.email,
+     phone: user?.phone || user?.user_metadata?.phone,
+     name: user?.user_metadata?.display_name || user?.user_metadata?.full_name,
+     externalId: user?.id,
+   };
+
    // Initialize pixel when settings load
    useEffect(() => {
      if (settings?.facebook_pixel_id) {
-       initMetaPixel(settings.facebook_pixel_id);
+       initMetaPixel(settings.facebook_pixel_id, customer);
        initializedRef.current = true;
      }
-   }, [settings?.facebook_pixel_id]);
+   }, [settings?.facebook_pixel_id, user?.id]);
  
    // Track page views on route change (skip the first one — initMetaPixel already fires PageView)
    useEffect(() => {
@@ -25,12 +32,8 @@ import { useAuth } from "@/contexts/AuthContext";
      if (lastPathRef.current === location.pathname) return;
      lastPathRef.current = location.pathname;
      
-     trackPageView({
-       email: user?.email,
-       phone: user?.phone || user?.user_metadata?.phone,
-       name: user?.user_metadata?.display_name || user?.user_metadata?.full_name,
-     });
-   }, [location.pathname]);
+     trackPageView(customer);
+   }, [location.pathname, user?.id]);
  
    return null;
  }

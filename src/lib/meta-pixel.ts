@@ -11,8 +11,8 @@ let pixelId: string | null = null;
 let scriptLoaded = false;
 
 /** Generate a unique event_id for deduplication between Pixel and CAPI */
-export function generateEventId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+export function generateEventId(eventName = "event"): string {
+  return `${eventName.toLowerCase()}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
 }
 
 // ── Cookie + identifier helpers ──────────────────────────────────────
@@ -164,7 +164,12 @@ async function buildUserData(extra?: {
   return data;
 }
 
-export function initMetaPixel(id: string) {
+export function initMetaPixel(id: string, customer?: {
+  email?: string;
+  phone?: string;
+  name?: string;
+  externalId?: string;
+}) {
   if (!id) return;
   if (pixelId === id && scriptLoaded) return;
   pixelId = id;
@@ -198,9 +203,7 @@ export function initMetaPixel(id: string) {
   getFbc();
 
   window.fbq("init", id);
-  const eid = generateEventId();
-  window.fbq("track", "PageView", {}, { eventID: eid });
-  void sendCAPIEvent("PageView", eid);
+  trackPageView(customer);
 }
 
 function isFbqReady(): boolean {
@@ -227,27 +230,33 @@ async function sendCAPIEvent(
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const userData = await buildUserData(extraUserData);
-      await fetch(
-        `https://${projectId}.supabase.co/functions/v1/capi-event`,
-        {
+      const payload = JSON.stringify({
+        event_name: eventName,
+        event_id: eventId,
+        event_source_url: window.location.href,
+        user_data: {
+          client_user_agent: navigator.userAgent,
+          ...userData,
+        },
+        custom_data: customData || undefined,
+      });
+      const endpoint = `https://${projectId}.supabase.co/functions/v1/capi-event`;
+      const headers = {
+        "Content-Type": "application/json",
+        "apikey": anonKey,
+        "Authorization": `Bearer ${anonKey}`,
+      };
+
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        const response = await fetch(endpoint, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "apikey": anonKey,
-            "Authorization": `Bearer ${anonKey}`,
-          },
-          body: JSON.stringify({
-            event_name: eventName,
-            event_id: eventId,
-            event_source_url: window.location.href,
-            user_data: {
-              client_user_agent: navigator.userAgent,
-              ...userData,
-            },
-            custom_data: customData || undefined,
-          }),
-        }
-      );
+          headers,
+          body: payload,
+          keepalive: payload.length < 60000,
+        });
+        if (response.ok || response.status === 422) break;
+        await new Promise((resolve) => window.setTimeout(resolve, 400 * (attempt + 1)));
+      }
     } catch {
       // Silently fail — CAPI is best-effort
     }
@@ -262,7 +271,7 @@ export function trackPageView(customer?: {
   name?: string;
   externalId?: string;
 }) {
-  const eid = generateEventId();
+  const eid = generateEventId("PageView");
   if (isFbqReady()) window.fbq("track", "PageView", {}, { eventID: eid });
   void sendCAPIEvent("PageView", eid, {}, customer);
 }
@@ -282,7 +291,7 @@ export function trackViewContent(
     externalId?: string;
   }
 ) {
-  const eid = generateEventId();
+  const eid = generateEventId("ViewContent");
   if (isFbqReady()) window.fbq("track", "ViewContent", params, { eventID: eid });
   void sendCAPIEvent("ViewContent", eid, params, customer);
 }
@@ -302,7 +311,7 @@ export function trackAddToCart(
     externalId?: string;
   }
 ) {
-  const eid = generateEventId();
+  const eid = generateEventId("AddToCart");
   if (isFbqReady()) window.fbq("track", "AddToCart", params, { eventID: eid });
   void sendCAPIEvent("AddToCart", eid, params, customer);
 }
@@ -321,7 +330,7 @@ export function trackInitiateCheckout(
     externalId?: string;
   }
 ) {
-  const eid = generateEventId();
+  const eid = generateEventId("InitiateCheckout");
   if (isFbqReady()) window.fbq("track", "InitiateCheckout", params, { eventID: eid });
   void sendCAPIEvent("InitiateCheckout", eid, params, customer);
 }
