@@ -210,21 +210,62 @@ export default function AccountPage() {
     }
   };
 
-  const handlePayNow = async (order: any) => {
+  const openPaymentChoices = (order: any) => {
+    setPaymentChoiceOrderId((current) => (current === order.id ? null : order.id));
+    setSelectedPaymentMethod(order.payment_method && enabledPaymentMethods.includes(order.payment_method)
+      ? order.payment_method
+      : paymentMethods[0]?.value || "");
+    setSenderNumber("");
+    setTrxId("");
+  };
+
+  const handlePayNow = async (order: any, paymentMethod: string) => {
     if (order.payment_status === "paid") return;
+    if (!paymentMethod) {
+      toast({ title: "Please select a payment method", variant: "destructive" });
+      return;
+    }
     setPayingOrderId(order.id);
     try {
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const { data: sessionData } = await supabase.auth.getSession();
+      const fnHeaders = {
+        "Content-Type": "application/json",
+        apikey: anonKey,
+        Authorization: `Bearer ${sessionData.session?.access_token || anonKey}`,
+      };
+
+      if (paymentMethod === "bkash_send" || paymentMethod === "nagad_send") {
+        if (!senderNumber.trim() || !trxId.trim()) {
+          toast({ title: "Please enter your sender number and Transaction ID", variant: "destructive" });
+          return;
+        }
+        const res = await fetch(`https://${projectId}.supabase.co/functions/v1/verify-send-money`, {
+          method: "POST",
+          headers: fnHeaders,
+          body: JSON.stringify({
+            orderId: order.id,
+            senderNumber: senderNumber.trim(),
+            trxId: trxId.trim(),
+            provider: paymentMethod,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || "Payment verification failed");
+        toast({
+          title: data.verified ? "Payment verified" : "Payment submitted",
+          description: data.verified ? "Your order is now complete." : "Your payment is pending verification.",
+        });
+        setPaymentChoiceOrderId(null);
+        queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+        return;
+      }
+
       const callbackURL = `${window.location.origin}/bkash/callback`;
       const res = await fetch(`https://${projectId}.supabase.co/functions/v1/bkash-payment?action=create`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: anonKey,
-          Authorization: `Bearer ${sessionData.session?.access_token || anonKey}`,
-        },
+        headers: fnHeaders,
         body: JSON.stringify({
           orderId: order.id,
           callbackURL,
@@ -238,6 +279,7 @@ export default function AccountPage() {
       window.location.href = data.bkashURL;
     } catch (e: any) {
       toast({ title: "Unable to start payment", description: e.message, variant: "destructive" });
+    } finally {
       setPayingOrderId(null);
     }
   };
