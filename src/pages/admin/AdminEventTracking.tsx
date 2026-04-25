@@ -186,7 +186,7 @@ export default function AdminEventTracking() {
           </div>
         )}
 
-        <PaginationBar page={pagination.page} totalPages={pagination.totalPages} totalItems={filtered.length} pageSize={25} onPageChange={pagination.setPage} />
+        <PaginationBar page={pagination.page} pageCount={pagination.pageCount} total={filtered.length} pageSize={25} onPrev={pagination.prev} onNext={pagination.next} />
       </div>
     </AdminLayout>
   );
