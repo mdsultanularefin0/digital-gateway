@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { Navigate } from "react-router-dom";
+import { Navigate, useParams, useSearchParams } from "react-router-dom";
 import {
-  Package, MapPin, User, Settings, Save, LogOut, Download, Lock, Mail,
+  Package, MapPin, User, Settings, Save, LogOut, Download, Lock, Mail, CreditCard, Eye,
 } from "lucide-react";
 import { DownloadLinks } from "@/components/DownloadLinks";
 import { CustomerDeliveries } from "@/components/CustomerDeliveries";
@@ -50,6 +50,10 @@ export default function AccountPage() {
   const { data: settings } = useSiteSettings();
   const currencySymbol = settings?.currency_symbol || "৳";
   const [tab, setTab] = useState<Tab>("orders");
+  const { orderId: routeOrderId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedOrderId = routeOrderId || searchParams.get("order");
+  const [payingOrderId, setPayingOrderId] = useState<string | null>(null);
 
   const { data: orders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ["my-orders", user?.email],
@@ -164,6 +168,38 @@ export default function AccountPage() {
     }
   };
 
+  const handlePayNow = async (order: any) => {
+    if (order.payment_status === "paid") return;
+    setPayingOrderId(order.id);
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const callbackURL = `${window.location.origin}/bkash/callback`;
+      const res = await fetch(`https://${projectId}.supabase.co/functions/v1/bkash-payment?action=create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: anonKey,
+          Authorization: `Bearer ${sessionData.session?.access_token || anonKey}`,
+        },
+        body: JSON.stringify({
+          orderId: order.id,
+          callbackURL,
+          payerReference: order.customer_phone || user?.phone || "customer",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.bkashURL) throw new Error(data.error || "Failed to start payment");
+      localStorage.setItem("bkash_order_id", order.id);
+      localStorage.setItem("bkash_order_number", order.order_number);
+      window.location.href = data.bkashURL;
+    } catch (e: any) {
+      toast({ title: "Unable to start payment", description: e.message, variant: "destructive" });
+      setPayingOrderId(null);
+    }
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -238,8 +274,11 @@ export default function AccountPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {orders.map((o: any) => (
-                    <div key={o.id} className="rounded-lg border border-border p-3 sm:p-4 hover:border-primary/20 transition-colors">
+                  {orders.map((o: any) => {
+                    const isSelected = selectedOrderId === o.id;
+                    const canPay = o.payment_status !== "paid" && !["cancelled", "refunded"].includes(o.status);
+                    return (
+                    <div key={o.id} className={`rounded-lg border p-3 sm:p-4 transition-colors ${isSelected ? "border-primary/50 bg-secondary/30" : "border-border hover:border-primary/20"}`}>
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="font-mono text-xs text-muted-foreground">{o.order_number}</span>
@@ -274,9 +313,54 @@ export default function AccountPage() {
                           {currencySymbol}{Number(o.total).toFixed(2)}
                         </span>
                       </div>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 mt-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (isSelected) {
+                              setSearchParams({});
+                            } else {
+                              setSearchParams({ order: o.id });
+                              setTab("orders");
+                            }
+                          }}
+                        >
+                          <Eye className="h-4 w-4" /> {isSelected ? "Hide details" : "View order"}
+                        </Button>
+                        {canPay && (
+                          <Button size="sm" variant="gradient" onClick={() => handlePayNow(o)} disabled={payingOrderId === o.id}>
+                            <CreditCard className="h-4 w-4" /> {payingOrderId === o.id ? "Starting..." : "Pay Now"}
+                          </Button>
+                        )}
+                      </div>
+                      {isSelected && (
+                        <div className="mt-4 rounded-lg border border-border bg-background/60 p-4 text-sm">
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <div>
+                              <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Customer</p>
+                              <p className="font-medium">{o.customer_name || user.email}</p>
+                              <p className="text-muted-foreground break-all">{o.customer_email}</p>
+                              {o.customer_phone && <p className="text-muted-foreground">{o.customer_phone}</p>}
+                            </div>
+                            <div>
+                              <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Payment</p>
+                              <p className="font-medium">{o.payment_status?.charAt(0).toUpperCase() + o.payment_status?.slice(1)}</p>
+                              <p className="text-muted-foreground">{o.payment_method || "Not selected"}</p>
+                              {canPay && <p className="text-xs text-muted-foreground mt-1">Complete payment to continue order processing.</p>}
+                            </div>
+                          </div>
+                          {(o.shipping_address || o.notes) && (
+                            <div className="mt-3 pt-3 border-t border-border space-y-2">
+                              {o.shipping_address && <p><span className="text-muted-foreground">Address:</span> {o.shipping_address}</p>}
+                              {o.notes && !String(o.notes).includes("bkash_paymentID:") && <p><span className="text-muted-foreground">Notes:</span> {o.notes}</p>}
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {o.payment_status === "paid" && <CustomerDeliveries orderId={o.id} />}
                     </div>
-                  ))}
+                  );})}
                 </div>
               )}
             </div>
