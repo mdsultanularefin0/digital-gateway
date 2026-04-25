@@ -38,7 +38,7 @@ export default function OrderDetail({ order: o, currencySymbol, onBack, onDelete
     setSendingEmail(true);
     try {
       const { data, error } = await supabase.functions.invoke("send-order-confirmation", {
-        body: { order_id: o.id, type: emailType },
+        body: { order_id: o.id, type: emailType, origin: window.location.origin, manual_send: true },
       });
       if (error) throw error;
       if ((data as any)?.success === false) {
