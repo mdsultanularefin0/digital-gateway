@@ -11,10 +11,34 @@ import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Navigate, useParams, useSearchParams } from "react-router-dom";
 import {
-  Package, MapPin, User, Settings, Save, LogOut, Download, Lock, Mail, CreditCard, Eye,
+  Package, MapPin, User, Settings, Save, LogOut, Download, Lock, Mail, CreditCard, Eye, Loader2,
 } from "lucide-react";
 import { DownloadLinks } from "@/components/DownloadLinks";
 import { CustomerDeliveries } from "@/components/CustomerDeliveries";
+import { SendMoneyPanel } from "@/components/SendMoneyPanel";
+import paymentBkash from "@/assets/payment-bkash.png";
+import paymentNagad from "@/assets/payment-nagad.png";
+import paymentCod from "@/assets/payment-cod.png";
+import paymentBank from "@/assets/payment-bank.png";
+import paymentStripe from "@/assets/payment-stripe.png";
+
+const DEFAULT_LOGOS: Record<string, string> = {
+  cod: paymentCod,
+  bkash: paymentBkash,
+  bkash_send: paymentBkash,
+  nagad_send: paymentNagad,
+  bank: paymentBank,
+  stripe: paymentStripe,
+};
+
+const ALL_PAYMENT_METHODS = [
+  { value: "cod", label: "Cash on Delivery" },
+  { value: "bkash", label: "bKash (PGW)" },
+  { value: "bkash_send", label: "bKash Send Money" },
+  { value: "nagad_send", label: "Nagad Send Money" },
+  { value: "bank", label: "Bank Transfer" },
+  { value: "stripe", label: "Credit/Debit Card" },
+];
 
 async function resendDownloadEmail(orderId: string) {
   const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
@@ -54,6 +78,24 @@ export default function AccountPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedOrderId = routeOrderId || searchParams.get("order");
   const [payingOrderId, setPayingOrderId] = useState<string | null>(null);
+  const [paymentChoiceOrderId, setPaymentChoiceOrderId] = useState<string | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
+  const [senderNumber, setSenderNumber] = useState("");
+  const [trxId, setTrxId] = useState("");
+
+  const enabledPaymentMethods = (() => {
+    try {
+      const raw = settings?.payment_methods as string | undefined;
+      if (raw) return JSON.parse(raw) as string[];
+    } catch {}
+    return ["cod"];
+  })();
+
+  const paymentMethods = ALL_PAYMENT_METHODS.filter((m) => enabledPaymentMethods.includes(m.value)).map((m) => ({
+    ...m,
+    label: (settings as any)?.[`payment_label_${m.value}`] || m.label,
+    logo: (settings as any)?.[`payment_logo_${m.value}`] || DEFAULT_LOGOS[m.value],
+  }));
 
   const { data: orders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ["my-orders", user?.email],
@@ -168,21 +210,62 @@ export default function AccountPage() {
     }
   };
 
-  const handlePayNow = async (order: any) => {
+  const openPaymentChoices = (order: any) => {
+    setPaymentChoiceOrderId((current) => (current === order.id ? null : order.id));
+    setSelectedPaymentMethod(order.payment_method && enabledPaymentMethods.includes(order.payment_method)
+      ? order.payment_method
+      : paymentMethods[0]?.value || "");
+    setSenderNumber("");
+    setTrxId("");
+  };
+
+  const handlePayNow = async (order: any, paymentMethod: string) => {
     if (order.payment_status === "paid") return;
+    if (!paymentMethod) {
+      toast({ title: "Please select a payment method", variant: "destructive" });
+      return;
+    }
     setPayingOrderId(order.id);
     try {
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const { data: sessionData } = await supabase.auth.getSession();
+      const fnHeaders = {
+        "Content-Type": "application/json",
+        apikey: anonKey,
+        Authorization: `Bearer ${sessionData.session?.access_token || anonKey}`,
+      };
+
+      if (paymentMethod === "bkash_send" || paymentMethod === "nagad_send") {
+        if (!senderNumber.trim() || !trxId.trim()) {
+          toast({ title: "Please enter your sender number and Transaction ID", variant: "destructive" });
+          return;
+        }
+        const res = await fetch(`https://${projectId}.supabase.co/functions/v1/verify-send-money`, {
+          method: "POST",
+          headers: fnHeaders,
+          body: JSON.stringify({
+            orderId: order.id,
+            senderNumber: senderNumber.trim(),
+            trxId: trxId.trim(),
+            provider: paymentMethod,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || "Payment verification failed");
+        toast({
+          title: data.verified ? "Payment verified" : "Payment submitted",
+          description: data.verified ? "Your order is now complete." : "Your payment is pending verification.",
+        });
+        setPaymentChoiceOrderId(null);
+        queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+        return;
+      }
+
       const callbackURL = `${window.location.origin}/bkash/callback`;
       const res = await fetch(`https://${projectId}.supabase.co/functions/v1/bkash-payment?action=create`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: anonKey,
-          Authorization: `Bearer ${sessionData.session?.access_token || anonKey}`,
-        },
+        headers: fnHeaders,
         body: JSON.stringify({
           orderId: order.id,
           callbackURL,
@@ -196,6 +279,7 @@ export default function AccountPage() {
       window.location.href = data.bkashURL;
     } catch (e: any) {
       toast({ title: "Unable to start payment", description: e.message, variant: "destructive" });
+    } finally {
       setPayingOrderId(null);
     }
   };
@@ -329,11 +413,55 @@ export default function AccountPage() {
                           <Eye className="h-4 w-4" /> {isSelected ? "Hide details" : "View order"}
                         </Button>
                         {canPay && (
-                          <Button size="sm" variant="gradient" onClick={() => handlePayNow(o)} disabled={payingOrderId === o.id}>
-                            <CreditCard className="h-4 w-4" /> {payingOrderId === o.id ? "Starting..." : "Pay Now"}
+                          <Button size="sm" variant="gradient" onClick={() => openPaymentChoices(o)} disabled={payingOrderId === o.id}>
+                            <CreditCard className="h-4 w-4" /> {paymentChoiceOrderId === o.id ? "Hide payment" : "Pay Now"}
                           </Button>
                         )}
                       </div>
+                      {canPay && paymentChoiceOrderId === o.id && (
+                        <div className="mt-4 rounded-lg border border-border bg-background/60 p-3 sm:p-4 text-sm space-y-3">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Choose Payment Method</p>
+                          <div className="space-y-2">
+                            {paymentMethods.length === 0 && <p className="text-sm text-muted-foreground">No payment methods available.</p>}
+                            {paymentMethods.map((m) => (
+                              <label key={m.value} className={`flex items-center gap-2.5 sm:gap-3 rounded-xl border p-2.5 sm:p-3 cursor-pointer transition-colors ${selectedPaymentMethod === m.value ? "border-primary bg-primary/5" : "border-border hover:border-foreground/20"}`}>
+                                <input type="radio" name={`payment-${o.id}`} value={m.value} checked={selectedPaymentMethod === m.value} onChange={(e) => setSelectedPaymentMethod(e.target.value)} className="h-4 w-4 accent-primary shrink-0" />
+                                <img src={m.logo} alt={m.label} className="h-6 w-6 sm:h-7 sm:w-7 object-contain rounded shrink-0" loading="lazy" width={28} height={28} />
+                                <span className="text-xs sm:text-sm font-medium truncate">{m.label}</span>
+                              </label>
+                            ))}
+                          </div>
+
+                          {(selectedPaymentMethod === "bkash_send" || selectedPaymentMethod === "nagad_send") && (
+                            <SendMoneyPanel
+                              provider={selectedPaymentMethod}
+                              amount={Number(o.total)}
+                              currencySymbol={currencySymbol}
+                              senderNumber={senderNumber}
+                              trxId={trxId}
+                              onSenderChange={setSenderNumber}
+                              onTrxIdChange={setTrxId}
+                              settings={settings}
+                            />
+                          )}
+
+                          {selectedPaymentMethod && !["bkash", "bkash_send", "nagad_send"].includes(selectedPaymentMethod) && (
+                            <p className="rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+                              This payment method can be selected at checkout, but online retry is only available for bKash PGW, bKash Send Money, and Nagad Send Money.
+                            </p>
+                          )}
+
+                          <Button
+                            size="sm"
+                            variant="gradient"
+                            onClick={() => handlePayNow(o, selectedPaymentMethod)}
+                            disabled={payingOrderId === o.id || !selectedPaymentMethod || !["bkash", "bkash_send", "nagad_send"].includes(selectedPaymentMethod)}
+                          >
+                            {payingOrderId === o.id && <Loader2 className="h-4 w-4 animate-spin" />}
+                            {payingOrderId === o.id ? "Processing..." : "Continue Payment"}
+                          </Button>
+                        </div>
+                      )}
                       {isSelected && (
                         <div className="mt-4 rounded-lg border border-border bg-background/60 p-4 text-sm">
                           <div className="grid gap-3 sm:grid-cols-2">

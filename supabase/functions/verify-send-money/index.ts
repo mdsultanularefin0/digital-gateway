@@ -63,9 +63,7 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
       return json({ error: "Order already paid" }, 400);
     }
 
-    if (order.payment_method !== provider) {
-      return json({ error: "Payment method mismatch" }, 400);
-    }
+    // Customers can choose a different available payment method when retrying an unpaid order.
 
     // Normalize provider labels because transactions and verification rows store different values.
     const verificationProvider = provider === "bkash_send" ? "bkash" : "nagad";
@@ -133,6 +131,7 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
       const { data: claimedOrder, error: claimErr } = await supabase
         .from("orders")
         .update({
+          payment_method: provider,
           payment_status: "paid",
           status: "completed",
           notes: `${provider}_trxID:${cleanTrx} | sender:${cleanSender} | verified:auto`,
@@ -214,6 +213,7 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
     await supabase
       .from("orders")
       .update({
+        payment_method: provider,
         notes: `${provider}_trxID:${cleanTrx} | sender:${cleanSender}`,
         bkash_response: sendMoneyData,
       })
