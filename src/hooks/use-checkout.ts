@@ -133,31 +133,10 @@ export function useCheckout() {
 
     setSubmitting(true);
     try {
-      const { data: customerId, error: custErr } = await supabase.rpc("upsert_checkout_customer", {
-        _email: form.email.trim(), _name: form.name, _phone: form.phone, _address: form.address,
-      });
-      if (custErr) throw custErr;
+      const customerEmail = form.email.trim().toLowerCase();
 
-      const { data: order, error: orderErr } = await supabase
-        .from("orders")
-        .insert({
-          customer_id: customerId,
-          customer_name: form.name,
-          customer_email: form.email.trim(),
-          customer_phone: form.phone,
-          shipping_address: form.address,
-          subtotal, discount, shipping_cost: shippingCost, total,
-          payment_method: form.paymentMethod,
-          coupon_code: couponApplied,
-          notes: form.notes,
-          status: "pending",
-          payment_status: "unpaid",
-        })
-        .select("id, order_number")
-        .single();
-      if (orderErr) throw orderErr;
-
-      // Validate product IDs still exist (cart may contain stale items from localStorage)
+      // Validate product IDs before creating the order so guest checkout does not
+      // need to delete an order it cannot manage under RLS.
       const productIds = Array.from(new Set(items.map((i) => i.productId)));
       const { data: validProducts, error: prodErr } = await supabase
         .from("products")
@@ -167,13 +146,39 @@ export function useCheckout() {
       const validIds = new Set((validProducts || []).map((p) => p.id));
       const missing = items.filter((i) => !validIds.has(i.productId));
       if (missing.length > 0) {
-        // Remove stale items from cart and abort with a helpful message
-        await supabase.from("orders").delete().eq("id", order.id);
         clearCart();
         throw new Error(
           `Some items in your cart are no longer available (${missing.map((m) => m.productName).join(", ")}). Your cart has been cleared — please add products again.`
         );
       }
+
+      const { data: customerId, error: custErr } = await supabase.rpc("upsert_checkout_customer", {
+        _email: customerEmail, _name: form.name, _phone: form.phone, _address: form.address,
+      });
+      if (custErr) throw custErr;
+
+      const orderId = crypto.randomUUID();
+      const orderNumber = `ORD-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${orderId.slice(0, 8)}`;
+
+      const { error: orderErr } = await supabase
+        .from("orders")
+        .insert({
+          id: orderId,
+          order_number: orderNumber,
+          customer_id: customerId,
+          customer_name: form.name,
+          customer_email: customerEmail,
+          customer_phone: form.phone,
+          shipping_address: form.address,
+          subtotal, discount, shipping_cost: shippingCost, total,
+          payment_method: form.paymentMethod,
+          coupon_code: couponApplied,
+          notes: form.notes,
+          status: "pending",
+          payment_status: "unpaid",
+        });
+      if (orderErr) throw orderErr;
+      const order = { id: orderId, order_number: orderNumber };
 
       const orderItems = items.map((item) => ({
         order_id: order.id,
@@ -193,7 +198,7 @@ export function useCheckout() {
         await supabase.from("referral_attributions").insert({
           referral_code: refCode,
           order_id: order.id,
-          customer_email: form.email.trim(),
+          customer_email: customerEmail,
           amount: total,
           event_type: "order",
         }).then(() => {});
