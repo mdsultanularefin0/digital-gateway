@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ interface BkashTransaction {
   createTime: string;
   completedTime: string;
   merchantInvoice: string;
+  collectionStatus: "collected" | "pending";
 }
 
 function extractTransactions(orders: any[]): BkashTransaction[] {
@@ -70,6 +71,7 @@ function extractTransactions(orders: any[]): BkashTransaction[] {
         createTime,
         completedTime,
         merchantInvoice: create?.merchantInvoiceNumber || o.id,
+        collectionStatus: resp?.collection_status === "collected" ? "collected" : "pending",
       };
     })
     .sort((a, b) => {
@@ -90,6 +92,7 @@ export default function AdminBkashTransactions() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
+  const queryClient = useQueryClient();
   const { data: settings } = useSiteSettings();
   const sym = settings?.currency_symbol || "৳";
 
@@ -125,6 +128,24 @@ export default function AdminBkashTransactions() {
     return matchesSearch && matchesStatus;
   });
 
+  const collectionMutation = useMutation({
+    mutationFn: async ({ orderId, status }: { orderId: string; status: "collected" | "pending" }) => {
+      const order = (orders || []).find((o) => o.id === orderId);
+      const nextResponse = {
+        ...((order?.bkash_response as Record<string, unknown>) || {}),
+        collection_status: status,
+      };
+
+      const { error } = await supabase
+        .from("orders")
+        .update({ bkash_response: nextResponse })
+        .eq("id", orderId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-bkash-orders"] }),
+  });
+
   // Summary stats
   const totalCount = transactions.length;
   const completedCount = transactions.filter((t) => t.status === "Completed").length;
@@ -147,6 +168,7 @@ export default function AdminBkashTransactions() {
         customer_name: t.customerName,
         customer_email: t.customerEmail,
         customer_phone: t.customerPhone,
+        collection_status: t.collectionStatus,
         created_at: t.createTime,
         completed_at: t.completedTime,
       })),
