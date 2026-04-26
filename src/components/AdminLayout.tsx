@@ -73,6 +73,7 @@ const navStructure: NavEntry[] = [
     items: [
       { label: "Newsletter", to: "/admin/newsletter", icon: Newspaper },
       { label: "Event Tracking", to: "/admin/event-tracking", icon: Activity },
+      { label: "Meta Status", to: "/admin/meta-event-status", icon: Activity },
       { label: "Social Poster", to: "/admin/social-poster", icon: Newspaper },
       { label: "Post Generator", to: "/admin/post-generator", icon: ImageIcon },
       { label: "Referrals", to: "/admin/referrals", icon: Share2 },
