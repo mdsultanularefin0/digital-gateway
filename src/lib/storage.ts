@@ -10,6 +10,11 @@ interface StorageConfig {
 
 let cachedConfig: StorageConfig | null = null;
 
+export function toSecureFileUrl(url?: string | null): string {
+  if (!url) return "";
+  return url.replace(/^http:\/\/file\.giftcardvibe\.xyz/i, "https://file.giftcardvibe.xyz");
+}
+
 export async function getStorageConfig(): Promise<StorageConfig> {
   if (cachedConfig) return cachedConfig;
 
@@ -24,7 +29,7 @@ export async function getStorageConfig(): Promise<StorageConfig> {
 
   cachedConfig = {
     enabled: map.storage_enabled === "true",
-    baseUrl: (map.storage_base_url || "").replace(/\/+$/, ""),
+    baseUrl: toSecureFileUrl(map.storage_base_url || "").replace(/\/+$/, ""),
     uploadPath: map.storage_upload_path || "/upload",
     filesPath: map.storage_files_path || "/files",
     apiKey: map.storage_api_key || "",
@@ -94,7 +99,7 @@ export async function uploadToStorage(file: File, folder: string = "assets"): Pr
 
   const result = await res.json();
   return {
-    url: result.url || `${config.baseUrl}${config.filesPath}/${result.filename}`,
+    url: toSecureFileUrl(result.url || `${config.baseUrl}${config.filesPath}/${result.filename}`),
     filename: result.filename || file.name,
   };
 }
@@ -105,7 +110,7 @@ export async function uploadToStorage(file: File, folder: string = "assets"): Pr
 export async function getFileUrl(filename: string): Promise<string> {
   const config = await getStorageConfig();
   if (!config.enabled || !config.baseUrl) return filename;
-  return `${config.baseUrl}${config.filesPath}/${filename}`;
+  return toSecureFileUrl(`${config.baseUrl}${config.filesPath}/${filename}`);
 }
 
 // ---------- Browse / Manage ----------
@@ -144,7 +149,7 @@ export async function listStorage(bucket: string, prefix = ""): Promise<StorageL
     name: f.name,
     size: f.size ?? 0,
     modified: f.modified,
-    url: f.url || `${config.baseUrl}${config.filesPath}/${prefix ? prefix + "/" : ""}${f.name}`,
+    url: toSecureFileUrl(f.url || `${config.baseUrl}${config.filesPath}/${prefix ? prefix + "/" : ""}${f.name}`),
   }));
   return { folders: data.folders || [], files };
 }
@@ -189,7 +194,7 @@ export async function uploadToStoragePath(file: File, bucket: string, path: stri
   }
   const result = await res.json();
   return {
-    url: result.url || `${config.baseUrl}${config.filesPath}/${path ? path + "/" : ""}${result.filename || file.name}`,
+    url: toSecureFileUrl(result.url || `${config.baseUrl}${config.filesPath}/${path ? path + "/" : ""}${result.filename || file.name}`),
     filename: result.filename || file.name,
   };
 }
