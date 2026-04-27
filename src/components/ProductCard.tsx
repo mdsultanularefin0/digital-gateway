@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
+import { toSecureFileUrl } from "@/lib/storage";
 
 export function ProductCard({ product: rawProduct }: { product: Product }) {
   const { data: settings } = useSiteSettings();
@@ -52,7 +53,7 @@ export function ProductCard({ product: rawProduct }: { product: Product }) {
         .order("sort_order", { ascending: true })
         .limit(1)
         .maybeSingle();
-      return data?.image_url || null;
+      return toSecureFileUrl(data?.image_url) || null;
     },
   });
 
