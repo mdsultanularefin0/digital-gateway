@@ -404,6 +404,9 @@ export function trackPageView(customer?: {
   externalId?: string;
 }) {
   const eid = generateEventId("PageView");
+  getFbc();
+  getFbp();
+  syncBrowserIdentifiers(customer);
   if (isFbqReady()) window.fbq("track", "PageView", {}, { eventID: eid });
   void sendCAPIEvent("PageView", eid, {}, customer);
 }
@@ -463,6 +466,8 @@ export function trackInitiateCheckout(
   }
 ) {
   const eid = generateEventId("InitiateCheckout");
+  getFbc();
+  getFbp();
   syncBrowserIdentifiers(customer);
   if (isFbqReady()) window.fbq("track", "InitiateCheckout", params, { eventID: eid });
   void sendCAPIEvent("InitiateCheckout", eid, params, customer);
@@ -486,6 +491,8 @@ export function trackPurchase(
   // Use order_number as eventID for perfect deduplication, fallback to random
   const eid = customer?.externalId || generateEventId();
   queuePendingPurchase({ eventId: eid, params, customer });
+  getFbc();
+  getFbp();
   syncBrowserIdentifiers(customer);
 
   if (isFbqReady()) {
