@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toSecureFileUrl } from "@/lib/storage";
 
 export interface SiteSettings extends Record<string, any> {
   site_name: string;
@@ -85,7 +86,7 @@ export function useSiteSettings() {
       if (error) throw error;
       const map = { ...defaults } as Record<string, any>;
       (Array.isArray(data) ? data : []).forEach((row: { key: string; value: string }) => {
-        map[row.key] = row.value;
+        map[row.key] = toSecureFileUrl(row.value);
       });
       return map as SiteSettings;
     },
