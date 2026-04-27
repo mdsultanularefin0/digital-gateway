@@ -30,20 +30,53 @@ function getCookie(name: string): string | null {
   return match ? decodeURIComponent(match[2]) : null;
 }
 
+function setCookie(name: string, value: string) {
+  if (typeof document === "undefined" || typeof window === "undefined") return;
+  const maxAge = 60 * 60 * 24 * 90;
+  const hostname = window.location.hostname;
+  const write = (cookie: string) => {
+    document.cookie = cookie;
+    return getCookie(name) === value;
+  };
+
+  if (!write(`${name}=${encodeURIComponent(value)}; max-age=${maxAge}; path=/; SameSite=Lax`)) {
+    const domain = hostname.replace(/^www\./, "");
+    write(`${name}=${encodeURIComponent(value)}; max-age=${maxAge}; path=/; domain=.${domain}; SameSite=Lax`);
+  }
+}
+
+function readLocal(key: string): string | null {
+  try {
+    return typeof localStorage === "undefined" ? null : localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeLocal(key: string, value: string) {
+  try {
+    if (typeof localStorage !== "undefined") localStorage.setItem(key, value);
+  } catch {
+    // Storage can be blocked; cookies still carry the primary signal.
+  }
+}
+
 /** Read _fbp cookie (Browser ID) */
 function getFbp(): string | null {
   const cookie = getCookie("_fbp");
   if (cookie) return cookie;
 
+  const stored = readLocal("_fbp");
+  if (stored) {
+    setCookie("_fbp", stored);
+    return stored;
+  }
+
   if (typeof window === "undefined") return null;
 
   const fbp = `fb.1.${Date.now()}.${Math.floor(Math.random() * 10 ** 10)}`;
-  try {
-    const domain = window.location.hostname.replace(/^www\./, "");
-    document.cookie = `_fbp=${fbp}; max-age=${60 * 60 * 24 * 90}; path=/; domain=.${domain}; SameSite=Lax`;
-  } catch {
-    document.cookie = `_fbp=${fbp}; max-age=${60 * 60 * 24 * 90}; path=/; SameSite=Lax`;
-  }
+  setCookie("_fbp", fbp);
+  writeLocal("_fbp", fbp);
   return fbp;
 }
 
@@ -54,6 +87,11 @@ function getFbp(): string | null {
 function getFbc(): string | null {
   const existing = getCookie("_fbc");
   if (existing) return existing;
+  const stored = readLocal("_fbc");
+  if (stored) {
+    setCookie("_fbc", stored);
+    return stored;
+  }
   
   if (typeof window === "undefined") return null;
   
@@ -65,15 +103,8 @@ function getFbc(): string | null {
       // fb.<subdomain_index>.<creation_time>.<fbclid>
       // Using '1' for subdomain index (usually correct for top-level)
       const fbc = `fb.1.${Date.now()}.${fbclid}`;
-      
-      // Try to persist it so it's available on subsequent pages/events
-      try {
-        const domain = window.location.hostname.replace(/^www\./, "");
-        document.cookie = `_fbc=${fbc}; max-age=${60 * 60 * 24 * 90}; path=/; domain=.${domain}; SameSite=Lax`;
-      } catch {
-        // Fallback for local dev or restricted environments
-        document.cookie = `_fbc=${fbc}; max-age=${60 * 60 * 24 * 90}; path=/; SameSite=Lax`;
-      }
+      setCookie("_fbc", fbc);
+      writeLocal("_fbc", fbc);
       return fbc;
     }
   } catch (e) {
