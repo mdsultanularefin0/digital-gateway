@@ -172,6 +172,24 @@ let advancedMatch: {
   external_id?: string;
 } = {};
 
+function loadAdvancedMatch() {
+  if (Object.keys(advancedMatch).length > 0) return;
+  try {
+    const stored = typeof localStorage === "undefined" ? null : localStorage.getItem("meta_advanced_match");
+    if (stored) advancedMatch = JSON.parse(stored) || {};
+  } catch {
+    // Ignore malformed or blocked storage.
+  }
+}
+
+function saveAdvancedMatch() {
+  try {
+    if (typeof localStorage !== "undefined") localStorage.setItem("meta_advanced_match", JSON.stringify(advancedMatch));
+  } catch {
+    // Best-effort identifier persistence only.
+  }
+}
+
 /**
  * Set advanced-matching identifiers — call after login or once known on checkout.
  * Values are normalized + hashed before storing.
@@ -188,10 +206,16 @@ export async function setUserIdentifiers(params: {
   if (params.firstName) advancedMatch.fn = await sha256Hex(params.firstName.trim().toLowerCase());
   if (params.lastName) advancedMatch.ln = await sha256Hex(params.lastName.trim().toLowerCase());
   if (params.externalId) advancedMatch.external_id = await sha256Hex(params.externalId);
+  saveAdvancedMatch();
 }
 
 export function clearUserIdentifiers() {
   advancedMatch = {};
+  try {
+    if (typeof localStorage !== "undefined") localStorage.removeItem("meta_advanced_match");
+  } catch {
+    // Ignore storage cleanup errors.
+  }
 }
 
 async function buildUserData(extra?: {
@@ -200,6 +224,7 @@ async function buildUserData(extra?: {
   name?: string;
   externalId?: string;
 }): Promise<Record<string, unknown>> {
+  loadAdvancedMatch();
   const data: Record<string, unknown> = {};
   
   // Base signals
