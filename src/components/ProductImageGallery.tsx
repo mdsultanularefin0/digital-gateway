@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toSecureFileUrl } from "@/lib/storage";
 
 interface ProductImage {
   id: string;
@@ -41,7 +42,7 @@ export function ProductImageGallery({ productId, fallbackLetter }: { productId: 
         <AnimatePresence mode="wait">
           <motion.img
             key={images[selectedIdx].id}
-            src={images[selectedIdx].image_url}
+            src={toSecureFileUrl(images[selectedIdx].image_url)}
             alt={images[selectedIdx].alt_text || "Product image"}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -61,7 +62,7 @@ export function ProductImageGallery({ productId, fallbackLetter }: { productId: 
                 i === selectedIdx ? "border-primary" : "border-border hover:border-foreground/20"
               }`}
             >
-              <img src={img.image_url} alt={img.alt_text || ""} className="w-full h-full object-cover" />
+              <img src={toSecureFileUrl(img.image_url)} alt={img.alt_text || ""} className="w-full h-full object-cover" />
             </button>
           ))}
         </div>

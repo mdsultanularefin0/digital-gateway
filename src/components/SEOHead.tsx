@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { toSecureFileUrl } from "@/lib/storage";
 
 interface BreadcrumbItem {
   name: string;
@@ -43,7 +44,7 @@ export function SEOHead({
   const { data: settings } = useSiteSettings();
 
   // Resolve fallbacks from global site settings
-  const effectiveOgImage = ogImage || settings?.default_og_image_url || undefined;
+  const effectiveOgImage = toSecureFileUrl(ogImage || settings?.default_og_image_url) || undefined;
   const effectiveSiteName = siteName || settings?.site_name || undefined;
   const baseUrl = settings?.default_canonical_url?.replace(/\/$/, "") || "";
 

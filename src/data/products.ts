@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { toSecureFileUrl } from "@/lib/storage";
 
 type DBProduct = Database["public"]["Tables"]["products"]["Row"];
 
@@ -71,7 +72,7 @@ function mapDBProduct(p: DBProduct): Product {
     priceLabel: p.price_label,
     billingCycle: p.billing_cycle ?? undefined,
     features: Array.isArray(p.features) ? p.features : [],
-    image: p.image_url || "/placeholder.svg",
+    image: toSecureFileUrl(p.image_url) || "/placeholder.svg",
     externalUrl: p.external_url,
     featured: p.featured,
     inStock: (p as any).in_stock !== false,
@@ -79,7 +80,7 @@ function mapDBProduct(p: DBProduct): Product {
     meta_title: (p as any).meta_title || "",
     meta_description: (p as any).meta_description || "",
     meta_keywords: (p as any).meta_keywords || "",
-    og_image_url: (p as any).og_image_url || "",
+    og_image_url: toSecureFileUrl((p as any).og_image_url) || "",
   };
 }
 
@@ -165,7 +166,7 @@ export function useBlogPosts() {
         date: p.published_at ?? p.created_at,
         author: p.author,
         category: p.category,
-        image: p.image_url || "/placeholder.svg",
+        image: toSecureFileUrl(p.image_url) || "/placeholder.svg",
         slug: p.slug,
         content: p.content,
         title_bn: p.title_bn,
@@ -177,7 +178,7 @@ export function useBlogPosts() {
         meta_title_bn: p.meta_title_bn,
         meta_description_bn: p.meta_description_bn,
         meta_keywords_bn: p.meta_keywords_bn,
-        og_image_url: p.og_image_url,
+        og_image_url: toSecureFileUrl(p.og_image_url),
       }));
     },
   });

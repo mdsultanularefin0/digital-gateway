@@ -147,11 +147,9 @@ function buildBrowserMatchParams(customer?: CustomerData): Record<string, string
 }
 
 function syncBrowserIdentifiers(customer?: CustomerData) {
-  if (!pixelId || !isFbqReady()) return;
-  const matchParams = buildBrowserMatchParams(customer);
-  if (Object.keys(matchParams).length > 0) {
-    window.fbq("init", pixelId, matchParams);
-  }
+  // Do not call fbq("init") after the first Pixel boot. Meta treats repeated
+  // init calls for the same pixel as a duplicate Pixel ID and logs warnings.
+  buildBrowserMatchParams(customer);
 }
 
 /** SHA-256 hex hash for PII (email, phone, names) */
@@ -264,7 +262,7 @@ async function buildUserData(extra?: {
 export function initMetaPixel(id: string, customer?: CustomerData) {
   if (!id) return;
   if (pixelId === id && scriptLoaded) {
-    syncBrowserIdentifiers(customer);
+    buildBrowserMatchParams(customer);
     return;
   }
   pixelId = id;

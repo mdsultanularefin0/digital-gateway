@@ -15,6 +15,7 @@ import { usePageContents } from "@/hooks/use-page-contents";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import defaultHeroImage from "@/assets/hero-glass-render.png";
 import DOMPurify from "dompurify";
+import { toSecureFileUrl } from "@/lib/storage";
 
 const defaultStats = [
   { value: "50K+", label: "Active Users" },
@@ -31,7 +32,7 @@ export default function HomePage() {
   const featured = allProducts.filter((p) => p.featured).slice(0, 3);
   const siteName = settings?.site_name || "GiftCardVibe";
   const tagline = pageContent?.hero_description || settings?.site_tagline || "Premium digital products designed for teams who demand precision, speed, and simplicity.";
-  const heroImage = settings?.hero_image_url || defaultHeroImage;
+  const heroImage = toSecureFileUrl(settings?.hero_image_url) || defaultHeroImage;
 
   const heroBadge = pageContent?.hero_badge || "Digital Subscription Boutique";
   const heroHeading = pageContent?.hero_heading || "Tools that<br />elevate your<br /><span class=\"text-primary\">workflow</span>";
