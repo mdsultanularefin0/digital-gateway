@@ -111,9 +111,9 @@ export function useCheckout() {
     if (!form.couponCode.trim()) return;
     setCouponLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("coupons_public")
-        .select("*")
+        .select("code, discount_type, discount_value, min_order_amount, scope, product_ids, is_valid")
         .eq("code", form.couponCode.trim().toUpperCase())
         .eq("is_valid", true)
         .maybeSingle();
@@ -127,13 +127,33 @@ export function useCheckout() {
         toast({ title: "Minimum order not met", description: `Min order: ${sym}${Number(data.min_order_amount).toFixed(2)}`, variant: "destructive" });
         return;
       }
+
+      // For product-scoped coupons: discount only applies to matching items in cart.
+      const scope: string = data.scope || "global";
+      const productIds: string[] = Array.isArray(data.product_ids) ? data.product_ids : [];
+      let eligibleAmount = subtotal;
+
+      if (scope === "product") {
+        if (productIds.length === 0) {
+          toast({ title: "Coupon misconfigured", description: "This coupon has no products assigned.", variant: "destructive" });
+          return;
+        }
+        eligibleAmount = items
+          .filter((i) => productIds.includes(i.productId))
+          .reduce((sum, i) => sum + i.price * i.quantity, 0);
+        if (eligibleAmount <= 0) {
+          toast({ title: "Coupon not applicable", description: "Add an eligible product to your cart to use this coupon.", variant: "destructive" });
+          return;
+        }
+      }
+
       const discountAmount = data.discount_type === "percentage"
-        ? subtotal * (Number(data.discount_value) / 100)
-        : Number(data.discount_value);
+        ? eligibleAmount * (Number(data.discount_value) / 100)
+        : Math.min(Number(data.discount_value), eligibleAmount);
 
       setDiscount(Math.min(discountAmount, subtotal));
       setCouponApplied(data.code!);
-      toast({ title: `Coupon applied: ${data.discount_type === "percentage" ? `${data.discount_value}% off` : `${sym}${Number(data.discount_value).toFixed(2)} off`}` });
+      toast({ title: `Coupon applied: ${data.discount_type === "percentage" ? `${data.discount_value}% off` : `${sym}${Number(data.discount_value).toFixed(2)} off`}${scope === "product" ? " (eligible items only)" : ""}` });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
