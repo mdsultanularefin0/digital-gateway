@@ -209,6 +209,39 @@ export type Database = {
         }
         Relationships: []
       }
+      coupon_products: {
+        Row: {
+          coupon_id: string
+          created_at: string
+          product_id: string
+        }
+        Insert: {
+          coupon_id: string
+          created_at?: string
+          product_id: string
+        }
+        Update: {
+          coupon_id?: string
+          created_at?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_products_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupons: {
         Row: {
           active: boolean
@@ -221,6 +254,7 @@ export type Database = {
           id: string
           max_uses: number | null
           min_order_amount: number
+          scope: string
           updated_at: string
           used_count: number
         }
@@ -235,6 +269,7 @@ export type Database = {
           id?: string
           max_uses?: number | null
           min_order_amount?: number
+          scope?: string
           updated_at?: string
           used_count?: number
         }
@@ -249,6 +284,7 @@ export type Database = {
           id?: string
           max_uses?: number | null
           min_order_amount?: number
+          scope?: string
           updated_at?: string
           used_count?: number
         }
@@ -1668,6 +1704,8 @@ export type Database = {
           discount_value: number | null
           is_valid: boolean | null
           min_order_amount: number | null
+          product_ids: string[] | null
+          scope: string | null
         }
         Insert: {
           code?: string | null
@@ -1675,6 +1713,8 @@ export type Database = {
           discount_value?: number | null
           is_valid?: never
           min_order_amount?: number | null
+          product_ids?: never
+          scope?: string | null
         }
         Update: {
           code?: string | null
@@ -1682,6 +1722,8 @@ export type Database = {
           discount_value?: number | null
           is_valid?: never
           min_order_amount?: number | null
+          product_ids?: never
+          scope?: string | null
         }
         Relationships: []
       }
