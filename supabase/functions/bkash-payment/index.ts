@@ -329,6 +329,13 @@ Deno.serve(withLogging("bkash-payment", async (req) => {
           }),
         }).catch(() => {});
 
+        // Fire outbound payment webhook (non-blocking)
+        fetch(`${supabaseUrl}/functions/v1/order-webhook`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseKey}` },
+          body: JSON.stringify({ order_id: orderId, event: "order.payment_changed" }),
+        }).catch(() => {});
+
         return json({ success: true, trxID: result.trxID });
       }
 
