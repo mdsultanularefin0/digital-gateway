@@ -1,15 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Edit2, Trash2, Tag, Save } from "lucide-react";
+import { Plus, Edit2, Trash2, Tag, Save, X } from "lucide-react";
 import { format } from "date-fns";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
 const emptyCoupon = {
-  code: "", description: "", discount_type: "percentage", discount_value: 0, min_order_amount: 0, max_uses: null as number | null, active: true, expires_at: "",
+  code: "", description: "", discount_type: "percentage", discount_value: 0, min_order_amount: 0, max_uses: null as number | null, active: true, expires_at: "", scope: "global",
 };
 
 export default function AdminCoupons() {
@@ -18,11 +18,23 @@ export default function AdminCoupons() {
   const currencySymbol = settings?.currency_symbol || "৳";
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState(emptyCoupon);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [productPickerOpen, setProductPickerOpen] = useState(false);
+  const [productSearch, setProductSearch] = useState("");
 
   const { data: coupons = [], isLoading } = useQuery({
     queryKey: ["admin-coupons"],
     queryFn: async () => {
       const { data, error } = await supabase.from("coupons").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: products = [] } = useQuery({
+    queryKey: ["admin-coupons-products"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("products").select("id, name").order("name");
       if (error) throw error;
       return data;
     },
@@ -37,12 +49,22 @@ export default function AdminCoupons() {
         max_uses: form.max_uses ? Number(form.max_uses) : null,
         expires_at: form.expires_at || null,
       };
-      if (editing?.id) {
-        const { error } = await supabase.from("coupons").update(payload).eq("id", editing.id);
+      let couponId = editing?.id;
+      if (couponId) {
+        const { error } = await supabase.from("coupons").update(payload).eq("id", couponId);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("coupons").insert(payload);
+        const { data, error } = await supabase.from("coupons").insert(payload).select("id").single();
         if (error) throw error;
+        couponId = data.id;
+      }
+
+      // Sync coupon_products mapping
+      await (supabase as any).from("coupon_products").delete().eq("coupon_id", couponId);
+      if (form.scope === "product" && selectedProductIds.length > 0) {
+        const rows = selectedProductIds.map((pid) => ({ coupon_id: couponId, product_id: pid }));
+        const { error: insErr } = await (supabase as any).from("coupon_products").insert(rows);
+        if (insErr) throw insErr;
       }
     },
     onSuccess: () => {
@@ -74,22 +96,36 @@ export default function AdminCoupons() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-coupons"] }),
   });
 
-  const openEdit = (c?: any) => {
+  const openEdit = async (c?: any) => {
     if (c) {
       setForm({
         code: c.code, description: c.description, discount_type: c.discount_type,
         discount_value: c.discount_value, min_order_amount: c.min_order_amount,
         max_uses: c.max_uses, active: c.active,
         expires_at: c.expires_at ? c.expires_at.split("T")[0] : "",
+        scope: c.scope || "global",
       });
       setEditing(c);
+      // Load assigned products
+      const { data } = await (supabase as any).from("coupon_products").select("product_id").eq("coupon_id", c.id);
+      setSelectedProductIds((data || []).map((r: any) => r.product_id));
     } else {
       setForm(emptyCoupon);
+      setSelectedProductIds([]);
       setEditing({});
     }
+    setProductSearch("");
+    setProductPickerOpen(false);
   };
 
   const inputClass = "h-10 w-full rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
+
+  const toggleProduct = (pid: string) => {
+    setSelectedProductIds((prev) => prev.includes(pid) ? prev.filter((id) => id !== pid) : [...prev, pid]);
+  };
+
+  const filteredProducts = products.filter((p: any) => p.name.toLowerCase().includes(productSearch.toLowerCase()));
+  const selectedProducts = products.filter((p: any) => selectedProductIds.includes(p.id));
 
   if (editing) {
     return (
@@ -112,6 +148,61 @@ export default function AdminCoupons() {
             <label className="text-sm font-medium w-36 shrink-0">Description</label>
             <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={inputClass} placeholder="e.g. 20% off first order" />
           </div>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 p-4">
+            <label className="text-sm font-medium w-36 shrink-0">Scope</label>
+            <select value={form.scope} onChange={(e) => setForm({ ...form, scope: e.target.value })} className={inputClass}>
+              <option value="global">Global (entire order)</option>
+              <option value="product">Product-assigned (specific products)</option>
+            </select>
+          </div>
+          {form.scope === "product" && (
+            <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-6 p-4">
+              <label className="text-sm font-medium w-36 shrink-0 sm:pt-2">Eligible Products</label>
+              <div className="flex-1 w-full">
+                <div className="flex flex-wrap gap-1.5 mb-2 min-h-[2rem]">
+                  {selectedProducts.length === 0 && (
+                    <span className="text-xs text-muted-foreground py-1">No products selected</span>
+                  )}
+                  {selectedProducts.map((p: any) => (
+                    <span key={p.id} className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary text-xs px-2 py-1">
+                      {p.name}
+                      <button type="button" onClick={() => toggleProduct(p.id)} className="hover:text-destructive">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={() => setProductPickerOpen((o) => !o)}>
+                  {productPickerOpen ? "Close picker" : "Add products"}
+                </Button>
+                {productPickerOpen && (
+                  <div className="mt-2 rounded-xl border border-border bg-background">
+                    <input
+                      value={productSearch}
+                      onChange={(e) => setProductSearch(e.target.value)}
+                      placeholder="Search products..."
+                      className="h-9 w-full rounded-t-xl border-b border-border bg-transparent px-3 text-sm focus:outline-none"
+                    />
+                    <div className="max-h-60 overflow-y-auto p-2 space-y-1">
+                      {filteredProducts.length === 0 ? (
+                        <p className="text-xs text-muted-foreground p-2">No products found</p>
+                      ) : filteredProducts.map((p: any) => (
+                        <label key={p.id} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-sm">
+                          <input
+                            type="checkbox"
+                            checked={selectedProductIds.includes(p.id)}
+                            onChange={() => toggleProduct(p.id)}
+                            className="h-4 w-4 rounded border-border"
+                          />
+                          <span>{p.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 p-4">
             <label className="text-sm font-medium w-36 shrink-0">Discount Type</label>
             <select value={form.discount_type} onChange={(e) => setForm({ ...form, discount_type: e.target.value })} className={inputClass}>
@@ -172,6 +263,7 @@ export default function AdminCoupons() {
             <thead>
               <tr className="border-b border-border bg-muted/50">
                 <th className="text-left p-3 font-medium">Code</th>
+                <th className="text-left p-3 font-medium">Scope</th>
                 <th className="text-left p-3 font-medium">Discount</th>
                 <th className="text-left p-3 font-medium">Used</th>
                 <th className="text-left p-3 font-medium">Expires</th>
@@ -183,6 +275,11 @@ export default function AdminCoupons() {
               {coupons.map((c: any) => (
                 <tr key={c.id} className="hover:bg-muted/30 transition-colors">
                   <td className="p-3 font-mono font-medium">{c.code}</td>
+                  <td className="p-3">
+                    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${(c.scope || "global") === "global" ? "bg-blue-500/10 text-blue-500" : "bg-purple-500/10 text-purple-500"}`}>
+                      {(c.scope || "global") === "global" ? "Global" : "Product"}
+                    </span>
+                  </td>
                   <td className="p-3">
                     {c.discount_type === "percentage" ? `${c.discount_value}%` : `${currencySymbol}${Number(c.discount_value).toFixed(2)}`}
                   </td>
