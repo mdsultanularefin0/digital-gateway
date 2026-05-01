@@ -17,6 +17,7 @@ export default function BkashCallback() {
   const [status, setStatus] = useState<"loading" | "success" | "failed">("loading");
   const [trxID, setTrxID] = useState<string | null>(null);
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
+  const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
