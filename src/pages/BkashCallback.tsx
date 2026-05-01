@@ -45,6 +45,7 @@ export default function BkashCallback() {
         if (import.meta.env.DEV) console.log("bKash execute result:", data);
         if (data.success) {
           setTrxID(data.trxID);
+          setPlacedOrderId(orderId);
           setStatus("success");
           
           // Fetch order details for conversion tracking
