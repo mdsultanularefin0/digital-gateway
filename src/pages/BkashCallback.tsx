@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,8 @@ import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { callEdge } from "@/lib/edge";
 import { supabase } from "@/integrations/supabase/client";
 import { trackPurchase } from "@/lib/meta-pixel";
+import { DownloadLinks } from "@/components/DownloadLinks";
+import { OrderSuccessInstructions } from "@/components/OrderSuccessInstructions";
 
 export default function BkashCallback() {
   const [searchParams] = useSearchParams();
