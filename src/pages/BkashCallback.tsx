@@ -89,7 +89,7 @@ export default function BkashCallback() {
     <Layout>
       <SEOHead title="Verifying Payment" description="Confirming your bKash payment." noIndex disableHreflang />
       <section className="py-20 md:py-32">
-        <div className="container max-w-lg text-center">
+        <div className={`container ${status === "success" ? "max-w-2xl" : "max-w-lg"} text-center`}>
           {status === "loading" && (
             <>
               <Loader2 className="h-16 w-16 text-primary mx-auto mb-6 animate-spin" />
