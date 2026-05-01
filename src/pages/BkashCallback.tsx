@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
@@ -8,12 +9,15 @@ import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { callEdge } from "@/lib/edge";
 import { supabase } from "@/integrations/supabase/client";
 import { trackPurchase } from "@/lib/meta-pixel";
+import { DownloadLinks } from "@/components/DownloadLinks";
+import { OrderSuccessInstructions } from "@/components/OrderSuccessInstructions";
 
 export default function BkashCallback() {
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState<"loading" | "success" | "failed">("loading");
   const [trxID, setTrxID] = useState<string | null>(null);
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
+  const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
@@ -41,6 +45,7 @@ export default function BkashCallback() {
         if (import.meta.env.DEV) console.log("bKash execute result:", data);
         if (data.success) {
           setTrxID(data.trxID);
+          setPlacedOrderId(orderId);
           setStatus("success");
           
           // Fetch order details for conversion tracking
@@ -84,7 +89,7 @@ export default function BkashCallback() {
     <Layout>
       <SEOHead title="Verifying Payment" description="Confirming your bKash payment." noIndex disableHreflang />
       <section className="py-20 md:py-32">
-        <div className="container max-w-lg text-center">
+        <div className={`container ${status === "success" ? "max-w-2xl" : "max-w-lg"} text-center`}>
           {status === "loading" && (
             <>
               <Loader2 className="h-16 w-16 text-primary mx-auto mb-6 animate-spin" />
@@ -94,20 +99,36 @@ export default function BkashCallback() {
           )}
 
           {status === "success" && (
-            <>
-              <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6" />
-              <h1 className="text-3xl font-display font-bold mb-3">Payment Successful!</h1>
-              <p className="text-muted-foreground mb-2">Your bKash payment has been confirmed.</p>
-              {orderNumber && (
-                <p className="text-sm font-mono bg-muted rounded-xl inline-block px-4 py-2 mb-2">{orderNumber}</p>
-              )}
-              {trxID && (
-                <p className="text-xs text-muted-foreground mb-8">Transaction ID: {trxID}</p>
-              )}
-              <Button variant="gradient" asChild>
-                <Link to="/products">Continue Shopping</Link>
-              </Button>
-            </>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl border border-border bg-card p-8 md:p-12 text-center shadow-xl relative overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 pointer-events-none" />
+              <div className="relative">
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring", stiffness: 200 }} className="h-20 w-20 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle className="h-10 w-10 text-green-500" />
+                </motion.div>
+                <h1 className="text-3xl font-display font-bold mb-2">Payment Successful!</h1>
+                <p className="text-muted-foreground mb-5">Your bKash payment has been confirmed.</p>
+                {orderNumber && (
+                  <div className="rounded-xl bg-muted/50 border border-border p-4 mb-3">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Order Number</p>
+                    <p className="text-lg font-mono font-bold text-primary">{orderNumber}</p>
+                  </div>
+                )}
+                {trxID && (
+                  <p className="text-xs text-muted-foreground mb-4">Transaction ID: <span className="font-mono">{trxID}</span></p>
+                )}
+                {placedOrderId && <DownloadLinks orderId={placedOrderId} />}
+                <OrderSuccessInstructions orderId={placedOrderId || undefined} />
+                <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+                  <Button variant="gradient" asChild><Link to="/products">Continue Shopping</Link></Button>
+                  <Button variant="outline" asChild><Link to="/account">View My Orders</Link></Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-6">A confirmation email has been sent to your inbox.</p>
+              </div>
+            </motion.div>
           )}
 
           {status === "failed" && (
