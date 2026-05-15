@@ -26,6 +26,16 @@ export default function FAQPage() {
     } catch {}
   }
 
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.question,
+      acceptedAnswer: { "@type": "Answer", text: f.answer },
+    })),
+  };
+
   return (
     <Layout>
       <SEOHead
@@ -36,6 +46,7 @@ export default function FAQPage() {
         canonical={pageMeta?.canonical_url?.trim() || undefined}
         twitterCard={(pageMeta?.twitter_card?.trim() || (settings as any)?.default_twitter_card || undefined) as any}
         siteName={(settings as any)?.site_name}
+        jsonLd={faqJsonLd}
       />
       <section className="py-16 md:py-24">
         <div className="container px-5 md:px-8 max-w-2xl">

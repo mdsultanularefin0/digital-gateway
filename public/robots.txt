@@ -20,5 +20,4 @@ Disallow: /account
 Disallow: /reset-password
 Disallow: /bkash-callback
 
-# Dynamic sitemap (auto-generated from products, blog, landing pages)
-Sitemap: https://hlkjlkjxkmjklrsffvrs.functions.supabase.co/sitemap
+Sitemap: https://secure-link-shop.lovable.app/sitemap.xml
