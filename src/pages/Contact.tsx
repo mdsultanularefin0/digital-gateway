@@ -55,6 +55,7 @@ export default function ContactPage() {
         canonical={pageMeta?.canonical_url?.trim() || undefined}
         twitterCard={(pageMeta?.twitter_card?.trim() || (settings as any)?.default_twitter_card || undefined) as any}
         siteName={(settings as any)?.site_name}
+        jsonLd={contactJsonLd}
       />
       <section className="py-16 md:py-24">
         <div className="container px-5 md:px-8 max-w-4xl">

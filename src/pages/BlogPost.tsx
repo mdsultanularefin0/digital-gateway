@@ -56,6 +56,18 @@ export default function BlogPost() {
   const tr = pickBlog(post as any, lang);
   const ogImage = (post as any).og_image_url?.trim() || (post as any).image_url || undefined;
 
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: tr.title,
+    description: tr.excerpt || undefined,
+    image: ogImage || undefined,
+    datePublished: post.published_at || post.created_at,
+    dateModified: (post as any).updated_at || post.published_at || post.created_at,
+    author: { "@type": "Person", name: post.author },
+    mainEntityOfPage: typeof window !== "undefined" ? window.location.href : undefined,
+  };
+
   return (
     <Layout>
       <SEOHead
@@ -65,6 +77,7 @@ export default function BlogPost() {
         ogImage={ogImage}
         canonical={typeof window !== "undefined" ? window.location.href : undefined}
         type="article"
+        jsonLd={articleJsonLd}
       />
       <article className="py-16 md:py-24">
         <div className="container max-w-3xl mx-auto px-4">
