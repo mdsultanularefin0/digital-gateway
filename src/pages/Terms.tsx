@@ -30,7 +30,7 @@ export default function TermsPage() {
     <Layout>
       <SEOHead
         title={pageMeta?.meta_title?.trim() || heading}
-        description={pageMeta?.meta_description?.trim() || "The rules and conditions for using our services."}
+        description={pageMeta?.meta_description?.trim() || "Read the GiftCardVibe Terms of Service: rules, conditions, payments, intellectual property, and limitations covering use of our digital gift card and download services."}
         keywords={pageMeta?.meta_keywords?.trim() || undefined}
         ogImage={pageMeta?.og_image_url?.trim() || (settings as any)?.default_og_image_url || undefined}
         canonical={pageMeta?.canonical_url?.trim() || undefined}

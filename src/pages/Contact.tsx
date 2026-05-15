@@ -14,6 +14,29 @@ export default function ContactPage() {
 
   const heading = pageContent?.heading || "Get in Touch";
   const subheading = pageContent?.subheading || "Have questions? We'd love to hear from you.";
+  const longDescription = "Contact GiftCardVibe for help with orders, gift card delivery, payment issues, or partnership enquiries. Reach our support team by email, phone, or WhatsApp — we usually reply within a few hours.";
+
+  const contactJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: (settings as any)?.site_name || "GiftCardVibe",
+    url: (settings as any)?.default_canonical_url || "https://secure-link-shop.lovable.app/",
+    email: settings?.contact_email || settings?.support_email || undefined,
+    telephone: settings?.contact_phone || undefined,
+    address: (settings?.contact_address || settings?.city || settings?.country) ? {
+      "@type": "PostalAddress",
+      streetAddress: settings?.contact_address || undefined,
+      addressLocality: settings?.city || undefined,
+      addressRegion: settings?.state || undefined,
+      addressCountry: settings?.country || undefined,
+    } : undefined,
+    contactPoint: [{
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      email: settings?.contact_email || settings?.support_email || undefined,
+      telephone: settings?.contact_phone || undefined,
+    }],
+  };
 
   const contactEmail = settings?.contact_email || settings?.support_email || "hello@example.com";
   const contactPhone = settings?.contact_phone || "";
@@ -26,7 +49,7 @@ export default function ContactPage() {
     <Layout>
       <SEOHead
         title={pageMeta?.meta_title?.trim() || heading}
-        description={pageMeta?.meta_description?.trim() || subheading}
+        description={pageMeta?.meta_description?.trim() || longDescription}
         keywords={pageMeta?.meta_keywords?.trim() || undefined}
         ogImage={pageMeta?.og_image_url?.trim() || (settings as any)?.default_og_image_url || undefined}
         canonical={pageMeta?.canonical_url?.trim() || undefined}
