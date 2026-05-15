@@ -1,0 +1,21 @@
+# GiftCardVibe
+
+> Premium digital gift cards for popular apps, services, and platforms — instant delivery and secure transactions in Bangladesh.
+
+GiftCardVibe sells digital gift cards and downloadable products. Customers browse the catalog, check out with bKash (PGW or manual Send Money) or other supported MFS, and receive their codes or download links instantly.
+
+## Pages
+
+- [Home](/): Featured products, hero, and announcements.
+- [Products](/products): Full catalog of digital gift cards and downloads.
+- [Blog](/blog): Guides, news, and how-to articles.
+- [About](/about): Who we are and what we do.
+- [Contact](/contact): Email, phone, and WhatsApp support.
+- [FAQ](/faq): Common questions about ordering and delivery.
+- [Privacy Policy](/privacy): How we handle customer data.
+- [Terms of Service](/terms): Rules and conditions for using the site.
+
+## Optional
+
+- [Product detail](/products/example-slug): Per-product page with pricing, tiers, and instant checkout.
+- [Blog post](/blog/example-slug): Individual article page.
