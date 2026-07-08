@@ -628,7 +628,7 @@ const emptyCheckoutForm: CheckoutForm = {
   senderNumber: "", trxId: "",
 };
 
-function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct }: { content: SectionContent; allSections: SectionsData; pageTitle: string; linkedProduct?: { id: string; name: string; price: number; image: string; slug: string } | null }) {
+function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct }: { content: SectionContent; allSections: SectionsData; pageTitle: string; linkedProduct?: { id: string; name: string; price: number; image: string; slug: string; tiers?: Array<{ id: string; label: string; price: number; badge: string | null; is_default: boolean }>; defaultTierId?: string | null } | null }) {
   const { data: settings } = useSiteSettings();
   const sym = settings?.currency_symbol || "৳";
 
@@ -639,11 +639,21 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
   const [submitting, setSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState<string | null>(null);
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
+  const [selectedTierId, setSelectedTierId] = useState<string | null>(linkedProduct?.defaultTierId || null);
+
+  useEffect(() => {
+    if (linkedProduct?.defaultTierId && !selectedTierId) {
+      setSelectedTierId(linkedProduct.defaultTierId);
+    }
+  }, [linkedProduct?.defaultTierId]);
 
   // Use linked product data if available, otherwise fall back to pricing section
   const pricingSection = allSections?.pricing;
+  const tiers = linkedProduct?.tiers || [];
+  const selectedTier = tiers.find((t) => t.id === selectedTierId) || null;
   const productName = linkedProduct?.name || pricingSection?.heading || content?.productName || pageTitle;
-  const unitPrice = linkedProduct?.price ?? (parseFloat((pricingSection?.price || content?.price || "0").replace(/[^0-9.]/g, "")) || 0);
+  const fallbackPrice = parseFloat((pricingSection?.price || content?.price || "0").replace(/[^0-9.]/g, "")) || 0;
+  const unitPrice = selectedTier?.price ?? linkedProduct?.price ?? fallbackPrice;
   const productImage = linkedProduct?.image || pricingSection?.imageUrl || allSections?.hero?.imageUrl || allSections?.["product-showcase"]?.imageUrl || "";
   const linkedProductId = linkedProduct?.id || null;
 
