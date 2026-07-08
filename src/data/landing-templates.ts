@@ -28,6 +28,17 @@ export interface LandingTemplate {
   preview: string;
 }
 
+export interface PricingPlan {
+  name: string;
+  price: string;
+  period?: string;
+  tagline?: string;
+  features?: string[];
+  highlight?: boolean;
+  buttonText?: string;
+  buttonUrl?: string;
+}
+
 export interface SectionContent {
   heading?: string;
   subheading?: string;
@@ -38,6 +49,7 @@ export interface SectionContent {
   images?: string[];
   imageRatio?: "auto" | "1:1" | "4:3" | "16:9" | "3:4" | "9:16";
   items?: { title: string; description: string; icon?: string }[];
+  plans?: PricingPlan[];
   price?: string;
   originalPrice?: string;
   badge?: string;
