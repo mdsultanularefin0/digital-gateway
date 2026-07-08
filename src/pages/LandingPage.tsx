@@ -1015,9 +1015,35 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="font-medium truncate">{productName}</p>
+                      {selectedTier && <p className="text-xs text-muted-foreground truncate">{selectedTier.label}</p>}
                       <p className="text-lg font-bold text-primary mt-1">{sym}{unitPrice.toFixed(2)}</p>
                     </div>
                   </div>
+
+                  {tiers.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Choose an option</p>
+                      <div className="grid gap-2">
+                        {tiers.map((t) => {
+                          const active = t.id === selectedTierId;
+                          return (
+                            <button
+                              type="button"
+                              key={t.id}
+                              onClick={() => { setSelectedTierId(t.id); setDiscount(0); setCouponApplied(null); }}
+                              className={`text-left rounded-xl border p-3 transition-colors flex items-center justify-between gap-3 ${active ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:border-foreground/20"}`}
+                            >
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium truncate">{t.label}</p>
+                                {t.badge && <p className="text-[10px] uppercase tracking-wide text-primary font-semibold">{t.badge}</p>}
+                              </div>
+                              <span className="text-sm font-bold shrink-0">{sym}{Number(t.price).toFixed(2)}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-4 border-b border-border space-y-2">
