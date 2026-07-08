@@ -1168,6 +1168,7 @@ const renderers: Record<string, React.FC<{ content: SectionContent }>> = {
   bonus: BonusSection,
   countdown: CountdownSection,
   "pricing-tiers": PricingTiersSection,
+  reseller: ResellerSection,
 };
 
 export default function LandingPage() {
