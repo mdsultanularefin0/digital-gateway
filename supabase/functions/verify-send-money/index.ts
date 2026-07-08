@@ -92,12 +92,13 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
       return json({ error: "This Transaction ID has already been submitted for this order." }, 409);
     }
 
-    // FIX #2 (matched-row guard): surface a hard conflict when this sender+TrxID has already been matched elsewhere.
+    // Match webhook-stored verification by trx_id + provider only.
+    // sender_number and amount are compared leniently below because MFS webhooks
+    // may store the number with an 880 prefix or omit amount entirely.
     const { data: verificationRow } = await supabase
       .from("send_money_verifications")
-      .select("id, amount, verified, matched_order_id")
+      .select("id, amount, sender_number, verified, matched_order_id")
       .eq("trx_id", cleanTrx)
-      .eq("sender_number", cleanSender)
       .eq("provider", verificationProvider)
       .maybeSingle();
 
@@ -109,7 +110,13 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
       return json({ error: "This Transaction ID is already matched to this order." }, 409);
     }
 
-    const verification = verificationRow?.verified ? verificationRow : null;
+    // Normalize numbers: keep digits only, compare last 11 (BD mobile length).
+    const digits = (s: string) => (s || "").replace(/\D/g, "");
+    const last11 = (s: string) => digits(s).slice(-11);
+    const storedSender = verificationRow?.sender_number || "";
+    const senderMatches = storedSender ? last11(storedSender) === last11(cleanSender) : true;
+
+    const verification = verificationRow?.verified && senderMatches ? verificationRow : null;
 
     const sendMoneyData = {
       provider,
@@ -118,10 +125,12 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
       submitted_at: new Date().toISOString(),
     };
 
-    // Amount must be >= order total and <= 102% of order total
+    // Amount must be >= order total and <= 102% (skip check when webhook didn't include amount).
+    const verifiedAmount = Number(verification?.amount ?? 0);
     const isAmountValid = verification
-      ? Number(verification.amount) >= Number(order.total) &&
-        Number(verification.amount) <= Number(order.total) * 1.02
+      ? verifiedAmount === 0 ||
+        (verifiedAmount >= Number(order.total) &&
+          verifiedAmount <= Number(order.total) * 1.02)
       : false;
 
     const isVerified = !!verification && isAmountValid;
