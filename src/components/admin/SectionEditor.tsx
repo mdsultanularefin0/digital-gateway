@@ -32,15 +32,16 @@ const _SECTION_TYPE_LABELS: Record<string, string> = {
   countdown: "Countdown Timer",
   checkout: "Checkout Form",
   "pricing-tiers": "Pricing Tiers (multi-plan grid)",
+  reseller: "Reseller / Upgrade Card",
 };
 
-const showBody = ["hero", "text-image", "testimonial", "guarantee", "pricing", "product-showcase"];
+const showBody = ["hero", "text-image", "testimonial", "guarantee", "pricing", "product-showcase", "reseller"];
 const showImage = ["hero", "text-image", "product-showcase"];
 const showGallery = ["product-showcase", "text-image", "testimonial"];
-const showButton = ["hero", "cta", "pricing", "text-image", "checkout"];
-const showPrice = ["hero", "pricing", "cta", "countdown"];
-const showBadge = ["hero", "pricing", "countdown"];
-const showItems = ["features", "faq", "stats", "how-it-works", "bonus", "pricing", "testimonial"];
+const showButton = ["hero", "cta", "pricing", "text-image", "checkout", "reseller"];
+const showPrice = ["hero", "pricing", "cta", "countdown", "reseller"];
+const showBadge = ["hero", "pricing", "countdown", "reseller"];
+const showItems = ["features", "faq", "stats", "how-it-works", "bonus", "pricing", "testimonial", "reseller"];
 const showCountdown = ["countdown"];
 const showRatio = ["hero", "text-image", "product-showcase"];
 

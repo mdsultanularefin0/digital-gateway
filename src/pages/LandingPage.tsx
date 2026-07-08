@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Globe, ArrowRight, CheckCircle, Star, HelpCircle, BarChart3, Shield, Gift, Clock, Loader2, Check, Sparkles } from "lucide-react";
+import { Globe, ArrowRight, CheckCircle, Star, HelpCircle, BarChart3, Shield, Gift, Clock, Loader2, Check, Sparkles, Crown } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { Layout } from "@/components/Layout";
 import { SEOHead } from "@/components/SEOHead";
@@ -600,6 +600,73 @@ function TextImageSection({ content }: { content: SectionContent }) {
   );
 }
 
+function ResellerSection({ content }: { content: SectionContent }) {
+  if (!content.heading && !content.price) return null;
+  const features = (content.items || []).filter((i) => i.title);
+  const isExternal = content.buttonUrl && content.buttonUrl.startsWith("http");
+  return (
+    <section className="py-20 md:py-28">
+      <div className="container max-w-5xl mx-auto px-4">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+          <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-background to-primary/5 p-8 md:p-14">
+            <div className="absolute top-0 right-0 h-64 w-64 rounded-full bg-primary/20 blur-3xl -z-0" />
+            <div className="relative z-10 grid md:grid-cols-2 gap-10 items-center">
+              <div>
+                {content.badge && (
+                  <span className="inline-flex items-center gap-1.5 mb-4 rounded-full bg-primary text-primary-foreground px-3 py-1 text-xs font-semibold">
+                    <Crown className="h-3 w-3" /> {content.badge}
+                  </span>
+                )}
+                <h2 className="text-3xl md:text-4xl font-display font-bold tracking-tight mb-4">{content.heading}</h2>
+                {content.subheading && (
+                  <p className="text-muted-foreground text-base md:text-lg mb-6">{content.subheading}</p>
+                )}
+                {features.length > 0 && (
+                  <ul className="space-y-2.5">
+                    {features.map((f, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm">
+                        <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                        <span>{f.title}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div>
+                <div className="rounded-2xl border border-primary/30 bg-background/80 backdrop-blur p-8 text-center md:text-left shadow-lg">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-2">One-time Payment</p>
+                  <div className="flex items-baseline gap-2 mb-1 justify-center md:justify-start">
+                    {content.originalPrice && (
+                      <span className="text-lg text-muted-foreground line-through">{content.originalPrice}</span>
+                    )}
+                    <span className="text-5xl font-bold">{content.price}</span>
+                  </div>
+                  {content.body && <p className="text-sm text-muted-foreground mb-6">{content.body}</p>}
+                  {!content.body && <div className="mb-6" />}
+                  {isExternal ? (
+                    <Button variant="gradient" size="lg" className="w-full" asChild>
+                      <a href={content.buttonUrl!} target="_blank" rel="noopener noreferrer">
+                        {content.buttonText || "Get Started"} <ArrowRight className="ml-2 h-4 w-4" />
+                      </a>
+                    </Button>
+                  ) : (
+                    <Button variant="gradient" size="lg" className="w-full" onClick={scrollToCheckout}>
+                      {content.buttonText || "Get Started"} <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-4 flex items-center gap-1.5 justify-center">
+                    <Shield className="h-3 w-3" /> 7-day money-back guarantee
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 // ─── Embedded Checkout Section ───────────────────────────────────────
 
 const ALL_PAYMENT_METHODS = [
@@ -1101,6 +1168,7 @@ const renderers: Record<string, React.FC<{ content: SectionContent }>> = {
   bonus: BonusSection,
   countdown: CountdownSection,
   "pricing-tiers": PricingTiersSection,
+  reseller: ResellerSection,
 };
 
 export default function LandingPage() {
