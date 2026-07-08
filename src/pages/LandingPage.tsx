@@ -628,7 +628,7 @@ const emptyCheckoutForm: CheckoutForm = {
   senderNumber: "", trxId: "",
 };
 
-function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct }: { content: SectionContent; allSections: SectionsData; pageTitle: string; linkedProduct?: { id: string; name: string; price: number; image: string; slug: string } | null }) {
+function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct }: { content: SectionContent; allSections: SectionsData; pageTitle: string; linkedProduct?: { id: string; name: string; price: number; image: string; slug: string; tiers?: Array<{ id: string; label: string; price: number; badge: string | null; is_default: boolean }>; defaultTierId?: string | null } | null }) {
   const { data: settings } = useSiteSettings();
   const sym = settings?.currency_symbol || "৳";
 
@@ -639,11 +639,21 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
   const [submitting, setSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState<string | null>(null);
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
+  const [selectedTierId, setSelectedTierId] = useState<string | null>(linkedProduct?.defaultTierId || null);
+
+  useEffect(() => {
+    if (linkedProduct?.defaultTierId && !selectedTierId) {
+      setSelectedTierId(linkedProduct.defaultTierId);
+    }
+  }, [linkedProduct?.defaultTierId]);
 
   // Use linked product data if available, otherwise fall back to pricing section
   const pricingSection = allSections?.pricing;
+  const tiers = linkedProduct?.tiers || [];
+  const selectedTier = tiers.find((t) => t.id === selectedTierId) || null;
   const productName = linkedProduct?.name || pricingSection?.heading || content?.productName || pageTitle;
-  const unitPrice = linkedProduct?.price ?? (parseFloat((pricingSection?.price || content?.price || "0").replace(/[^0-9.]/g, "")) || 0);
+  const fallbackPrice = parseFloat((pricingSection?.price || content?.price || "0").replace(/[^0-9.]/g, "")) || 0;
+  const unitPrice = selectedTier?.price ?? linkedProduct?.price ?? fallbackPrice;
   const productImage = linkedProduct?.image || pricingSection?.imageUrl || allSections?.hero?.imageUrl || allSections?.["product-showcase"]?.imageUrl || "";
   const linkedProductId = linkedProduct?.id || null;
 
@@ -769,7 +779,8 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
         order_id: order.id,
         product_id: linkedProductId,
         product_name: productName,
-        tier_label: "Landing Page",
+        tier_id: selectedTier?.id ?? null,
+        tier_label: selectedTier?.label || "Landing Page",
         quantity: 1,
         unit_price: unitPrice,
         total: unitPrice,
@@ -1004,9 +1015,35 @@ function LandingCheckoutSection({ content, allSections, pageTitle, linkedProduct
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="font-medium truncate">{productName}</p>
+                      {selectedTier && <p className="text-xs text-muted-foreground truncate">{selectedTier.label}</p>}
                       <p className="text-lg font-bold text-primary mt-1">{sym}{unitPrice.toFixed(2)}</p>
                     </div>
                   </div>
+
+                  {tiers.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Choose an option</p>
+                      <div className="grid gap-2">
+                        {tiers.map((t) => {
+                          const active = t.id === selectedTierId;
+                          return (
+                            <button
+                              type="button"
+                              key={t.id}
+                              onClick={() => { setSelectedTierId(t.id); setDiscount(0); setCouponApplied(null); }}
+                              className={`text-left rounded-xl border p-3 transition-colors flex items-center justify-between gap-3 ${active ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:border-foreground/20"}`}
+                            >
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium truncate">{t.label}</p>
+                                {t.badge && <p className="text-[10px] uppercase tracking-wide text-primary font-semibold">{t.badge}</p>}
+                              </div>
+                              <span className="text-sm font-bold shrink-0">{sym}{Number(t.price).toFixed(2)}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-4 border-b border-border space-y-2">
@@ -1114,6 +1151,8 @@ export default function LandingPage() {
         price: defaultTier?.price ?? prod.price,
         image: images?.[0]?.image_url || prod.image_url || "",
         slug: prod.slug,
+        tiers: (tiers || []) as Array<{ id: string; label: string; price: number; badge: string | null; is_default: boolean }>,
+        defaultTierId: defaultTier?.id || null,
       };
     },
     enabled: !!productId,
