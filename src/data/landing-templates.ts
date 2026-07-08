@@ -194,6 +194,7 @@ export function getDefaultSections(template: LandingTemplate): SectionsData {
   for (const s of template.sections) {
     const hasItems = ["features", "faq", "stats", "how-it-works", "bonus"].includes(s.type);
     const hasCountdown = s.type === "countdown";
+    const hasPlans = s.type === "pricing-tiers";
     data[s.id] = {
       heading: "",
       subheading: "",
@@ -210,6 +211,14 @@ export function getDefaultSections(template: LandingTemplate): SectionsData {
             { title: "", description: "" },
             { title: "", description: "" },
             { title: "", description: "" },
+          ]
+        : undefined,
+      plans: hasPlans
+        ? [
+            { name: "Starter", price: "৳99", period: "24 hours", tagline: "Try it out", features: ["Full access", "1 project"] },
+            { name: "Weekly", price: "৳299", period: "7 days", tagline: "Weekend build", features: ["Everything in Starter", "3 projects", "Email support"] },
+            { name: "Monthly", price: "৳499", period: "30 days", tagline: "Most popular", highlight: true, features: ["Everything in Weekly", "10 projects", "Priority support"] },
+            { name: "Yearly", price: "৳1999", period: "12 months", tagline: "Best value", features: ["Everything in Monthly", "Unlimited projects", "24/7 support"] },
           ]
         : undefined,
     };
