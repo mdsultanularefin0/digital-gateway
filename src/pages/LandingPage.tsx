@@ -1114,6 +1114,8 @@ export default function LandingPage() {
         price: defaultTier?.price ?? prod.price,
         image: images?.[0]?.image_url || prod.image_url || "",
         slug: prod.slug,
+        tiers: (tiers || []) as Array<{ id: string; label: string; price: number; badge: string | null; is_default: boolean }>,
+        defaultTierId: defaultTier?.id || null,
       };
     },
     enabled: !!productId,
