@@ -3,6 +3,9 @@ project_id = "hlkjlkjxkmjklrsffvrs"
 [functions.order-webhook]
 verify_jwt = false
 
+[functions.issue-license]
+verify_jwt = false
+
 [functions.mail]
 verify_jwt = false
 
