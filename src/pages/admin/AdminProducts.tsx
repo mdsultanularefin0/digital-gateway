@@ -708,6 +708,7 @@ export default function AdminProducts() {
                 <option value="download">📥 Downloadable Files (ebooks, videos, assets)</option>
                 <option value="code">🔑 Code / License Key (gift cards, activation keys)</option>
                 <option value="account">👤 Account Credentials (email + password)</option>
+                <option value="license">🪪 License via Webhook (+ optional file)</option>
                 <option value="service">🛠️ Service / Top-up (manual delivery by admin)</option>
               </select>
             </div>
@@ -721,6 +722,18 @@ export default function AdminProducts() {
                 productId={editingId}
                 deliveryType={(editing as any).delivery_type}
               />
+            )}
+
+            {(editing as any).delivery_type === "license" && (
+              <>
+                <div className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+                  <strong className="text-foreground">Webhook-issued license.</strong> On payment, the
+                  configured <em>Product Webhook</em> (Integrations → Webhook) is called with plan details
+                  and expected to return a license key. Optionally attach files below — customers get both
+                  the key and secure download links.
+                </div>
+                <DigitalFilesEditor files={digitalFiles} onChange={setDigitalFiles} />
+              </>
             )}
 
             {(editing as any).delivery_type === "service" && (

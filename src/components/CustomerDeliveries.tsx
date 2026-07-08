@@ -90,11 +90,27 @@ export function CustomerDeliveries({ orderId }: CustomerDeliveriesProps) {
             {d.status === "delivered" && d.payload?.code && (
               <div className="rounded bg-muted/30 p-2 space-y-1.5">
                 <CodeReveal
-                  label={d.delivery_type === "account" ? "Username" : "Code"}
+                  label={
+                    d.delivery_type === "account"
+                      ? "Username"
+                      : d.delivery_type === "license"
+                      ? "License"
+                      : "Code"
+                  }
                   value={d.payload.code}
                 />
                 {d.payload.credential_extra && (
                   <CodeReveal label="Password" value={d.payload.credential_extra} />
+                )}
+                {d.delivery_type === "license" && d.payload.expires_at && (
+                  <p className="text-[11px] text-muted-foreground pl-1">
+                    Expires: {new Date(d.payload.expires_at).toLocaleString()}
+                  </p>
+                )}
+                {d.delivery_type === "license" && d.payload.has_files && (
+                  <p className="text-[11px] text-muted-foreground pl-1">
+                    Attached files are available in your Downloads.
+                  </p>
                 )}
               </div>
             )}
