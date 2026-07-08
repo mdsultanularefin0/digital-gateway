@@ -181,7 +181,7 @@ export const landingTemplates: LandingTemplate[] = [
       { id: "hero", type: "hero", label: "License Hero" },
       { id: "pricing-tiers", type: "pricing-tiers", label: "License Plans" },
       { id: "features", type: "features", label: "Why Choose Us" },
-      { id: "text-image", type: "text-image", label: "Reseller / Upgrade Card" },
+      { id: "reseller", type: "reseller", label: "Reseller / Upgrade Card" },
       { id: "testimonial", type: "testimonial", label: "Customer Reviews" },
       { id: "faq", type: "faq", label: "FAQ" },
       { id: "cta", type: "cta", label: "Final CTA" },
