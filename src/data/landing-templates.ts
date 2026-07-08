@@ -9,6 +9,7 @@ export interface LandingSection {
     | "faq"
     | "text-image"
     | "pricing"
+    | "pricing-tiers"
     | "how-it-works"
     | "guarantee"
     | "product-showcase"
