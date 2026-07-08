@@ -124,6 +124,7 @@ Deno.serve(withLogging("issue-license", async (req) => {
       }
 
       const deliveryPayload = {
+        ...(existing?.payload as Record<string, unknown> || {}),
         product_name: item.product_name,
         plan_name: item.tier_label || item.product_name,
         code: licenseKey,
