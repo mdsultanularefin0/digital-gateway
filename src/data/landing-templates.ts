@@ -15,6 +15,7 @@ export interface LandingSection {
     | "product-showcase"
     | "bonus"
     | "countdown"
+    | "reseller"
     | "checkout";
   label: string;
 }
