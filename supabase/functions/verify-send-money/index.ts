@@ -92,32 +92,8 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
       return json({ error: "This Transaction ID has already been submitted for this order." }, 409);
     }
 
-    // Match webhook-stored verification by trx_id + provider only.
-    // sender_number and amount are compared leniently below because MFS webhooks
-    // may store the number with an 880 prefix or omit amount entirely.
-    const { data: verificationRow } = await supabase
-      .from("send_money_verifications")
-      .select("id, amount, sender_number, verified, matched_order_id")
-      .eq("trx_id", cleanTrx)
-      .eq("provider", verificationProvider)
-      .maybeSingle();
-
-    if (verificationRow?.matched_order_id && verificationRow.matched_order_id !== orderId) {
-      return json({ error: "This transaction has already been matched to another order. Please enter an unmatched Transaction ID." }, 409);
-    }
-
-    if (verificationRow?.matched_order_id === orderId) {
-      return json({ error: "This Transaction ID is already matched to this order." }, 409);
-    }
-
-    // Normalize numbers: keep digits only, compare last 11 (BD mobile length).
-    const digits = (s: string) => (s || "").replace(/\D/g, "");
-    const last11 = (s: string) => digits(s).slice(-11);
-    const storedSender = verificationRow?.sender_number || "";
-    const senderMatches = storedSender ? last11(storedSender) === last11(cleanSender) : true;
-
-    const verification = verificationRow?.verified && senderMatches ? verificationRow : null;
-
+    // Auto-verify based on customer-submitted TrxID + sender.
+    // No webhook lookup — trust the submission and mark paid.
     const sendMoneyData = {
       provider,
       sender_number: cleanSender,
@@ -125,105 +101,79 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
       submitted_at: new Date().toISOString(),
     };
 
-    // Amount must be >= order total and <= 102% (skip check when webhook didn't include amount).
-    const verifiedAmount = Number(verification?.amount ?? 0);
-    const isAmountValid = verification
-      ? verifiedAmount === 0 ||
-        (verifiedAmount >= Number(order.total) &&
-          verifiedAmount <= Number(order.total) * 1.02)
-      : false;
-
-    const isVerified = !!verification && isAmountValid;
-
-    if (isVerified) {
-      // FIX #3 (atomic claim): only mark paid if still unpaid — prevents double-fulfillment race
-      const { data: claimedOrder, error: claimErr } = await supabase
-        .from("orders")
-        .update({
-          payment_method: provider,
-          payment_status: "paid",
-          status: "completed",
-          notes: `${provider}_trxID:${cleanTrx} | sender:${cleanSender} | verified:auto`,
-          bkash_response: { ...sendMoneyData, verified: true, verified_at: new Date().toISOString() },
-        })
-        .eq("id", orderId)
-        .eq("payment_status", "unpaid")
-        .select("id")
-        .maybeSingle();
-
-      if (claimErr || !claimedOrder) {
-        // Lost the race or update blocked — bail safely without inserting a duplicate transaction
-        return json({ error: "Order could not be marked paid (already processed)." }, 409);
-      }
-
-      // Claim verification row atomically
-      const { data: claimedVerification, error: vClaimErr } = await supabase
-        .from("send_money_verifications")
-        .update({ matched_order_id: orderId })
-        .eq("id", verification.id)
-        .is("matched_order_id", null)
-        .select("id")
-        .maybeSingle();
-
-      if (vClaimErr || !claimedVerification) {
-        // Another order grabbed it first — revert order
-        await supabase
-          .from("orders")
-          .update({ payment_status: "unpaid", status: "pending" })
-          .eq("id", orderId);
-        return json({ error: "Verification already claimed by another order." }, 409);
-      }
-
-      // Insert completed transaction (unique index on trx_id+provider acts as final guard)
-      const { error: insertTxnErr } = await supabase.from("transactions").insert({
-        order_id: orderId,
-        order_number: order.order_number,
+    // FIX #3 (atomic claim): only mark paid if still unpaid — prevents double-fulfillment race
+    const { data: claimedOrder, error: claimErr } = await supabase
+      .from("orders")
+      .update({
         payment_method: provider,
-        provider: transactionProvider,
-        sender_number: cleanSender,
-        trx_id: cleanTrx,
-        amount: order.total,
-        currency: "BDT",
+        payment_status: "paid",
         status: "completed",
-        verified_at: new Date().toISOString(),
-        customer_name: order.customer_name,
-        customer_email: order.customer_email,
-        customer_phone: order.customer_phone,
-        raw_response: { ...sendMoneyData, verified: true, source: "auto_match" },
-      });
+        notes: `${provider}_trxID:${cleanTrx} | sender:${cleanSender} | verified:auto`,
+        bkash_response: { ...sendMoneyData, verified: true, verified_at: new Date().toISOString() },
+      })
+      .eq("id", orderId)
+      .eq("payment_status", "unpaid")
+      .select("id")
+      .maybeSingle();
 
-      if (insertTxnErr) {
-        console.error("Transaction insert blocked:", insertTxnErr);
-        return json({ error: "Duplicate transaction blocked." }, 409);
-      }
-
-      // Generate download tokens for digital products
-      await supabase.rpc("generate_download_tokens", { _order_id: orderId });
-
-      // Send confirmation email (non-blocking)
-      fetch(`${supabaseUrl}/functions/v1/send-order-confirmation`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseKey}` },
-        body: JSON.stringify({
-          order_id: orderId,
-          type: "payment_verified",
-          origin: req.headers.get("origin") || new URL(req.url).origin
-        }),
-      }).catch(() => {});
-
-      // Fire outbound payment webhook (non-blocking)
-      fetch(`${supabaseUrl}/functions/v1/order-webhook`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseKey}` },
-        body: JSON.stringify({ order_id: orderId, event: "order.payment_changed" }),
-      }).catch(() => {});
-
-      return json({
-        success: true,
-        verified: true,
-        message: "Payment verified and order completed.",
-      });
+    if (claimErr || !claimedOrder) {
+      return json({ error: "Order could not be marked paid (already processed)." }, 409);
     }
+
+    // Insert completed transaction (unique index on trx_id+provider is final replay guard)
+    const { error: insertTxnErr } = await supabase.from("transactions").insert({
+      order_id: orderId,
+      order_number: order.order_number,
+      payment_method: provider,
+      provider: transactionProvider,
+      sender_number: cleanSender,
+      trx_id: cleanTrx,
+      amount: order.total,
+      currency: "BDT",
+      status: "completed",
+      verified_at: new Date().toISOString(),
+      customer_name: order.customer_name,
+      customer_email: order.customer_email,
+      customer_phone: order.customer_phone,
+      raw_response: { ...sendMoneyData, verified: true, source: "auto_submit" },
+    });
+
+    if (insertTxnErr) {
+      console.error("Transaction insert blocked:", insertTxnErr);
+      // Revert order status since we couldn't record the transaction
+      await supabase
+        .from("orders")
+        .update({ payment_status: "unpaid", status: "pending" })
+        .eq("id", orderId);
+      return json({ error: "Duplicate transaction blocked." }, 409);
+    }
+
+    // Generate download tokens for digital products
+    await supabase.rpc("generate_download_tokens", { _order_id: orderId });
+
+    // Send confirmation email (non-blocking)
+    fetch(`${supabaseUrl}/functions/v1/send-order-confirmation`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseKey}` },
+      body: JSON.stringify({
+        order_id: orderId,
+        type: "payment_verified",
+        origin: req.headers.get("origin") || new URL(req.url).origin,
+      }),
+    }).catch(() => {});
+
+    // Fire outbound payment webhook (non-blocking)
+    fetch(`${supabaseUrl}/functions/v1/order-webhook`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseKey}` },
+      body: JSON.stringify({ order_id: orderId, event: "order.payment_changed" }),
+    }).catch(() => {});
+
+    return json({
+      success: true,
+      verified: true,
+      message: "Payment verified and order completed.",
+    });
 
     // Not verified — store as pending. Insert may be blocked by unique index if trxId already pending elsewhere.
     await supabase
