@@ -269,6 +269,78 @@ function PricingSection({ content }: { content: SectionContent }) {
   );
 }
 
+function PricingTiersSection({ content }: { content: SectionContent }) {
+  const plans = (content.plans || []).filter((p) => p.name);
+  if (!plans.length && !content.heading) return null;
+  return (
+    <section className="py-20 md:py-24">
+      <div className="container max-w-6xl mx-auto px-4">
+        {content.heading && (
+          <div className="text-center mb-12">
+            {content.badge && (
+              <p className="text-[11px] font-semibold tracking-widest uppercase text-primary mb-3">{content.badge}</p>
+            )}
+            <h2 className="text-3xl md:text-5xl font-display font-bold tracking-tight">{content.heading}</h2>
+            {content.subheading && <p className="text-muted-foreground mt-4 max-w-xl mx-auto">{content.subheading}</p>}
+          </div>
+        )}
+        <div className={`grid gap-6 ${plans.length >= 4 ? "sm:grid-cols-2 lg:grid-cols-4" : plans.length === 3 ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
+          {plans.map((plan, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.08 }}
+              className={`relative rounded-2xl p-6 flex flex-col transition-all hover:-translate-y-1 hover:shadow-xl ${
+                plan.highlight
+                  ? "border-2 border-primary shadow-lg ring-2 ring-primary/20 bg-gradient-to-b from-primary/5 to-transparent"
+                  : "border border-border/60 bg-card"
+              }`}
+            >
+              {plan.highlight && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                  Most Popular
+                </span>
+              )}
+              <div className={`h-11 w-11 rounded-xl flex items-center justify-center mb-4 ${
+                plan.highlight ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
+              }`}>
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <h3 className="text-lg font-bold">{plan.name}</h3>
+              {plan.tagline && <p className="text-xs text-muted-foreground uppercase tracking-wide mt-1">{plan.tagline}</p>}
+              <div className="mt-4 mb-5 flex items-baseline gap-1">
+                <span className="text-4xl font-bold">{plan.price}</span>
+                {plan.period && <span className="text-muted-foreground text-sm">/{plan.period}</span>}
+              </div>
+              {plan.features && plan.features.length > 0 && (
+                <ul className="space-y-2.5 mb-6 flex-1">
+                  {plan.features.filter(Boolean).map((f, j) => (
+                    <li key={j} className="flex items-start gap-2 text-sm">
+                      <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                      <span className="text-muted-foreground">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {plan.buttonUrl && plan.buttonUrl.startsWith("http") ? (
+                <Button variant={plan.highlight ? "gradient" : "outline"} className="w-full" asChild>
+                  <a href={plan.buttonUrl} target="_blank" rel="noopener noreferrer">{plan.buttonText || "Buy Now"}</a>
+                </Button>
+              ) : (
+                <Button variant={plan.highlight ? "gradient" : "outline"} className="w-full" onClick={scrollToCheckout}>
+                  {plan.buttonText || "Buy Now"}
+                </Button>
+              )}
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function GuaranteeSection({ content }: { content: SectionContent }) {
   if (!content.heading) return null;
   return (
@@ -991,6 +1063,7 @@ const renderers: Record<string, React.FC<{ content: SectionContent }>> = {
   "product-showcase": ProductShowcaseSection,
   bonus: BonusSection,
   countdown: CountdownSection,
+  "pricing-tiers": PricingTiersSection,
 };
 
 export default function LandingPage() {
