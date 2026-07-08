@@ -31,6 +31,7 @@ const _SECTION_TYPE_LABELS: Record<string, string> = {
   bonus: "Bonus Content",
   countdown: "Countdown Timer",
   checkout: "Checkout Form",
+  "pricing-tiers": "Pricing Tiers (multi-plan grid)",
 };
 
 const showBody = ["hero", "text-image", "testimonial", "guarantee", "pricing", "product-showcase"];
@@ -293,6 +294,76 @@ export function SectionEditor({ section, content, onChange, lang }: Props) {
             onClick={() => update("items", [...(content.items || []), { title: "", description: "" }])}
           >
             <Plus className="h-3.5 w-3.5 mr-1" /> Add Item
+          </Button>
+        </div>
+      )}
+
+      {section.type === "pricing-tiers" && (
+        <div className="space-y-3">
+          <label className="text-xs font-medium text-muted-foreground block">Pricing Plans</label>
+          {(content.plans || []).map((plan, i) => (
+            <div key={i} className="rounded-lg border border-border p-3 space-y-2 bg-muted/20">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-muted-foreground">Plan #{i + 1}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => update("plans", (content.plans || []).filter((_, idx) => idx !== i))}
+                >
+                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                </Button>
+              </div>
+              <div className="grid gap-2 md:grid-cols-2">
+                <input value={plan.name} onChange={(e) => {
+                  const p = [...(content.plans || [])]; p[i] = { ...p[i], name: e.target.value }; update("plans", p);
+                }} className={inputCls} placeholder="Plan name (e.g. 30 Day License)" />
+                <input value={plan.tagline || ""} onChange={(e) => {
+                  const p = [...(content.plans || [])]; p[i] = { ...p[i], tagline: e.target.value }; update("plans", p);
+                }} className={inputCls} placeholder="Tagline (e.g. Most popular)" />
+                <input value={plan.price} onChange={(e) => {
+                  const p = [...(content.plans || [])]; p[i] = { ...p[i], price: e.target.value }; update("plans", p);
+                }} className={inputCls} placeholder="Price (e.g. ৳499)" />
+                <input value={plan.period || ""} onChange={(e) => {
+                  const p = [...(content.plans || [])]; p[i] = { ...p[i], period: e.target.value }; update("plans", p);
+                }} className={inputCls} placeholder="Period (e.g. 30 days)" />
+                <input value={plan.buttonText || ""} onChange={(e) => {
+                  const p = [...(content.plans || [])]; p[i] = { ...p[i], buttonText: e.target.value }; update("plans", p);
+                }} className={inputCls} placeholder="Button text (default: Buy Now)" />
+                <input value={plan.buttonUrl || ""} onChange={(e) => {
+                  const p = [...(content.plans || [])]; p[i] = { ...p[i], buttonUrl: e.target.value }; update("plans", p);
+                }} className={inputCls} placeholder="Button URL (blank = scroll to checkout)" />
+              </div>
+              <textarea
+                value={(plan.features || []).join("\n")}
+                onChange={(e) => {
+                  const p = [...(content.plans || [])];
+                  p[i] = { ...p[i], features: e.target.value.split("\n") };
+                  update("plans", p);
+                }}
+                className={textareaCls}
+                placeholder="Features — one per line"
+              />
+              <label className="flex items-center gap-2 text-xs font-medium">
+                <input
+                  type="checkbox"
+                  checked={!!plan.highlight}
+                  onChange={(e) => {
+                    const p = [...(content.plans || [])]; p[i] = { ...p[i], highlight: e.target.checked }; update("plans", p);
+                  }}
+                />
+                Highlight this plan (Most Popular badge)
+              </label>
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => update("plans", [...(content.plans || []), { name: "", price: "", features: [] }])}
+          >
+            <Plus className="h-3.5 w-3.5 mr-1" /> Add Plan
           </Button>
         </div>
       )}
