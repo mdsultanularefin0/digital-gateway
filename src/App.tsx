@@ -51,6 +51,7 @@ const AdminNewsletter = lazyRetry(() => import("./pages/admin/AdminNewsletter"))
 const AdminBlog = lazyRetry(() => import("./pages/admin/AdminBlog"));
 const AdminLandingPages = lazyRetry(() => import("./pages/admin/AdminLandingPages"));
 const LandingPage = lazyRetry(() => import("./pages/LandingPage"));
+const LovableLicense = lazyRetry(() => import("./pages/LovableLicense"));
 const AdminBkashTransactions = lazyRetry(() => import("./pages/admin/AdminBkashTransactions"));
 const AdminTransactions = lazyRetry(() => import("./pages/admin/AdminTransactions"));
 const AdminPaymentSettings = lazyRetry(() => import("./pages/admin/AdminPaymentSettings"));
@@ -144,6 +145,7 @@ const App = () => {
                       <Route path="/admin/event-tracking" element={<AdminGuard><AdminEventTracking /></AdminGuard>} />
                       <Route path="/admin/meta-event-status" element={<AdminGuard><AdminMetaEventStatus /></AdminGuard>} />
                       <Route path="/p/:slug" element={<LandingPage />} />
+                      <Route path="/lovable-license" element={<LovableLicense />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>
