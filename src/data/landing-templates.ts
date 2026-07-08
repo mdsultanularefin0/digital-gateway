@@ -9,6 +9,7 @@ export interface LandingSection {
     | "faq"
     | "text-image"
     | "pricing"
+    | "pricing-tiers"
     | "how-it-works"
     | "guarantee"
     | "product-showcase"
@@ -27,6 +28,17 @@ export interface LandingTemplate {
   preview: string;
 }
 
+export interface PricingPlan {
+  name: string;
+  price: string;
+  period?: string;
+  tagline?: string;
+  features?: string[];
+  highlight?: boolean;
+  buttonText?: string;
+  buttonUrl?: string;
+}
+
 export interface SectionContent {
   heading?: string;
   subheading?: string;
@@ -37,6 +49,7 @@ export interface SectionContent {
   images?: string[];
   imageRatio?: "auto" | "1:1" | "4:3" | "16:9" | "3:4" | "9:16";
   items?: { title: string; description: string; icon?: string }[];
+  plans?: PricingPlan[];
   price?: string;
   originalPrice?: string;
   badge?: string;
@@ -157,6 +170,23 @@ export const landingTemplates: LandingTemplate[] = [
       { id: "cta", type: "cta", label: "Join Waitlist" },
     ],
   },
+  {
+    id: "license-tiers",
+    name: "License / Subscription Tiers",
+    nameBn: "লাইসেন্স / সাবস্ক্রিপশন টিয়ার",
+    description: "Multi-plan pricing grid (day/week/month/year passes) with a reseller / upgrade card. Great for SaaS licenses, membership passes, service tiers.",
+    preview: "🗝️",
+    sections: [
+      { id: "hero", type: "hero", label: "License Hero" },
+      { id: "pricing-tiers", type: "pricing-tiers", label: "License Plans" },
+      { id: "features", type: "features", label: "Why Choose Us" },
+      { id: "text-image", type: "text-image", label: "Reseller / Upgrade Card" },
+      { id: "testimonial", type: "testimonial", label: "Customer Reviews" },
+      { id: "faq", type: "faq", label: "FAQ" },
+      { id: "cta", type: "cta", label: "Final CTA" },
+      { id: "checkout", type: "checkout", label: "Checkout" },
+    ],
+  },
 ];
 
 export function getDefaultSections(template: LandingTemplate): SectionsData {
@@ -164,6 +194,7 @@ export function getDefaultSections(template: LandingTemplate): SectionsData {
   for (const s of template.sections) {
     const hasItems = ["features", "faq", "stats", "how-it-works", "bonus"].includes(s.type);
     const hasCountdown = s.type === "countdown";
+    const hasPlans = s.type === "pricing-tiers";
     data[s.id] = {
       heading: "",
       subheading: "",
@@ -180,6 +211,14 @@ export function getDefaultSections(template: LandingTemplate): SectionsData {
             { title: "", description: "" },
             { title: "", description: "" },
             { title: "", description: "" },
+          ]
+        : undefined,
+      plans: hasPlans
+        ? [
+            { name: "Starter", price: "৳99", period: "24 hours", tagline: "Try it out", features: ["Full access", "1 project"] },
+            { name: "Weekly", price: "৳299", period: "7 days", tagline: "Weekend build", features: ["Everything in Starter", "3 projects", "Email support"] },
+            { name: "Monthly", price: "৳499", period: "30 days", tagline: "Most popular", highlight: true, features: ["Everything in Weekly", "10 projects", "Priority support"] },
+            { name: "Yearly", price: "৳1999", period: "12 months", tagline: "Best value", features: ["Everything in Monthly", "Unlimited projects", "24/7 support"] },
           ]
         : undefined,
     };
