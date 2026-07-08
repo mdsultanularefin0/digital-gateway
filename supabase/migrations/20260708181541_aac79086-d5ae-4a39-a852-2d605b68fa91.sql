@@ -1,0 +1,1 @@
+ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS tier_id uuid REFERENCES public.product_tiers(id) ON DELETE SET NULL;

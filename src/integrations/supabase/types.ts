@@ -802,6 +802,7 @@ export type Database = {
           product_id: string | null
           product_name: string
           quantity: number
+          tier_id: string | null
           tier_label: string
           total: number
           unit_price: number
@@ -813,6 +814,7 @@ export type Database = {
           product_id?: string | null
           product_name?: string
           quantity?: number
+          tier_id?: string | null
           tier_label?: string
           total?: number
           unit_price?: number
@@ -824,6 +826,7 @@ export type Database = {
           product_id?: string | null
           product_name?: string
           quantity?: number
+          tier_id?: string | null
           tier_label?: string
           total?: number
           unit_price?: number
@@ -841,6 +844,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "product_tiers"
             referencedColumns: ["id"]
           },
         ]
