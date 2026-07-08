@@ -141,6 +141,85 @@ export function WebhookTab({ settings, update }: WebhookTabProps) {
           </div>
         </div>
       </section>
+
+      <section className="rounded-xl border border-border">
+        <div className="flex items-center gap-3 border-b border-border p-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/50">
+            <Webhook className="h-4 w-4 text-foreground" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-sm">Product Webhook (License Issuance)</h3>
+            <p className="text-xs text-muted-foreground">
+              Called on successful payment for license-tier products. Your endpoint (e.g. n8n) should
+              respond with a valid license key for the purchased plan.
+            </p>
+          </div>
+        </div>
+        <div className="p-4 space-y-4">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Product Webhook URL
+            </label>
+            <input
+              type="url"
+              value={settings["product_webhook_url"] || ""}
+              onChange={(e) => update("product_webhook_url", e.target.value)}
+              placeholder="https://n8n.your-domain.com/webhook/license"
+              className="h-9 w-full rounded-xl border border-border bg-background px-3 text-sm"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              POSTed with order + plan details. Expected response: <code className="font-mono">{`{ "license_key": "...", "expires_at": "..." }`}</code>
+            </p>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Product Webhook Secret (optional)
+            </label>
+            <div className="relative">
+              <input
+                type={visibleFields["product_webhook_secret"] ? "text" : "password"}
+                value={settings["product_webhook_secret"] || ""}
+                onChange={(e) => update("product_webhook_secret", e.target.value)}
+                placeholder="Shared secret included in the payload"
+                className="h-9 w-full rounded-xl border border-border bg-background px-3 pr-10 text-sm"
+              />
+              <button
+                type="button"
+                onClick={() => toggleVisibility("product_webhook_secret")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {visibleFields["product_webhook_secret"] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Request Payload</h4>
+            <pre className="text-xs bg-muted rounded-xl p-3 overflow-auto font-mono whitespace-pre-wrap">
+{`{
+  "event": "license.issue",
+  "order_number": "ORD-...",
+  "customer_email": "buyer@example.com",
+  "customer_name": "John Doe",
+  "plan_name": "30 Days",
+  "plan_period": "30d",
+  "amount": 499,
+  "secret": "your-product-webhook-secret"
+}`}
+            </pre>
+          </div>
+          <div>
+            <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Expected Response</h4>
+            <pre className="text-xs bg-muted rounded-xl p-3 overflow-auto font-mono whitespace-pre-wrap">
+{`{
+  "license_key": "LVBL-XXXX-XXXX-XXXX",
+  "expires_at": "2026-08-08T00:00:00Z"
+}`}
+            </pre>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
