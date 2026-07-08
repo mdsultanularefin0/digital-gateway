@@ -145,6 +145,7 @@ const App = () => {
                       <Route path="/admin/event-tracking" element={<AdminGuard><AdminEventTracking /></AdminGuard>} />
                       <Route path="/admin/meta-event-status" element={<AdminGuard><AdminMetaEventStatus /></AdminGuard>} />
                       <Route path="/p/:slug" element={<LandingPage />} />
+                      <Route path="/lovable-license" element={<LovableLicense />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>
