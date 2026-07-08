@@ -170,6 +170,23 @@ export const landingTemplates: LandingTemplate[] = [
       { id: "cta", type: "cta", label: "Join Waitlist" },
     ],
   },
+  {
+    id: "license-tiers",
+    name: "License / Subscription Tiers",
+    nameBn: "লাইসেন্স / সাবস্ক্রিপশন টিয়ার",
+    description: "Multi-plan pricing grid (day/week/month/year passes) with a reseller / upgrade card. Great for SaaS licenses, membership passes, service tiers.",
+    preview: "🗝️",
+    sections: [
+      { id: "hero", type: "hero", label: "License Hero" },
+      { id: "pricing-tiers", type: "pricing-tiers", label: "License Plans" },
+      { id: "features", type: "features", label: "Why Choose Us" },
+      { id: "text-image", type: "text-image", label: "Reseller / Upgrade Card" },
+      { id: "testimonial", type: "testimonial", label: "Customer Reviews" },
+      { id: "faq", type: "faq", label: "FAQ" },
+      { id: "cta", type: "cta", label: "Final CTA" },
+      { id: "checkout", type: "checkout", label: "Checkout" },
+    ],
+  },
 ];
 
 export function getDefaultSections(template: LandingTemplate): SectionsData {
