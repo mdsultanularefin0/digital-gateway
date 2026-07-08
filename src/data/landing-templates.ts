@@ -193,26 +193,36 @@ export const landingTemplates: LandingTemplate[] = [
 export function getDefaultSections(template: LandingTemplate): SectionsData {
   const data: SectionsData = {};
   for (const s of template.sections) {
-    const hasItems = ["features", "faq", "stats", "how-it-works", "bonus"].includes(s.type);
+    const hasItems = ["features", "faq", "stats", "how-it-works", "bonus", "reseller"].includes(s.type);
     const hasCountdown = s.type === "countdown";
     const hasPlans = s.type === "pricing-tiers";
+    const isReseller = s.type === "reseller";
     data[s.id] = {
-      heading: "",
-      subheading: "",
+      heading: isReseller ? "Sell licenses under your own brand" : "",
+      subheading: isReseller ? "Get your own admin panel to generate, manage and resell licenses. Set your prices, keep the margin." : "",
       body: "",
-      buttonText: "",
+      buttonText: isReseller ? "Get Reseller Panel" : "",
       buttonUrl: "",
       imageUrl: "",
-      price: "",
+      price: isReseller ? "৳3,999" : "",
       originalPrice: "",
-      badge: "",
+      badge: isReseller ? "Reseller Program" : "",
       countdownDate: hasCountdown ? "" : undefined,
       items: hasItems
-        ? [
-            { title: "", description: "" },
-            { title: "", description: "" },
-            { title: "", description: "" },
-          ]
+        ? isReseller
+          ? [
+              { title: "Full admin panel with license generator", description: "" },
+              { title: "Bulk license key creation", description: "" },
+              { title: "Customer & order management", description: "" },
+              { title: "Sales dashboard & analytics", description: "" },
+              { title: "White-label ready", description: "" },
+              { title: "Priority reseller support", description: "" },
+            ]
+          : [
+              { title: "", description: "" },
+              { title: "", description: "" },
+              { title: "", description: "" },
+            ]
         : undefined,
       plans: hasPlans
         ? [
