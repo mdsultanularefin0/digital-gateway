@@ -51,7 +51,7 @@ Deno.serve(withLogging("issue-license", async (req) => {
 
     const { data: order, error: orderErr } = await supabase
       .from("orders")
-      .select("id, order_number, customer_name, customer_email, payment_status, order_items(*)")
+      .select("id, order_number, customer_name, customer_email, payment_status, order_items(*, products(delivery_type))")
       .eq("id", order_id)
       .maybeSingle();
     if (orderErr || !order) return json({ error: "Order not found" }, 404);
@@ -62,10 +62,13 @@ Deno.serve(withLogging("issue-license", async (req) => {
     const results: Array<Record<string, unknown>> = [];
 
     for (const item of (order.order_items || []) as any[]) {
-      // Skip if a delivery already exists for this item
+      // Only process items whose product is a license type
+      if (item.products?.delivery_type !== "license") continue;
+
+      // Look up the pending delivery row created by auto_fulfill_order
       const { data: existing } = await supabase
         .from("order_deliveries")
-        .select("id, status")
+        .select("id, status, payload")
         .eq("order_id", order.id)
         .eq("order_item_id", item.id)
         .maybeSingle();
