@@ -174,45 +174,6 @@ Deno.serve(withLogging("verify-send-money", async (req) => {
       verified: true,
       message: "Payment verified and order completed.",
     });
-
-    // Not verified — store as pending. Insert may be blocked by unique index if trxId already pending elsewhere.
-    await supabase
-      .from("orders")
-      .update({
-        payment_method: provider,
-        notes: `${provider}_trxID:${cleanTrx} | sender:${cleanSender}`,
-        bkash_response: sendMoneyData,
-      })
-      .eq("id", orderId);
-
-    const { error: pendingInsertErr } = await supabase.from("transactions").insert({
-      order_id: orderId,
-      order_number: order.order_number,
-      payment_method: provider,
-        provider: transactionProvider,
-      sender_number: cleanSender,
-      trx_id: cleanTrx,
-      amount: order.total,
-      currency: "BDT",
-      status: "pending",
-      customer_name: order.customer_name,
-      customer_email: order.customer_email,
-      customer_phone: order.customer_phone,
-      raw_response: sendMoneyData,
-    });
-
-    if (pendingInsertErr) {
-      console.error("Pending transaction insert blocked:", pendingInsertErr);
-      return json({ error: "This Transaction ID has already been submitted." }, 409);
-    }
-
-    return json({
-      success: true,
-      verified: false,
-      message: verification
-        ? "Transaction found but amount mismatch. Awaiting manual verification."
-        : "Payment details submitted. Awaiting verification.",
-    });
   } catch (err: unknown) {
     console.error("verify-send-money error:", err);
     const message = err instanceof Error ? err.message : "Unknown error";
