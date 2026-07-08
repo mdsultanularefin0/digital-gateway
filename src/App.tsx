@@ -51,6 +51,7 @@ const AdminNewsletter = lazyRetry(() => import("./pages/admin/AdminNewsletter"))
 const AdminBlog = lazyRetry(() => import("./pages/admin/AdminBlog"));
 const AdminLandingPages = lazyRetry(() => import("./pages/admin/AdminLandingPages"));
 const LandingPage = lazyRetry(() => import("./pages/LandingPage"));
+const LovableLicense = lazyRetry(() => import("./pages/LovableLicense"));
 const AdminBkashTransactions = lazyRetry(() => import("./pages/admin/AdminBkashTransactions"));
 const AdminTransactions = lazyRetry(() => import("./pages/admin/AdminTransactions"));
 const AdminPaymentSettings = lazyRetry(() => import("./pages/admin/AdminPaymentSettings"));
