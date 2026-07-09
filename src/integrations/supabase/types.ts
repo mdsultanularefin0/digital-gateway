@@ -1236,6 +1236,7 @@ export type Database = {
         Row: {
           billing_cycle: string | null
           category: string
+          compare_at_price: number | null
           created_at: string
           delivery_type: string
           description: string
@@ -1261,6 +1262,7 @@ export type Database = {
         Insert: {
           billing_cycle?: string | null
           category?: string
+          compare_at_price?: number | null
           created_at?: string
           delivery_type?: string
           description?: string
@@ -1286,6 +1288,7 @@ export type Database = {
         Update: {
           billing_cycle?: string | null
           category?: string
+          compare_at_price?: number | null
           created_at?: string
           delivery_type?: string
           description?: string
