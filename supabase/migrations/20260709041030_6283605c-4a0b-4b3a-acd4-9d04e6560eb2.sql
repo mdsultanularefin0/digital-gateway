@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS orders_auto_fulfill ON public.orders;
