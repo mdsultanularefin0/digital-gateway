@@ -174,6 +174,22 @@ export function WebhookTab({ settings, update }: WebhookTabProps) {
 
           <div>
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              License Function URL
+            </label>
+            <input
+              type="url"
+              value={settings["issue_license_function_url"] || ""}
+              onChange={(e) => update("issue_license_function_url", e.target.value)}
+              placeholder="https://your-backend-domain/functions/v1/issue-license"
+              className="h-9 w-full rounded-xl border border-border bg-background px-3 text-sm"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Used by the paid-order database trigger. Self-hosted installs must point this to their own issue-license function.
+            </p>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Product Webhook Secret (optional)
             </label>
             <div className="relative">
